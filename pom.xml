@@ -29,11 +29,6 @@
             <version>2.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.9.9-RC1</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -52,7 +47,6 @@
                             <minimizeJar>true</minimizeJar>
                             <artifactSet>
                                 <includes>
-                                    <include>org.reflections:reflections:*:*</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
