@@ -15,4 +15,36 @@ public class Utilities {
 
         return line;
     }
+
+    public static Integer getInteger(String literal) {
+        try {
+            return Integer.parseInt(literal);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    public static Long getLong(String literal) {
+        try {
+            return Long.parseLong(literal);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    public static Float getFloat(String literal) {
+        try {
+            return Float.parseFloat(literal);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    public static Double getDouble(String literal) {
+        try {
+            return Double.parseDouble(literal);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 }

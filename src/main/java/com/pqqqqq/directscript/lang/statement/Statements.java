@@ -2,6 +2,7 @@ package com.pqqqqq.directscript.lang.statement;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.annotation.Statement;
+import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptDeclaration;
 import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptTermination;
 import com.pqqqqq.directscript.util.RegistryUtil;
@@ -26,13 +27,13 @@ public class Statements {
         return REGISTRY;
     }
 
-    public static Optional<IStatement> getStatementFromLine(String line) {
+    public static Optional<IStatement> getStatementFromLine(Line line) {
         for (IStatement statement : REGISTRY) {
             Statement statementAnnot = statement.getClass().getAnnotation(Statement.class);
 
             // TODO: Any comment stuff and/or other literal stuff that conflicts with the way this currently works
             for (String identifier : statementAnnot.identifiers()) {
-                if (line.trim().startsWith(statementAnnot.prefix() + identifier)) {
+                if (line.getLine().trim().startsWith(statementAnnot.prefix() + identifier)) {
                     return Optional.of(statement);
                 }
             }
@@ -41,11 +42,11 @@ public class Statements {
         return Optional.absent();
     }
 
-    public static boolean isApplicableToLine(IStatement statement, String line) {
+    public static boolean isApplicableToLine(IStatement statement, Line line) {
         // TODO: Any comment stuff and/or other literal stuff that conflicts with the way this currently works
         Statement statementAnnot = statement.getClass().getAnnotation(Statement.class);
         for (String identifier : statementAnnot.identifiers()) {
-            if (line.trim().startsWith(statementAnnot.prefix() + identifier)) {
+            if (line.getLine().trim().startsWith(statementAnnot.prefix() + identifier)) {
                 return true;
             }
         }

@@ -1,5 +1,6 @@
 package com.pqqqqq.directscript.lang.container;
 
+import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 
@@ -12,7 +13,7 @@ import java.util.List;
  */
 public class Script {
     private final String name;
-    private final List<String> lines = new ArrayList<String>();
+    private final List<Line> lines = new ArrayList<Line>();
 
     public Script(String name) {
         this.name = name;
@@ -22,7 +23,7 @@ public class Script {
         return name;
     }
 
-    public List<String> getLines() {
+    public List<Line> getLines() {
         return lines;
     }
 

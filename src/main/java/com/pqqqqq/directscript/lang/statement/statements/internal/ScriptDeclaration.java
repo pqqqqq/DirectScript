@@ -1,6 +1,8 @@
 package com.pqqqqq.directscript.lang.statement.statements.internal;
 
 import com.pqqqqq.directscript.lang.annotation.Statement;
+import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
 
@@ -10,13 +12,13 @@ import com.pqqqqq.directscript.lang.statement.StatementResult;
 @Statement(prefix = "#", identifiers = { "SCRIPT" })
 public class ScriptDeclaration implements IStatement<String> {
 
-    public StatementResult<String> run(String line) {
-        String[] split = line.split(" ");
+    public StatementResult<String> run(Line line) {
+        Literal scriptName = line.getLiteral(1);
 
-        if (split.length < 2) {
-            return StatementResult.failure();
+        if (!scriptName.isString()) {
+            throw new IllegalArgumentException(line.getWord(1) + " is not a string");
         }
 
-        return StatementResult.<String>builder().success().result(split[1]).build();
+        return StatementResult.<String>builder().success().result((String) scriptName.getValue().get()).build();
     }
 }
