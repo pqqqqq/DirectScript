@@ -1,5 +1,7 @@
 package com.pqqqqq.directscript.lang.container;
 
+import com.google.common.base.Optional;
+
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +18,21 @@ public class ScriptsFile {
         this.file = file;
     }
 
+    public File getFile() {
+        return file;
+    }
+
     public Set<Script> getScripts() {
         return scripts;
+    }
+
+    public Optional<Script> getScript(String name) {
+        for (Script script : scripts) {
+            if (script.getName().equals(name)) {
+                return Optional.of(script);
+            }
+        }
+
+        return Optional.absent();
     }
 }

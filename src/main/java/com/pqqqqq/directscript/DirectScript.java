@@ -1,6 +1,8 @@
 package com.pqqqqq.directscript;
 
 import com.google.inject.Inject;
+import com.pqqqqq.directscript.lang.container.ScriptsFile;
+import com.pqqqqq.directscript.lang.reader.Reader;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
@@ -10,6 +12,8 @@ import org.spongepowered.api.event.state.ServerStartingEvent;
 import org.spongepowered.api.event.state.ServerStoppingEvent;
 import org.spongepowered.api.plugin.Plugin;
 
+import java.util.Set;
+
 /**
  * Created by Kevin on 2015-06-02.
  */
@@ -18,9 +22,8 @@ public class DirectScript {
     public static final String ID = "directscript";
     public static final String NAME = "DirectScript";
     public static final String VERSION = "1.0-SNAPSHOT";
-
     private static DirectScript INSTANCE;
-
+    private Set<ScriptsFile> scriptsFiles;
     @Inject
     private Game game;
 
@@ -32,9 +35,17 @@ public class DirectScript {
         this.logger = logger;
     }
 
+    public static DirectScript instance() {
+        return INSTANCE;
+    }
+
     @Subscribe
     public void init(InitializationEvent event) {
         INSTANCE = this;
+
+        // Register all scripts
+        scriptsFiles = Reader.instance().readInDir();
+
         // Register commands, events, etc.
     }
 
@@ -56,7 +67,7 @@ public class DirectScript {
         return game;
     }
 
-    public static DirectScript getInstance() {
-        return INSTANCE;
+    public Set<ScriptsFile> getScriptsFiles() {
+        return scriptsFiles;
     }
 }
