@@ -27,14 +27,19 @@ public class Cause {
     }
 
     public void trigger() {
-        trigger(ScriptInstance.builder());
+        trigger(null);
     }
 
     public void trigger(ScriptInstance.Builder builder) {
-        builder.cause(this);
+        //if (!triggers.isEmpty()) {
+            if (builder == null) {
+                builder = ScriptInstance.builder();
+            }
 
-        for (Trigger trigger : triggers) {
-            trigger.trigger(builder);
-        }
+            builder.cause(this);
+            for (Trigger trigger : triggers) {
+                trigger.trigger(builder);
+            }
+        //}
     }
 }

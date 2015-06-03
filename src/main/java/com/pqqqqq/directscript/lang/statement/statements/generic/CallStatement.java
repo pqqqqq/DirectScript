@@ -19,7 +19,7 @@ import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 public class CallStatement implements IStatement {
 
     public StatementResult run(ScriptInstance scriptInstance, Line line) {
-        String scriptName = line.getLiteral(scriptInstance, 1).getString();
+        String scriptName = line.sequence(scriptInstance, 0).getString();
         Optional<Script> script = DirectScript.instance().getScript(scriptName);
 
         if (!script.isPresent()) {
@@ -27,9 +27,9 @@ public class CallStatement implements IStatement {
         }
 
         ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script.get()).cause(Causes.CALL).build();
-        for (int i = 2; i < line.getWordCount(); i += 2) {
-            String varName = line.getLiteral(scriptInstance, i).getString();
-            Literal value = line.getLiteral(scriptInstance, i + 1);
+        for (int i = 1; i < line.getArgCount(); i += 2) {
+            String varName = line.sequence(scriptInstance, i).getString();
+            Literal value = line.sequence(scriptInstance, i + 1);
 
             if (!scriptInstanceNew.getVariables().containsKey(varName)) {
                 scriptInstanceNew.getVariables().put(varName, new Variable(varName, value));

@@ -79,7 +79,7 @@ public class Reader {
             String line;
 
             while ((line = bufferedReader.readLine()) != null) {
-                // Up the lines
+                // Up the line #s
                 absoluteLine++;
                 if (currentScript != null) {
                     scriptLine++;

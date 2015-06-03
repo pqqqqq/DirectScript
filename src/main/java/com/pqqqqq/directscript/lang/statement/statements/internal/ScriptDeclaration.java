@@ -14,10 +14,10 @@ import com.pqqqqq.directscript.lang.statement.StatementResult;
 public class ScriptDeclaration implements IStatement<String> {
 
     public StatementResult<String> run(ScriptInstance scriptInstance, Line line) {
-        Literal scriptName = line.getLiteral(scriptInstance, 1);
+        Literal scriptName = line.sequence(scriptInstance, 0);
 
-        if (!scriptName.isString()) {
-            throw new IllegalArgumentException(line.getWord(1) + " is not a string");
+        if (scriptName.isEmpty() || !scriptName.isString()) {
+            throw new IllegalArgumentException(line.getArg(0) + " is not a string");
         }
 
         return StatementResult.<String>builder().success().result(scriptName.getString()).build();

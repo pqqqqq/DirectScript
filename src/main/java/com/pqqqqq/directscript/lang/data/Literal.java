@@ -1,7 +1,12 @@
 package com.pqqqqq.directscript.lang.data;
 
 import com.google.common.base.Optional;
+import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.util.Utilities;
+import org.spongepowered.api.entity.player.Player;
+
+import java.text.DecimalFormat;
+import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -10,7 +15,9 @@ import static com.google.common.base.Preconditions.checkState;
  * A literal is a value that is not dependent on any environment; a constant
  */
 public class Literal<T> {
+    private static final DecimalFormat decimalFormat = new DecimalFormat("#.#");
     private static final Literal EMPTY = new Literal();
+
     private final Optional<T> value;
 
     private Literal() {
@@ -25,7 +32,15 @@ public class Literal<T> {
         return EMPTY;
     }
 
-    public static <T> Literal<T> getLiteralBlindly(T value) {
+    public static <T> Literal getLiteralBlindly(T value) {
+        if (value == null) {
+            return Literal.empty();
+        }
+
+        if (value instanceof Integer || value instanceof Long || value instanceof Float) {
+            return new Literal<Double>(Double.parseDouble(value.toString()));
+        }
+
         return new Literal<T>(value);
     }
 
@@ -48,22 +63,7 @@ public class Literal<T> {
             return Optional.<Literal>of(new Literal<Boolean>(false));
         }
 
-        // Everything in literals are basically just numbers
-        Integer intVal = Utilities.getInteger(literal);
-        if (intVal != null) {
-            return Optional.<Literal>of(new Literal<Integer>(intVal));
-        }
-
-        Long longVal = Utilities.getLong(literal);
-        if (longVal != null) {
-            return Optional.<Literal>of(new Literal<Long>(longVal));
-        }
-
-        Float floatVal = Utilities.getFloat(literal);
-        if (floatVal != null) {
-            return Optional.<Literal>of(new Literal<Float>(floatVal));
-        }
-
+        // Everything in literals are basically just numbers, just make them all doubles
         Double doubleVal = Utilities.getDouble(literal);
         if (doubleVal != null) {
             return Optional.<Literal>of(new Literal<Double>(doubleVal));
@@ -82,69 +82,21 @@ public class Literal<T> {
 
     public boolean isString() {
         checkState(value.isPresent(), "This literal must be present to check this");
-        return value.get().getClass().isAssignableFrom(String.class);
+        return value.get() instanceof String;
     }
 
     public boolean isBoolean() {
         checkState(value.isPresent(), "This literal must be present to check this");
-        return value.get().getClass().isAssignableFrom(Boolean.class);
-    }
-
-    public boolean isInteger() {
-        checkState(value.isPresent(), "This literal must be present to check this");
-        return value.get().getClass().isAssignableFrom(Integer.class);
-    }
-
-    public boolean isLong() {
-        checkState(value.isPresent(), "This literal must be present to check this");
-        return value.get().getClass().isAssignableFrom(Long.class);
-    }
-
-    public boolean isIntegral() {
-        return isInteger() || isLong();
-    }
-
-    public boolean isFloat() {
-        checkState(value.isPresent(), "This literal must be present to check this");
-        return value.get().getClass().isAssignableFrom(Float.class);
-    }
-
-    public boolean isDouble() {
-        checkState(value.isPresent(), "This literal must be present to check this");
-        return value.get().getClass().isAssignableFrom(Double.class);
-    }
-
-    public boolean isDecimal() {
-        return isFloat() || isDouble();
+        return value.get() instanceof Boolean;
     }
 
     public boolean isNumber() {
-        return isIntegral() || isDecimal();
+        checkState(value.isPresent(), "This literal must be present to check this");
+        return value.get() instanceof Double;
     }
 
     // Some nice literal to literal conversions
-    public Literal<Integer> parseInteger() {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isString(), "The value must be a string to use this method");
-
-        return new Literal<Integer>(Integer.parseInt((String) value.get()));
-    }
-
-    public Literal<Long> parseLong() {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isString(), "The value must be a string to use this method");
-
-        return new Literal<Long>(Long.parseLong((String) value.get()));
-    }
-
-    public Literal<Float> parseFloat() {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isString(), "The value must be a string to use this method");
-
-        return new Literal<Float>(Float.parseFloat((String) value.get()));
-    }
-
-    public Literal<Double> parseDouble() {
+    public Literal<Double> parseNumber() {
         checkState(value.isPresent(), "This literal must be present to do this");
         checkState(isString(), "The value must be a string to use this method");
 
@@ -160,6 +112,12 @@ public class Literal<T> {
 
     public Literal<String> parseString() {
         checkState(value.isPresent(), "This literal must be present to do this");
+
+        // Make integers not have the .0
+        if (isNumber()) {
+            return new Literal<String>(decimalFormat.format(getNumber()));
+        }
+
         return new Literal<String>(value.get().toString());
     }
 
@@ -175,27 +133,66 @@ public class Literal<T> {
         return (Boolean) value.get();
     }
 
-    public Integer getInteger() {
+    public Double getNumber() {
         checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isInteger(), "This literal is not a integer");
-        return (Integer) value.get();
-    }
-
-    public Long getLong() {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isLong(), "This literal is not a long");
-        return (Long) value.get();
-    }
-
-    public Float getFloat() {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isFloat(), "This literal is not a float");
-        return (Float) value.get();
-    }
-
-    public Double getDouble() {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isDouble(), "This literal is not a double");
+        checkState(isNumber(), "This literal is not a number");
         return (Double) value.get();
+    }
+
+    // Some common additional getters (sponge)
+    public Optional<Player> getPlayer() {
+        try {
+            Optional<Player> playerOptional = DirectScript.instance().getGame().getServer().getPlayer(getString()); // Check name first
+            if (playerOptional.isPresent()) {
+                return playerOptional;
+            }
+
+             return DirectScript.instance().getGame().getServer().getPlayer(UUID.fromString(getString())); // Check uuid now
+         } catch (IllegalArgumentException e) {
+            return Optional.absent();
+         }
+    }
+
+    // Arithmetic
+    public Literal add(Literal other) {
+        checkState(value.isPresent(), "This literal must be present to do this");
+        return addOrSet(other);
+    }
+
+    public Literal addOrSet(Literal other) {
+        checkState(other.getValue().isPresent(), "This literal must be present to do this");
+
+        if (!value.isPresent()) {
+            return other;
+        }
+
+        if (isString()) {
+            return Literal.getLiteralBlindly(getString() + other.parseString().getString()); // Everything can be a string
+        }
+
+        if (other.isString()) {
+            return Literal.getLiteralBlindly(parseString().getString() + other.getString()); // Everything can be a string
+        }
+
+        if (isNumber()) {
+            if (other.isNumber()) {
+                return Literal.getLiteralBlindly(getNumber() + other.getNumber());
+            }
+        }
+
+        throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be added to " + value.get().getClass().getName());
+    }
+
+    public Literal sub(Literal other) {
+        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(other.getValue().isPresent(), "This literal must be present to do this");
+
+        if (isNumber()) {
+            if (other.isNumber()) {
+                return Literal.getLiteralBlindly(getNumber() - other.getNumber());
+            }
+        }
+
+        throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be subtraced from " + value.get().getClass().getName());
     }
 }

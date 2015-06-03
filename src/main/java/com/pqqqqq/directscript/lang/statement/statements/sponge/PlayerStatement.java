@@ -1,7 +1,6 @@
 package com.pqqqqq.directscript.lang.statement.statements.sponge;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.reader.Line;
@@ -10,8 +9,6 @@ import com.pqqqqq.directscript.lang.statement.StatementResult;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.text.Texts;
 
-import java.util.UUID;
-
 /**
  * Created by Kevin on 2015-06-02.
  */
@@ -19,19 +16,14 @@ import java.util.UUID;
 public class PlayerStatement implements IStatement {
 
     public StatementResult run(ScriptInstance scriptInstance, Line line) {
-        String player = line.getLiteral(scriptInstance, 1).getString();
-        String message = line.getLiteral(scriptInstance, 2).getString();
+        Optional<Player> player = line.sequence(scriptInstance, 0).getPlayer();
+        String message = line.sequence(scriptInstance, 1).getString();
 
-        Optional<Player> serverPlayer = DirectScript.instance().getGame().getServer().getPlayer(player);
-        if (!serverPlayer.isPresent()) {
-            try {
-                serverPlayer = DirectScript.instance().getGame().getServer().getPlayer(UUID.fromString(player));
-            } catch (IllegalArgumentException e) {
-                return StatementResult.failure();
-            }
+        if (!player.isPresent()) {
+            return StatementResult.failure();
         }
 
-        serverPlayer.get().sendMessage(Texts.of(message));
+        player.get().sendMessage(Texts.of(message));
         return StatementResult.success();
     }
 }

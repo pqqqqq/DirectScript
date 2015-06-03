@@ -2,6 +2,8 @@ package com.pqqqqq.directscript.lang.error;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by Kevin on 2015-06-02.
@@ -29,12 +31,15 @@ public class ErrorHandler {
     }
 
     public void log(Object message) {
-        writer.println(message.toString());
+        writer.println(timestamp() + ": " + message.toString());
     }
 
-    public void log(Exception e) {
+    public void log(Throwable e) {
         e.printStackTrace(writer);
-        writer.println();
+    }
+
+    public String timestamp() {
+        return "[" + SimpleDateFormat.getDateTimeInstance().format(new Date()) + "]";
     }
 
     public void flush() {

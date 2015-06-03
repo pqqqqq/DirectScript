@@ -68,4 +68,17 @@ public class Utilities {
     public static String unescape(String str) {
         return StringEscapeUtils.unescapeJava(str);
     }
+
+    public static String[] splitNotInQuotes(String str, String... splits) {
+        if (splits.length == 0) {
+            throw new IllegalArgumentException("Must include at least one split string");
+        }
+
+        String splitStr = "[";
+        for (String split : splits) {
+            splitStr += split;
+        }
+
+        return str.split(splitStr + "](?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+    }
 }

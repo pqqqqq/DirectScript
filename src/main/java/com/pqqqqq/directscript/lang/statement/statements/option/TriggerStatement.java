@@ -19,8 +19,8 @@ public class TriggerStatement implements IStatement<Trigger> {
     public StatementResult<Trigger> run(ScriptInstance scriptInstance, Line line) {
         Trigger.Builder triggerBuilder = Trigger.builder().script(scriptInstance.getScript());
 
-        for (int i = 1; i < line.getWords().length; i++) {
-            String causeString = line.getLiteral(scriptInstance, i).getString();
+        for (int i = 0; i < line.getArgCount(); i++) {
+            String causeString = line.sequence(scriptInstance, i).getString();
             Optional<Cause> cause = Causes.getCause(causeString);
 
             if (!cause.isPresent()) {
