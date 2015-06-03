@@ -1,6 +1,7 @@
 package com.pqqqqq.directscript;
 
 import com.google.inject.Inject;
+import com.pqqqqq.directscript.commands.CommandDirectScript;
 import com.pqqqqq.directscript.lang.container.ScriptsFile;
 import com.pqqqqq.directscript.lang.error.ErrorHandler;
 import com.pqqqqq.directscript.lang.reader.Reader;
@@ -12,6 +13,7 @@ import org.spongepowered.api.event.state.InitializationEvent;
 import org.spongepowered.api.event.state.ServerStartingEvent;
 import org.spongepowered.api.event.state.ServerStoppingEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.service.command.CommandService;
 
 import java.util.Set;
 
@@ -23,7 +25,10 @@ public class DirectScript {
     public static final String ID = "directscript";
     public static final String NAME = "DirectScript";
     public static final String VERSION = "1.0-SNAPSHOT";
+    public static final String AUTHORS = "Pqqqqq";
+
     private static DirectScript INSTANCE;
+
     private Set<ScriptsFile> scriptsFiles;
     @Inject
     private Game game;
@@ -44,10 +49,11 @@ public class DirectScript {
     public void init(InitializationEvent event) {
         INSTANCE = this;
 
-        // Register all scripts
-        scriptsFiles = Reader.instance().readInDir();
+        reloadScripts(); // Register all scripts
 
         // Register commands, events, etc.
+        CommandService commandService = game.getCommandDispatcher();
+        commandService.register(this, CommandDirectScript.build(this), "script", "directscript", "scr");
     }
 
     @Subscribe
@@ -71,5 +77,9 @@ public class DirectScript {
 
     public Set<ScriptsFile> getScriptsFiles() {
         return scriptsFiles;
+    }
+
+    public void reloadScripts() {
+        scriptsFiles = Reader.instance().readInDir();
     }
 }
