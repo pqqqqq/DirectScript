@@ -10,6 +10,8 @@ import com.pqqqqq.directscript.lang.statement.StatementResult;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.text.Texts;
 
+import java.util.UUID;
+
 /**
  * Created by Kevin on 2015-06-02.
  */
@@ -22,7 +24,11 @@ public class PlayerStatement implements IStatement {
 
         Optional<Player> serverPlayer = DirectScript.instance().getGame().getServer().getPlayer(player);
         if (!serverPlayer.isPresent()) {
-            return StatementResult.failure();
+            try {
+                serverPlayer = DirectScript.instance().getGame().getServer().getPlayer(UUID.fromString(player));
+            } catch (IllegalArgumentException e) {
+                return StatementResult.failure();
+            }
         }
 
         serverPlayer.get().sendMessage(Texts.of(message));

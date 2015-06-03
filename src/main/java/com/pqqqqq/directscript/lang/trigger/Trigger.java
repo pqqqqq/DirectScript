@@ -36,8 +36,8 @@ public class Trigger {
         return causes;
     }
 
-    public void trigger(Cause cause) {
-        script.run(ScriptInstance.builder().script(script).cause(cause).build());
+    public void trigger(ScriptInstance.Builder builder) {
+        script.run(builder.copy().script(script).build()); // Each trigger needs a separate builder instance
     }
 
     public static class Builder {

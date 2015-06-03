@@ -3,6 +3,7 @@ package com.pqqqqq.directscript;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.pqqqqq.directscript.commands.CommandDirectScript;
+import com.pqqqqq.directscript.events.TriggerEvents;
 import com.pqqqqq.directscript.lang.container.Script;
 import com.pqqqqq.directscript.lang.container.ScriptsFile;
 import com.pqqqqq.directscript.lang.error.ErrorHandler;
@@ -16,6 +17,7 @@ import org.spongepowered.api.event.state.ServerStartingEvent;
 import org.spongepowered.api.event.state.ServerStoppingEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.service.command.CommandService;
+import org.spongepowered.api.service.event.EventManager;
 
 import java.util.Set;
 
@@ -53,9 +55,13 @@ public class DirectScript {
 
         reloadScripts(); // Register all scripts
 
-        // Register commands, events, etc.
+        // Register commands
         CommandService commandService = game.getCommandDispatcher();
         commandService.register(this, CommandDirectScript.build(this), "script", "directscript", "scr");
+
+        // Register events
+        EventManager eventManager = game.getEventManager();
+        eventManager.register(this, new TriggerEvents(this));
     }
 
     @Subscribe

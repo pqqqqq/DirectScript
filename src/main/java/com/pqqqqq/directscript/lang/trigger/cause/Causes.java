@@ -20,6 +20,9 @@ public class Causes {
     // Misc.
     public static final Cause CALL = new Cause("Call");
 
+    // Player causes
+    public static final Cause PLAYER_JOIN = new Cause("PlayerJoin");
+
     private static final List<Cause> REGISTRY;
     static {
         REGISTRY = RegistryUtil.getAllOf(Cause.class, Causes.class);

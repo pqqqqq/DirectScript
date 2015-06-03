@@ -1,5 +1,6 @@
 package com.pqqqqq.directscript.lang.trigger.cause;
 
+import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 
 import java.util.HashSet;
@@ -26,8 +27,14 @@ public class Cause {
     }
 
     public void trigger() {
+        trigger(ScriptInstance.builder());
+    }
+
+    public void trigger(ScriptInstance.Builder builder) {
+        builder.cause(this);
+
         for (Trigger trigger : triggers) {
-            trigger.trigger(this);
+            trigger.trigger(builder);
         }
     }
 }
