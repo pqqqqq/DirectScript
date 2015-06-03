@@ -4,6 +4,7 @@ import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.statements.generic.PrintStatement;
+import com.pqqqqq.directscript.lang.statement.statements.generic.VarDeclaration;
 import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptDeclaration;
 import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptTermination;
 import com.pqqqqq.directscript.lang.statement.statements.option.TriggerStatement;
@@ -23,6 +24,7 @@ public class Statements {
 
     // Generic statements
     public static final IStatement PRINT = new PrintStatement();
+    public static final IStatement VAR_DECLARATION = new VarDeclaration();
 
     // Option script statements
     public static final IStatement<Trigger> TRIGGER = new TriggerStatement();

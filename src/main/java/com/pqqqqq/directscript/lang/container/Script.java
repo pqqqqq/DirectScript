@@ -8,7 +8,6 @@ import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.Statements;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
-import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +31,7 @@ public class Script {
             return !statement.isPresent() || !statement.get().compileTime();
         }
     };
+
     private final ScriptsFile scriptsFile;
     private final String name;
     private final List<Line> lines = new ArrayList<Line>();
@@ -62,20 +62,16 @@ public class Script {
     }
 
     // Tentative method, run the container
-    public void run(Cause fromCause) {
-        run(fromCause, runtimePredicate());
-    }
-
-    public void run(Cause fromCause, Predicate<Line> filter) {
+    public void run(ScriptInstance scriptInstance) {
         for (Line line : lines) {
             try {
-                if (filter == null || filter.apply(line)) {
+                if (scriptInstance.getLinePredicate() == null || scriptInstance.getLinePredicate().apply(line)) {
                     Optional<IStatement> statement = Statements.getIStatementFromLine(line);
                     if (!statement.isPresent()) {
                         throw new IllegalStateException("Unknown statement");
                     }
 
-                    statement.get().run(this, line);
+                    statement.get().run(scriptInstance, line);
                 }
             } catch (Throwable e) {
                 ErrorHandler.instance().log(String.format("Error in script '%s' -> '%s' at line #%d (script line #%d): ", scriptsFile.getStringRepresentation(), name, line.getAbsoluteNumber(), line.getScriptNumber()));

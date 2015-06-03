@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.statement.statements.internal;
 
 import com.pqqqqq.directscript.lang.annotation.Statement;
-import com.pqqqqq.directscript.lang.container.Script;
+import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
@@ -9,10 +9,10 @@ import com.pqqqqq.directscript.lang.statement.StatementResult;
 /**
  * Created by Kevin on 2015-06-02.
  */
-@Statement(prefix = "!", identifiers = { "ENDSCRIPT", "endscript" })
+@Statement(prefix = "!", identifiers = { "ENDSCRIPT", "endscript" }, compileTime = true)
 public class ScriptTermination implements IStatement {
 
-    public StatementResult run(Script script, Line line) {
+    public StatementResult run(ScriptInstance scriptInstance, Line line) {
         return StatementResult.success();
     }
 }

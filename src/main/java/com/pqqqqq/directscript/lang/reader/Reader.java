@@ -1,9 +1,11 @@
 package com.pqqqqq.directscript.lang.reader;
 
 import com.pqqqqq.directscript.lang.container.Script;
+import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.container.ScriptsFile;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
 import com.pqqqqq.directscript.lang.statement.Statements;
+import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -91,7 +93,7 @@ public class Reader {
                 if (Statements.isApplicableToLine(Statements.SCRIPT_DECLARATION, lineInst)) { // Check if this is a script declaration
                     checkState(currentScript == null, "Please end a script declaration with #endscript");
 
-                    StatementResult<String> result = Statements.SCRIPT_DECLARATION.run(null, lineInst);
+                    StatementResult<String> result = Statements.SCRIPT_DECLARATION.run(ScriptInstance.compile(), lineInst);
                     checkState(result.isSuccess() && result.getResult().isPresent(), String.format("File %s has an improper formatted script declaration", file.getName()));
 
                     currentScript = new Script(scriptsFile, result.getResult().get());
@@ -99,7 +101,7 @@ public class Reader {
                     checkNotNull(currentScript, "No script is being declared");
 
                     scriptsFile.getScripts().add(currentScript);
-                    currentScript.run(null, Script.compileTimePredicate());
+                    currentScript.run(ScriptInstance.builder().script(currentScript).cause(Causes.COMPILE).predicate(Script.compileTimePredicate()).build());
                     currentScript = null;
                     scriptLine = 0;
                 } else if (currentScript != null) {

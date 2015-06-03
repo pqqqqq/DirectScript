@@ -1,6 +1,7 @@
 package com.pqqqqq.directscript.lang.trigger;
 
 import com.pqqqqq.directscript.lang.container.Script;
+import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class Trigger {
     }
 
     public void trigger(Cause cause) {
-        script.run(cause);
+        script.run(ScriptInstance.builder().script(script).cause(cause).build());
     }
 
     public static class Builder {

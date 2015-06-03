@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.reader;
 
+import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.Sequence;
 import com.pqqqqq.directscript.util.Utilities;
 
 import javax.annotation.Nonnull;
@@ -41,12 +41,16 @@ public class Line {
         return words;
     }
 
+    public int getWordCount() {
+        return words.length;
+    }
+
     public String getWord(int i) {
         return words[i];
     }
 
-    public Literal getLiteral(int i) {
-        return Sequence.instance().parse(getWord(i));
+    public Literal getLiteral(ScriptInstance scriptInstance, int i) {
+        return scriptInstance.getSequencer().parse(getWord(i));
     }
 
     private String[] parseWords() { // Ignore spaces in quotes

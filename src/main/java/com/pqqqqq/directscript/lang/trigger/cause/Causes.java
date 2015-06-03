@@ -10,6 +10,9 @@ import java.util.List;
  */
 public class Causes {
 
+    // Compile
+    public static final Cause COMPILE = new Cause("Compile");
+
     // Server states
     public static final Cause SERVER_STARTING = new Cause("ServerStarting");
     public static final Cause SERVER_STOPPING = new Cause("ServerStopping");

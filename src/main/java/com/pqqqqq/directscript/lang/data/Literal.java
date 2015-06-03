@@ -72,6 +72,10 @@ public class Literal<T> {
         return Optional.absent();
     }
 
+    public boolean isEmpty() {
+        return !value.isPresent();
+    }
+
     public Optional<T> getValue() {
         return value;
     }
