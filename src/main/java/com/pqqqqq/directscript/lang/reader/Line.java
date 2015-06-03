@@ -53,9 +53,16 @@ public class Line {
         List<String> words = new ArrayList<String>();
         String buffer = "";
         boolean quotes = false;
+        boolean escape = false;
 
         for (char ch : this.line.toCharArray()) {
-            if (ch == '"') {
+            if (escape) {
+                escape = false;
+            } else if (ch == '\\') {
+                escape = true;
+            }
+
+            if (!escape && ch == '"') {
                 quotes = !quotes;
             } else if (ch == ' ') {
                 if (!quotes && !buffer.trim().isEmpty()) {
