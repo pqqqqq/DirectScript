@@ -1,7 +1,9 @@
 package com.pqqqqq.directscript;
 
+import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.pqqqqq.directscript.commands.CommandDirectScript;
+import com.pqqqqq.directscript.lang.container.Script;
 import com.pqqqqq.directscript.lang.container.ScriptsFile;
 import com.pqqqqq.directscript.lang.error.ErrorHandler;
 import com.pqqqqq.directscript.lang.reader.Reader;
@@ -77,6 +79,22 @@ public class DirectScript {
 
     public Set<ScriptsFile> getScriptsFiles() {
         return scriptsFiles;
+    }
+
+    public Optional<Script> getScript(String str) {
+        String[] split = str.split(":");
+
+        if (split.length < 2) {
+            return Optional.absent();
+        }
+
+        for (ScriptsFile scriptsFile : scriptsFiles) {
+            if (scriptsFile.getStringRepresentationNoExt().equals(split[0])) {
+                return scriptsFile.getScript(split[1]);
+            }
+        }
+
+        return Optional.absent();
     }
 
     public void reloadScripts() {

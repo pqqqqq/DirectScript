@@ -17,6 +17,9 @@ public class Causes {
     public static final Cause SERVER_STARTING = new Cause("ServerStarting");
     public static final Cause SERVER_STOPPING = new Cause("ServerStopping");
 
+    // Misc.
+    public static final Cause CALL = new Cause("Call");
+
     private static final List<Cause> REGISTRY;
     static {
         REGISTRY = RegistryUtil.getAllOf(Cause.class, Causes.class);

@@ -46,4 +46,9 @@ public class ScriptsFile {
     public String getStringRepresentation() {
         return Utilities.getFileDiff(root, file);
     }
+
+    public String getStringRepresentationNoExt() {
+        String stringRep = getStringRepresentation();
+        return stringRep.substring(0, stringRep.lastIndexOf('.'));
+    }
 }

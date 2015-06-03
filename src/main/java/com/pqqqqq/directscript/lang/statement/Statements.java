@@ -3,11 +3,13 @@ package com.pqqqqq.directscript.lang.statement;
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.reader.Line;
+import com.pqqqqq.directscript.lang.statement.statements.generic.CallStatement;
 import com.pqqqqq.directscript.lang.statement.statements.generic.PrintStatement;
 import com.pqqqqq.directscript.lang.statement.statements.generic.VarDeclaration;
 import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptDeclaration;
 import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptTermination;
 import com.pqqqqq.directscript.lang.statement.statements.option.TriggerStatement;
+import com.pqqqqq.directscript.lang.statement.statements.sponge.PlayerStatement;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 import com.pqqqqq.directscript.util.RegistryUtil;
 
@@ -25,9 +27,13 @@ public class Statements {
     // Generic statements
     public static final IStatement PRINT = new PrintStatement();
     public static final IStatement VAR_DECLARATION = new VarDeclaration();
+    public static final IStatement CALL = new CallStatement();
 
     // Option script statements
     public static final IStatement<Trigger> TRIGGER = new TriggerStatement();
+
+    // Sponge statements
+    public static final IStatement PLAYER = new PlayerStatement();
 
     private static final List<IStatement> REGISTRY;
     static {
