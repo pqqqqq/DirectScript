@@ -36,7 +36,7 @@ public class Literal<T> {
 
         // If there's quotes, it's a string
         if (literal.startsWith("\"") && literal.endsWith("\"")) {
-            return Optional.<Literal>of(new Literal<String>(literal.substring(1, literal.length() - 1)));
+            return Optional.<Literal>of(new Literal<String>(Utilities.unescape(literal.substring(1, literal.length() - 1))));
         }
 
         // Literal booleans are only true or false
@@ -157,5 +157,41 @@ public class Literal<T> {
     public Literal<String> parseString() {
         checkState(value.isPresent(), "This literal must be present to do this");
         return new Literal<String>(value.get().toString());
+    }
+
+    public String getString() {
+        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(isString(), "This literal is not a string");
+        return (String) value.get();
+    }
+
+    public Boolean getBoolean() {
+        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(isBoolean(), "This literal is not a boolean");
+        return (Boolean) value.get();
+    }
+
+    public Integer getInteger() {
+        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(isInteger(), "This literal is not a integer");
+        return (Integer) value.get();
+    }
+
+    public Long getLong() {
+        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(isLong(), "This literal is not a long");
+        return (Long) value.get();
+    }
+
+    public Float getFloat() {
+        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(isFloat(), "This literal is not a float");
+        return (Float) value.get();
+    }
+
+    public Double getDouble() {
+        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(isDouble(), "This literal is not a double");
+        return (Double) value.get();
     }
 }

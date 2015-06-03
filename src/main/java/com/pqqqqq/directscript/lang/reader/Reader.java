@@ -36,6 +36,10 @@ public class Reader {
     }
 
     public Set<ScriptsFile> readInDir(File dir) {
+        return readInDir(dir, dir);
+    }
+
+    public Set<ScriptsFile> readInDir(File root, File dir) {
         checkNotNull(dir, "Directory cannot be null");
         checkState(dir.exists(), "The directory must exist");
         checkState(dir.isDirectory(), "Directory must actually be a directory");
@@ -43,10 +47,10 @@ public class Reader {
         Set<ScriptsFile> scriptsFiles = new HashSet<ScriptsFile>();
         for (File file : dir.listFiles()) {
             if (file.isDirectory()) {
-                scriptsFiles.addAll(readInDir(file)); // I <3 recursion
+                scriptsFiles.addAll(readInDir(root, file)); // I <3 recursion
             } else {
                 if (file.getName().endsWith(".ds") || file.getName().endsWith(".dsc")) {
-                    scriptsFiles.add(readScriptsFile(file));
+                    scriptsFiles.add(readScriptsFile(root, file));
                 }
             }
         }
@@ -54,13 +58,13 @@ public class Reader {
         return scriptsFiles;
     }
 
-    public ScriptsFile readScriptsFile(File file) {
+    public ScriptsFile readScriptsFile(File root, File file) {
         checkNotNull(file, "File cannot be null");
         checkState(file.exists(), "The file must exist");
         checkState(!file.isDirectory(), "The file cannot be a directory");
         checkState(file.getName().endsWith(".ds") || file.getName().endsWith(".dsc"), "File must have .ds or .dsc extension");
 
-        ScriptsFile scriptsFile = new ScriptsFile(file);
+        ScriptsFile scriptsFile = new ScriptsFile(root, file);
 
         // Read and separate scripts
         try {
@@ -68,31 +72,36 @@ public class Reader {
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 
             int absoluteLine = 0;
+            int scriptLine = 0;
             Script currentScript = null;
             String line;
 
             while ((line = bufferedReader.readLine()) != null) {
+                // Up the lines
                 absoluteLine++;
-                Line lineInst = new Line(absoluteLine, (currentScript != null ? currentScript.getLines().size() + 1 : -1), line);
+                if (currentScript != null) {
+                    scriptLine++;
+                }
 
+                Line lineInst = new Line(absoluteLine, scriptLine, line);
                 if (lineInst.getLine().isEmpty() || lineInst.getLine().startsWith("//")) {
                     continue;
                 }
-                // TODO: Continue empty lines?
 
                 if (Statements.isApplicableToLine(Statements.SCRIPT_DECLARATION, lineInst)) { // Check if this is a script declaration
                     checkState(currentScript == null, "Please end a script declaration with #endscript");
 
-                    StatementResult<String> result = Statements.SCRIPT_DECLARATION.run(lineInst);
+                    StatementResult<String> result = Statements.SCRIPT_DECLARATION.run(null, lineInst);
                     checkState(result.isSuccess() && result.getResult().isPresent(), String.format("File %s has an improper formatted script declaration", file.getName()));
 
-                    currentScript = new Script(result.getResult().get());
+                    currentScript = new Script(scriptsFile, result.getResult().get());
                 } else if (Statements.isApplicableToLine(Statements.SCRIPT_TERMINATION, lineInst)) {
                     checkNotNull(currentScript, "No script is being declared");
 
                     scriptsFile.getScripts().add(currentScript);
+                    currentScript.run(null, Script.compileTimePredicate());
                     currentScript = null;
-                    // TODO: Interpret here?
+                    scriptLine = 0;
                 } else if (currentScript != null) {
                     currentScript.getLines().add(lineInst);
                 }

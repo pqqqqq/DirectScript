@@ -2,6 +2,7 @@ package com.pqqqqq.directscript;
 
 import com.google.inject.Inject;
 import com.pqqqqq.directscript.lang.container.ScriptsFile;
+import com.pqqqqq.directscript.lang.error.ErrorHandler;
 import com.pqqqqq.directscript.lang.reader.Reader;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import org.slf4j.Logger;
@@ -56,6 +57,7 @@ public class DirectScript {
 
     @Subscribe
     public void serverStopping(ServerStoppingEvent event) {
+        ErrorHandler.instance().close(); // Close error handler stream
         Causes.SERVER_STOPPING.trigger(); // Trigger server stopping cause
     }
 

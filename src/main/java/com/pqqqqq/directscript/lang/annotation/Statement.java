@@ -12,7 +12,11 @@ import java.lang.annotation.Target;
 @Target(value = ElementType.TYPE)
 public @interface Statement {
 
-    String prefix();
+    String prefix() default "";
 
     String[] identifiers();
+
+    String suffix() default "";
+
+    boolean compileTime() default false;
 }

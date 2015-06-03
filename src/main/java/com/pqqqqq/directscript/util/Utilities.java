@@ -1,5 +1,9 @@
 package com.pqqqqq.directscript.util;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
+import java.io.File;
+
 /**
  * Created by Kevin on 2015-06-02.
  */
@@ -46,5 +50,22 @@ public class Utilities {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    public static String getFileDiff(File root, File file) {
+        return getFileDiff("", root, file);
+    }
+
+    private static String getFileDiff(String buffer, File root, File file) {
+        if (file.equals(root)) {
+            return buffer;
+        }
+
+        buffer = (buffer.isEmpty() ? file.getName() : file.getName() + "/" + buffer);
+        return getFileDiff(buffer, root, file.getParentFile());
+    }
+
+    public static String unescape(String str) {
+        return StringEscapeUtils.unescapeJava(str);
     }
 }
