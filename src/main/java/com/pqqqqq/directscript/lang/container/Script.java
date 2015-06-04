@@ -2,8 +2,8 @@ package com.pqqqqq.directscript.lang.container;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.annotation.Statement;
-import com.pqqqqq.directscript.lang.error.ErrorHandler;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.Statements;
@@ -20,14 +20,14 @@ public class Script {
     private static final Predicate<Line> COMPILETIME_PREDICATE = new Predicate<Line>() {
 
         public boolean apply(Line input) {
-            Optional<Statement> statement = Statements.getStatementFromLine(input);
+            Optional<Statement> statement = Statements.getStatement(input);
             return statement.isPresent() && statement.get().compileTime();
         }
     };
     private static final Predicate<Line> RUNTIME_PREDICATE = new Predicate<Line>() {
 
         public boolean apply(Line input) {
-            Optional<Statement> statement = Statements.getStatementFromLine(input);
+            Optional<Statement> statement = Statements.getStatement(input);
             return !statement.isPresent() || !statement.get().compileTime();
         }
     };
@@ -66,7 +66,9 @@ public class Script {
         for (Line line : lines) {
             try {
                 if (scriptInstance.getLinePredicate() == null || scriptInstance.getLinePredicate().apply(line)) {
-                    Optional<IStatement> statement = Statements.getIStatementFromLine(line);
+                    scriptInstance.setCurrentLine(Optional.of(line)); // Set current line
+
+                    Optional<IStatement> statement = Statements.getIStatement(line);
                     if (!statement.isPresent()) {
                         throw new IllegalStateException("Unknown statement");
                     }
@@ -74,9 +76,9 @@ public class Script {
                     statement.get().run(scriptInstance, line);
                 }
             } catch (Throwable e) {
-                ErrorHandler.instance().log(String.format("Error in script '%s' -> '%s' at line #%d (script line #%d): ", scriptsFile.getStringRepresentation(), name, line.getAbsoluteNumber(), line.getScriptNumber()));
-                ErrorHandler.instance().log(e);
-                ErrorHandler.instance().flush();
+                DirectScript.instance().getErrorHandler().log(String.format("Error in script '%s' -> '%s' at line #%d (script line #%d): ", scriptsFile.getStringRepresentation(), name, line.getAbsoluteNumber(), line.getScriptNumber()));
+                DirectScript.instance().getErrorHandler().log(e);
+                DirectScript.instance().getErrorHandler().flush();
             }
         }
     }

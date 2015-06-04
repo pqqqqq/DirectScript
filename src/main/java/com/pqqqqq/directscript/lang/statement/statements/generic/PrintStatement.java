@@ -14,7 +14,7 @@ import com.pqqqqq.directscript.lang.statement.StatementResult;
 public class PrintStatement implements IStatement {
 
     public StatementResult run(ScriptInstance scriptInstance, Line line) {
-        DirectScript.instance().getLogger().info(line.sequence(scriptInstance, 0).getString());
+        DirectScript.instance().getLogger().info(line.sequenceArg(scriptInstance, 0).getString());
         return StatementResult.success();
     }
 }

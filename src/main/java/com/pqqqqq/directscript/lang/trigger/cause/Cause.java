@@ -31,7 +31,7 @@ public class Cause {
     }
 
     public void trigger(ScriptInstance.Builder builder) {
-        //if (!triggers.isEmpty()) {
+        if (!triggers.isEmpty()) {
             if (builder == null) {
                 builder = ScriptInstance.builder();
             }
@@ -40,6 +40,6 @@ public class Cause {
             for (Trigger trigger : triggers) {
                 trigger.trigger(builder);
             }
-        //}
+        }
     }
 }

@@ -1,4 +1,4 @@
-package com.pqqqqq.directscript.util;
+package com.pqqqqq.directscript.lang.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

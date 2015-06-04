@@ -1,6 +1,7 @@
 package com.pqqqqq.directscript.lang.statement;
 
 import com.google.common.base.Optional;
+import com.pqqqqq.directscript.lang.data.Literal;
 
 import javax.annotation.Nullable;
 
@@ -14,10 +15,12 @@ public class StatementResult<T> {
     private static final StatementResult<Object> FAILURE = builder().failure().build();
 
     private final Optional<T> result;
+    private final Optional<Literal<T>> literalResult;
     private final boolean success;
 
-    StatementResult(T result, boolean success) {
+    StatementResult(T result, Literal<T> literalResult, boolean success) {
         this.result = Optional.fromNullable(result);
+        this.literalResult = Optional.fromNullable(literalResult);
         this.success = success;
     }
 
@@ -37,12 +40,17 @@ public class StatementResult<T> {
         return result;
     }
 
+    public Optional<Literal<T>> getLiteralResult() {
+        return literalResult;
+    }
+
     public boolean isSuccess() {
         return success;
     }
 
     public static class Builder<T> {
         @Nullable private T result = null;
+        @Nullable private Literal<T> literalResult = null;
         @Nullable private Boolean success = null;
 
         Builder() {
@@ -50,6 +58,16 @@ public class StatementResult<T> {
 
         public Builder<T> result(T result) {
             this.result = result;
+            return this;
+        }
+
+        public Builder<T> literal(T literalResult) {
+            this.literalResult = Literal.getLiteralBlindly(literalResult);
+            return this;
+        }
+
+        public Builder<T> literal(Literal<T> literalResult) {
+            this.literalResult = literalResult;
             return this;
         }
 
@@ -70,7 +88,7 @@ public class StatementResult<T> {
 
         public StatementResult<T> build() {
             checkNotNull(success, "Success state must be specified");
-            return new StatementResult<T>(result, success);
+            return new StatementResult<T>(result, literalResult, success);
         }
     }
 }

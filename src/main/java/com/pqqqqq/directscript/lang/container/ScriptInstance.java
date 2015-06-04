@@ -1,5 +1,6 @@
 package com.pqqqqq.directscript.lang.container;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.Sequencer;
@@ -29,6 +30,8 @@ public class ScriptInstance implements Environment {
     @Nonnull private final Sequencer sequencer;
     @Nonnull private final Map<String, Variable> variableMap;
 
+    private Optional<Line> currentLine = Optional.absent();
+
     ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Map<String, Variable> variableMap) {
         this.script = script;
         this.cause = cause;
@@ -49,6 +52,11 @@ public class ScriptInstance implements Environment {
         return variableMap;
     }
 
+    public Optional<Variable> getVariable(String name) {
+        // TODO: More robust version of this?
+        return Optional.fromNullable(variableMap.get(name.trim().substring(1)));
+    }
+
     public Cause getCause() {
         return null;
     }
@@ -63,6 +71,14 @@ public class ScriptInstance implements Environment {
 
     public Sequencer getSequencer() {
         return sequencer;
+    }
+
+    public Optional<Line> getCurrentLine() {
+        return currentLine;
+    }
+
+    public void setCurrentLine(Optional<Line> currentLine) {
+        this.currentLine = currentLine;
     }
 
     public static class Builder {

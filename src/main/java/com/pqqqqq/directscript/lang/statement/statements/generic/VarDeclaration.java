@@ -17,19 +17,23 @@ import static com.google.common.base.Preconditions.checkState;
 public class VarDeclaration implements IStatement {
 
     public StatementResult run(ScriptInstance scriptInstance, Line line) {
-        String varName = line.getArg(0); // Var names are lenient, don't need to be a literal
+        String varName = line.getWord(0); // Var names are lenient, don't need to be a literal
         Literal value = Literal.empty();
+
+        if (!Variable.namePattern().matcher(varName).matches()) {
+            throw new IllegalArgumentException("This variable name has illegal characters (only alphanumeric)");
+        }
 
         if (scriptInstance.getVariables().containsKey(varName)) {
             throw new IllegalArgumentException("A variable with this name already exists");
         }
 
         // var(0) NAME(1) =(2) VALUE(3)
-        if (line.getArgCount() >= 3) {
-            String EQUALS = line.getArg(1);
+        if (line.getWordCount() >= 3) {
+            String EQUALS = line.getWord(1);
             checkState(EQUALS.equals("="), "Unknown word: " + EQUALS);
 
-            value = line.sequence(scriptInstance, 2);
+            value = scriptInstance.getSequencer().parse(line.implodeWord(2));
         }
 
         scriptInstance.getVariables().put(varName, new Variable(varName, value));

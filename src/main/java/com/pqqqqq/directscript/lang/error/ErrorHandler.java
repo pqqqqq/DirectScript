@@ -10,12 +10,10 @@ import java.util.Date;
  */
 public class ErrorHandler {
     private static final File ERROR_FILE = new File("scripts/errors.log");
-    private static final ErrorHandler INSTANCE = new ErrorHandler();
     private PrintStream writer;
 
     private ErrorHandler() {
         try {
-            ERROR_FILE.createNewFile();
             writer = new PrintStream(ERROR_FILE);
         } catch (Exception e) {
             e.printStackTrace();
@@ -23,7 +21,7 @@ public class ErrorHandler {
     }
 
     public static ErrorHandler instance() {
-        return INSTANCE;
+        return new ErrorHandler();
     }
 
     public static File getErrorFile() {

@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.container;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.util.Utilities;
+import com.pqqqqq.directscript.lang.util.Utilities;
 
 import java.io.File;
 import java.util.HashSet;

@@ -20,7 +20,8 @@ public class TriggerStatement implements IStatement<Trigger> {
         Trigger.Builder triggerBuilder = Trigger.builder().script(scriptInstance.getScript());
 
         for (int i = 0; i < line.getArgCount(); i++) {
-            String causeString = line.sequence(scriptInstance, i).getString();
+            String causeString = line.sequenceArg(scriptInstance, i).getString();
+            System.out.println("trig: " + causeString);
             Optional<Cause> cause = Causes.getCause(causeString);
 
             if (!cause.isPresent()) {

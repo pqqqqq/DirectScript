@@ -1,6 +1,4 @@
-package com.pqqqqq.directscript.util;
-
-import org.apache.commons.lang3.StringEscapeUtils;
+package com.pqqqqq.directscript.lang.util;
 
 import java.io.File;
 
@@ -8,17 +6,6 @@ import java.io.File;
  * Created by Kevin on 2015-06-02.
  */
 public class Utilities {
-
-    public static String fullLineTrim(String line) {
-        line = line.trim(); // Actual trim first
-
-        if (line.contains("  ")) { // Get rid of double spaces
-            line = line.replace("  ", " ");
-            return fullLineTrim(line);
-        }
-
-        return line;
-    }
 
     public static Integer getInteger(String literal) {
         try {
@@ -63,22 +50,5 @@ public class Utilities {
 
         buffer = (buffer.isEmpty() ? file.getName() : file.getName() + "/" + buffer);
         return getFileDiff(buffer, root, file.getParentFile());
-    }
-
-    public static String unescape(String str) {
-        return StringEscapeUtils.unescapeJava(str);
-    }
-
-    public static String[] splitNotInQuotes(String str, String... splits) {
-        if (splits.length == 0) {
-            throw new IllegalArgumentException("Must include at least one split string");
-        }
-
-        String splitStr = "[";
-        for (String split : splits) {
-            splitStr += split;
-        }
-
-        return str.split(splitStr + "](?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
     }
 }

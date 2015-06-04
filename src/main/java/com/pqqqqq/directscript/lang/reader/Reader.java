@@ -5,6 +5,7 @@ import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.container.ScriptsFile;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
 import com.pqqqqq.directscript.lang.statement.Statements;
+import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
 import java.io.BufferedReader;
@@ -28,6 +29,14 @@ public class Reader {
 
     public static Reader instance() {
         return INSTANCE;
+    }
+
+    public Set<ScriptsFile> load() {
+        for (Cause cause : Causes.getRegistry()) {
+            cause.getTriggers().clear(); // Clear all the triggers
+        }
+
+        return readInDir();
     }
 
     public Set<ScriptsFile> readInDir() { // Reads from ROOT/scripts
@@ -90,14 +99,14 @@ public class Reader {
                     continue;
                 }
 
-                if (Statements.isApplicableToLine(Statements.SCRIPT_DECLARATION, lineInst)) { // Check if this is a script declaration
+                if (Statements.isApplicable(Statements.SCRIPT_DECLARATION, lineInst)) { // Check if this is a script declaration
                     checkState(currentScript == null, "Please end a script declaration with #endscript");
 
                     StatementResult<String> result = Statements.SCRIPT_DECLARATION.run(ScriptInstance.compile(), lineInst);
                     checkState(result.isSuccess() && result.getResult().isPresent(), String.format("File %s has an improper formatted script declaration", file.getName()));
 
                     currentScript = new Script(scriptsFile, result.getResult().get());
-                } else if (Statements.isApplicableToLine(Statements.SCRIPT_TERMINATION, lineInst)) {
+                } else if (Statements.isApplicable(Statements.SCRIPT_TERMINATION, lineInst)) {
                     checkNotNull(currentScript, "No script is being declared");
 
                     scriptsFile.getScripts().add(currentScript);

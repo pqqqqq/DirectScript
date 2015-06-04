@@ -1,5 +1,7 @@
 package com.pqqqqq.directscript.lang.data.variable;
 
+import com.google.common.base.Optional;
+
 import java.util.Map;
 
 /**
@@ -8,4 +10,6 @@ import java.util.Map;
 public interface IVariableContainer {
 
     Map<String, Variable> getVariables();
+
+    Optional<Variable> getVariable(String name);
 }

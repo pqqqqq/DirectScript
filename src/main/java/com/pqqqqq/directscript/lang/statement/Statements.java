@@ -9,9 +9,10 @@ import com.pqqqqq.directscript.lang.statement.statements.generic.VarDeclaration;
 import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptDeclaration;
 import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptTermination;
 import com.pqqqqq.directscript.lang.statement.statements.option.TriggerStatement;
+import com.pqqqqq.directscript.lang.statement.statements.sponge.GetPlayerUUID;
 import com.pqqqqq.directscript.lang.statement.statements.sponge.PlayerStatement;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
-import com.pqqqqq.directscript.util.RegistryUtil;
+import com.pqqqqq.directscript.lang.util.RegistryUtil;
 
 import java.util.List;
 
@@ -35,6 +36,8 @@ public class Statements {
     // Sponge statements
     public static final IStatement PLAYER = new PlayerStatement();
 
+    public static final IStatement<String> GET_PLAYER_UUID = new GetPlayerUUID();
+
     private static final List<IStatement> REGISTRY;
     static {
         REGISTRY = RegistryUtil.getAllOf(IStatement.class, Statements.class);
@@ -44,46 +47,40 @@ public class Statements {
         return REGISTRY;
     }
 
-    public static Optional<Statement> getStatementFromLine(Line line) {
-        for (IStatement statement : REGISTRY) {
-            Statement statementAnnot = getAnnotationFromInterface(statement);
-
-            // TODO: Any comment stuff and/or other literal stuff that conflicts with the way this currently works
-            for (String identifier : statementAnnot.identifiers()) {
-                if (line.getLine().trim().startsWith(statementAnnot.prefix() + identifier) && (statementAnnot.suffix().isEmpty() || line.getLine().trim().endsWith(statementAnnot.suffix()))) {
-                    return Optional.of(statementAnnot);
-                }
-            }
-        }
-
-        return Optional.absent();
-    }
-
-    public static Optional<IStatement> getIStatementFromLine(Line line) {
-        for (IStatement statement : REGISTRY) {
-            Statement statementAnnot = getAnnotationFromInterface(statement);
-
-            // TODO: Any comment stuff and/or other literal stuff that conflicts with the way this currently works
-            for (String identifier : statementAnnot.identifiers()) {
-                if (line.getLine().trim().startsWith(statementAnnot.prefix() + identifier) && (statementAnnot.suffix().isEmpty() || line.getLine().trim().endsWith(statementAnnot.suffix()))) {
-                    return Optional.of(statement);
-                }
-            }
-        }
-
-        return Optional.absent();
-    }
-
-    public static boolean isApplicableToLine(IStatement statement, Line line) {
-        // TODO: Any comment stuff and/or other literal stuff that conflicts with the way this currently works
-        Statement statementAnnot = getAnnotationFromInterface(statement);
-        for (String identifier : statementAnnot.identifiers()) {
-            if (line.getLine().trim().startsWith(statementAnnot.prefix() + identifier) && (statementAnnot.suffix().isEmpty() || line.getLine().trim().endsWith(statementAnnot.suffix()))) {
+    public static boolean isStatementEqual(Statement statement, Line lineInst) {
+        String line = lineInst.getLine().trim();
+        for (String identifier : statement.identifiers()) {
+            if (line.startsWith(statement.prefix() + identifier + " ") && (statement.suffix().isEmpty() || line.endsWith(statement.suffix())) || line.equals(statement.prefix() + identifier + statement.suffix())) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    public static Optional<Statement> getStatement(Line line) {
+        for (IStatement statement : REGISTRY) {
+            Statement statementAnnot = getAnnotationFromInterface(statement);
+            if (isStatementEqual(statementAnnot, line)) {
+                return Optional.of(statementAnnot);
+            }
+        }
+
+        return Optional.absent();
+    }
+
+    public static Optional<IStatement> getIStatement(Line line) {
+        for (IStatement statement : REGISTRY) {
+            if (isStatementEqual(getAnnotationFromInterface(statement), line)) {
+                return Optional.of(statement);
+            }
+        }
+
+        return Optional.absent();
+    }
+
+    public static boolean isApplicable(IStatement statement, Line line) {
+        return isStatementEqual(getAnnotationFromInterface(statement), line);
     }
 
     public static Statement getAnnotationFromInterface(IStatement istatement) {

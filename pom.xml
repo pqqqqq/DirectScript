@@ -46,8 +46,9 @@
                         <configuration>
                             <minimizeJar>true</minimizeJar>
                             <artifactSet>
-                                <includes>
-                                </includes>
+                                <excludes>
+                                    <exclude>org.spongepowered.spongeapi:*:*</exclude>
+                                </excludes>
                             </artifactSet>
                         </configuration>
                     </execution>

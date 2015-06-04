@@ -2,7 +2,8 @@ package com.pqqqqq.directscript.lang.data;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
-import com.pqqqqq.directscript.util.Utilities;
+import com.pqqqqq.directscript.lang.util.StringUtil;
+import com.pqqqqq.directscript.lang.util.Utilities;
 import org.spongepowered.api.entity.player.Player;
 
 import java.text.DecimalFormat;
@@ -16,7 +17,10 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class Literal<T> {
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.#");
+
     private static final Literal EMPTY = new Literal();
+    private static final Literal TRUE = new Literal(true);
+    private static final Literal FALSE = new Literal(false);
 
     private final Optional<T> value;
 
@@ -30,6 +34,14 @@ public class Literal<T> {
 
     public static Literal empty() {
         return EMPTY;
+    }
+
+    public static Literal trueLiteral() {
+        return TRUE;
+    }
+
+    public static Literal falseLiteral() {
+        return FALSE;
     }
 
     public static <T> Literal getLiteralBlindly(T value) {
@@ -51,16 +63,16 @@ public class Literal<T> {
 
         // If there's quotes, it's a string
         if (literal.startsWith("\"") && literal.endsWith("\"")) {
-            return Optional.<Literal>of(new Literal<String>(Utilities.unescape(literal.substring(1, literal.length() - 1))));
+            return Optional.<Literal>of(new Literal<String>(StringUtil.unescape(literal.substring(1, literal.length() - 1))));
         }
 
         // Literal booleans are only true or false
         if (literal.equals("true")) {
-            return Optional.<Literal>of(new Literal<Boolean>(true));
+            return Optional.of(TRUE);
         }
 
         if (literal.equals("false")) {
-            return Optional.<Literal>of(new Literal<Boolean>(false));
+            return Optional.of(FALSE);
         }
 
         // Everything in literals are basically just numbers, just make them all doubles
@@ -123,8 +135,7 @@ public class Literal<T> {
 
     public String getString() {
         checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isString(), "This literal is not a string");
-        return (String) value.get();
+        return value.get() instanceof String ? (String) value.get() : parseString().getString();
     }
 
     public Boolean getBoolean() {
@@ -156,15 +167,7 @@ public class Literal<T> {
     // Arithmetic
     public Literal add(Literal other) {
         checkState(value.isPresent(), "This literal must be present to do this");
-        return addOrSet(other);
-    }
-
-    public Literal addOrSet(Literal other) {
         checkState(other.getValue().isPresent(), "This literal must be present to do this");
-
-        if (!value.isPresent()) {
-            return other;
-        }
 
         if (isString()) {
             return Literal.getLiteralBlindly(getString() + other.parseString().getString()); // Everything can be a string
@@ -180,7 +183,8 @@ public class Literal<T> {
             }
         }
 
-        throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be added to " + value.get().getClass().getName());
+        return Literal.getLiteralBlindly(parseString().getString() + other.parseString().getString());
+        //throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be added to " + value.get().getClass().getName());
     }
 
     public Literal sub(Literal other) {

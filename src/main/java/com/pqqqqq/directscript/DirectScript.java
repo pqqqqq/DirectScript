@@ -34,6 +34,8 @@ public class DirectScript {
     private static DirectScript INSTANCE;
 
     private Set<ScriptsFile> scriptsFiles;
+    private ErrorHandler errorHandler;
+
     @Inject
     private Game game;
 
@@ -52,6 +54,7 @@ public class DirectScript {
     @Subscribe
     public void init(InitializationEvent event) {
         INSTANCE = this;
+        errorHandler = ErrorHandler.instance();
 
         reloadScripts(); // Register all scripts
 
@@ -71,7 +74,7 @@ public class DirectScript {
 
     @Subscribe
     public void serverStopping(ServerStoppingEvent event) {
-        ErrorHandler.instance().close(); // Close error handler stream
+        errorHandler.close(); // Close error handler stream
         Causes.SERVER_STOPPING.trigger(); // Trigger server stopping cause
     }
 
@@ -85,6 +88,10 @@ public class DirectScript {
 
     public Set<ScriptsFile> getScriptsFiles() {
         return scriptsFiles;
+    }
+
+    public ErrorHandler getErrorHandler() {
+        return errorHandler;
     }
 
     public Optional<Script> getScript(String str) {
@@ -104,6 +111,6 @@ public class DirectScript {
     }
 
     public void reloadScripts() {
-        scriptsFiles = Reader.instance().readInDir();
+        scriptsFiles = Reader.instance().load();
     }
 }

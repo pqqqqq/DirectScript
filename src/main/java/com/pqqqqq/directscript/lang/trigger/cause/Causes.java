@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.trigger.cause;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.util.RegistryUtil;
+import com.pqqqqq.directscript.lang.util.RegistryUtil;
 
 import java.util.List;
 

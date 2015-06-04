@@ -3,6 +3,7 @@ package com.pqqqqq.directscript.lang.data.variable;
 import com.pqqqqq.directscript.lang.data.Literal;
 
 import javax.annotation.Nonnull;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -11,6 +12,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Represents a memory section that contains a {@link Literal} and is read by a specific name
  */
 public class Variable {
+    private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z0-9]*$");
+
     @Nonnull private final String name;
     @Nonnull private Literal data;
 
@@ -20,7 +23,11 @@ public class Variable {
 
     public Variable(String name, Literal data) {
         this.name = name;
-        this.data = data;
+        setData(data);
+    }
+
+    public static Pattern namePattern() {
+        return NAME_PATTERN;
     }
 
     public String getName() {
