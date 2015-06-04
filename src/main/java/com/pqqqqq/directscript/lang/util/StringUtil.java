@@ -1,6 +1,5 @@
 package com.pqqqqq.directscript.lang.util;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.ArrayList;
@@ -23,10 +22,6 @@ public class StringUtil {
         }
 
         return line;
-    }
-
-    public static String unescape(String str) {
-        return StringEscapeUtils.unescapeJava(str);
     }
 
     public static String getSuffixQuoteSequenceFor(String... splits) {

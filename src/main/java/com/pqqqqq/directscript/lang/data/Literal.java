@@ -2,8 +2,8 @@ package com.pqqqqq.directscript.lang.data;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
-import com.pqqqqq.directscript.lang.util.StringUtil;
 import com.pqqqqq.directscript.lang.util.Utilities;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.spongepowered.api.entity.player.Player;
 
 import java.text.DecimalFormat;
@@ -63,7 +63,7 @@ public class Literal<T> {
 
         // If there's quotes, it's a string
         if (literal.startsWith("\"") && literal.endsWith("\"")) {
-            return Optional.<Literal>of(new Literal<String>(StringUtil.unescape(literal.substring(1, literal.length() - 1))));
+            return Optional.<Literal>of(new Literal<String>(StringEscapeUtils.unescapeJava(literal.substring(1, literal.length() - 1))));
         }
 
         // Literal booleans are only true or false
