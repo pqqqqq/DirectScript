@@ -169,12 +169,8 @@ public class Literal<T> {
         checkState(value.isPresent(), "This literal must be present to do this");
         checkState(other.getValue().isPresent(), "This literal must be present to do this");
 
-        if (isString()) {
-            return Literal.getLiteralBlindly(getString() + other.parseString().getString()); // Everything can be a string
-        }
-
-        if (other.isString()) {
-            return Literal.getLiteralBlindly(parseString().getString() + other.getString()); // Everything can be a string
+        if (isString() || other.isString()) {
+            return Literal.getLiteralBlindly(getString() + other.getString()); // Everything can be a string
         }
 
         if (isNumber()) {
@@ -183,7 +179,7 @@ public class Literal<T> {
             }
         }
 
-        return Literal.getLiteralBlindly(parseString().getString() + other.parseString().getString());
+        return Literal.getLiteralBlindly(getString() + other.getString());
         //throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be added to " + value.get().getClass().getName());
     }
 
