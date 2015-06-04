@@ -16,7 +16,7 @@ import static com.google.common.base.Preconditions.checkState;
  * A literal is a value that is not dependent on any environment; a constant
  */
 public class Literal<T> {
-    private static final DecimalFormat decimalFormat = new DecimalFormat("#.#");
+    private static final DecimalFormat decimalFormat = new DecimalFormat("#.###");
 
     private static final Literal EMPTY = new Literal();
     private static final Literal TRUE = new Literal(true);
@@ -194,5 +194,31 @@ public class Literal<T> {
         }
 
         throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be subtraced from " + value.get().getClass().getName());
+    }
+
+    public Literal mult(Literal other) {
+        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(other.getValue().isPresent(), "This literal must be present to do this");
+
+        if (isNumber()) {
+            if (other.isNumber()) {
+                return Literal.getLiteralBlindly(getNumber() * other.getNumber());
+            }
+        }
+
+        throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be multiplied by " + value.get().getClass().getName());
+    }
+
+    public Literal div(Literal other) {
+        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(other.getValue().isPresent(), "This literal must be present to do this");
+
+        if (isNumber()) {
+            if (other.isNumber()) {
+                return Literal.getLiteralBlindly(getNumber() / other.getNumber());
+            }
+        }
+
+        throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be divided by " + value.get().getClass().getName());
     }
 }

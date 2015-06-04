@@ -37,7 +37,7 @@ public class Sequencer {
         checkNotNull(sequence, "Sequence cannot be null");
         Literal result = Literal.empty();
 
-        List<Triple<String, String, String>> triples = StringUtil.splitPairNoQuotes(sequence, "+", "-"); // Split into ordered triple segments
+        List<Triple<String, String, String>> triples = StringUtil.splitPairNoQuotes(sequence, "+", "-", "*", "/"); // Split into ordered triple segments
         for (Triple<String, String, String> triple : triples) {
             String beforeSplit = triple.getLeft();
             String segment = triple.getMiddle().trim();
@@ -87,6 +87,10 @@ public class Sequencer {
                 result = result.add(segmentLiteral);
             } else if (beforeSplit.equals("-")) {
                 result = result.sub(segmentLiteral);
+            } else if (beforeSplit.equals("*")) {
+                result = result.mult(segmentLiteral);
+            } else if (beforeSplit.equals("/")) {
+                result = result.div(segmentLiteral);
             } else {
                 throw new IllegalStateException("Unknown operator " + beforeSplit + " in " + sequence);
             }
@@ -107,7 +111,7 @@ public class Sequencer {
                 int andSuccessCounter = 0;
 
                 for (String condition : splitAnd) {
-                    List<Triple<String, String, String>> triples = StringUtil.splitPairNoQuotes(condition, "==", "!=");
+                    List<Triple<String, String, String>> triples = StringUtil.splitPairNoQuotes(condition, "==", "!=", " < ", " > ", "<=", ">="); // TODO: Better way of less than and more than??
 
                     if (triples.size() != 2) {
                         return Optional.absent(); // Need exactly a left side and a right side
@@ -144,6 +148,22 @@ public class Sequencer {
                         }
                     } else if (comparator.equals("!=")) { // Not equals
                         if (!leftSideLiteral.getValue().equals(rightSideLiteral.getValue())) {
+                            andSuccessCounter++;
+                        }
+                    } else if (comparator.equals(" < ")) { // Less than
+                        if (leftSideLiteral.getNumber() < rightSideLiteral.getNumber()) {
+                            andSuccessCounter++;
+                        }
+                    } else if (comparator.equals(" > ")) { // More than
+                        if (leftSideLiteral.getNumber() > rightSideLiteral.getNumber()) {
+                            andSuccessCounter++;
+                        }
+                    } else if (comparator.equals("<=")) { // Less than or equal to
+                        if (leftSideLiteral.getNumber() <= rightSideLiteral.getNumber()) {
+                            andSuccessCounter++;
+                        }
+                    } else if (comparator.equals(">=")) { // More than or equal to
+                        if (leftSideLiteral.getNumber() >= rightSideLiteral.getNumber()) {
                             andSuccessCounter++;
                         }
                     } else { // Unknown
