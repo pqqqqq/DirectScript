@@ -51,4 +51,15 @@ public class Utilities {
         buffer = (buffer.isEmpty() ? file.getName() : file.getName() + "/" + buffer);
         return getFileDiff(buffer, root, file.getParentFile());
     }
+
+    public static String fullLineTrim(String line) {
+        line = line.trim(); // Actual trim first
+
+        if (line.contains("  ")) { // Get rid of double spaces
+            line = line.replace("  ", " ");
+            return fullLineTrim(line);
+        }
+
+        return line;
+    }
 }

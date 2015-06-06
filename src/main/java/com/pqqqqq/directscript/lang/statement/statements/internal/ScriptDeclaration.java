@@ -10,7 +10,7 @@ import com.pqqqqq.directscript.lang.statement.StatementResult;
 /**
  * Created by Kevin on 2015-06-02.
  */
-@Statement(prefix = "!", identifiers = { "SCRIPT" }, compileTime = true)
+@Statement(identifiers = {"SCRIPT"}, suffix = "{", executionTime = Statement.ExecutionTime.COMPILE)
 public class ScriptDeclaration implements IStatement<String> {
 
     public StatementResult<String> run(ScriptInstance scriptInstance, Line line) {

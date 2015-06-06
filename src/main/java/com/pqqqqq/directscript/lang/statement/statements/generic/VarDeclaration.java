@@ -7,7 +7,7 @@ import com.pqqqqq.directscript.lang.data.variable.Variable;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
-import com.pqqqqq.directscript.lang.util.StringUtil;
+import com.pqqqqq.directscript.lang.util.StringParser;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
 public class VarDeclaration implements IStatement {
 
     public StatementResult run(ScriptInstance scriptInstance, Line line) {
-        String[] words = StringUtil.splitNotInQuotes(line.getArg(0), " "); // Split spaces
+        String[] words = StringParser.instance().parseSplit(line.getArg(0), " "); // Split spaces
         String varName = words[0]; // Var names are lenient, don't need to be a literal
         Literal value = Literal.empty();
 

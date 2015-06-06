@@ -18,5 +18,9 @@ public @interface Statement {
 
     String suffix() default "";
 
-    boolean compileTime() default false;
+    ExecutionTime executionTime() default ExecutionTime.RUNTIME;
+
+    enum ExecutionTime {
+        RUNTIME, COMPILE, ALWAYS
+    }
 }

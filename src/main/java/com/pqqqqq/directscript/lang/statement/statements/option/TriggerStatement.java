@@ -13,7 +13,7 @@ import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 /**
  * Created by Kevin on 2015-06-02.
  */
-@Statement(prefix = "@", identifiers = { "TRIGGER" }, compileTime = true)
+@Statement(prefix = "@", identifiers = {"TRIGGER"}, executionTime = Statement.ExecutionTime.COMPILE)
 public class TriggerStatement implements IStatement<Trigger> {
 
     public StatementResult<Trigger> run(ScriptInstance scriptInstance, Line line) {

@@ -1,17 +1,24 @@
 package com.pqqqqq.directscript.lang.reader;
 
+import com.google.common.base.Optional;
+import com.pqqqqq.directscript.DirectScript;
+import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.container.Script;
 import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.container.ScriptsFile;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
 import com.pqqqqq.directscript.lang.statement.Statements;
+import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptDeclaration;
+import com.pqqqqq.directscript.lang.statement.statements.internal.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -82,10 +89,11 @@ public class Reader {
             FileReader fileReader = new FileReader(file);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
 
-            int absoluteLine = 0;
-            int scriptLine = 0;
+            int absoluteLine = 0, scriptLine = 0;
             Script currentScript = null;
             String line;
+
+            List<Line> bracesLineList = new ArrayList<Line>();
 
             while ((line = bufferedReader.readLine()) != null) {
                 // Up the line #s
@@ -99,20 +107,40 @@ public class Reader {
                     continue;
                 }
 
+                if (currentScript != null) {
+                    Optional<Statement> statementOptional = lineInst.getStatement();
+                    if (statementOptional.isPresent()) {
+                        if (statementOptional.get().suffix() != null && statementOptional.get().suffix().equals("{")) {
+                            bracesLineList.add(0, lineInst);
+                        } else if (lineInst.getIStatement().isPresent() && lineInst.getIStatement().get() instanceof Termination) {
+                            currentScript.getLinkedLines().put(bracesLineList.remove(0), lineInst);
+                        }
+                    }
+                }
+
                 if (Statements.isApplicable(Statements.SCRIPT_DECLARATION, lineInst)) { // Check if this is a script declaration
-                    checkState(currentScript == null, "Please end a script declaration with #endscript");
+                    checkState(currentScript == null, "Please end a script declaration with !endscript");
 
                     StatementResult<String> result = Statements.SCRIPT_DECLARATION.run(ScriptInstance.compile(), lineInst);
                     checkState(result.isSuccess() && result.getResult().isPresent(), String.format("File %s has an improper formatted script declaration", file.getName()));
 
                     currentScript = new Script(scriptsFile, result.getResult().get());
-                } else if (Statements.isApplicable(Statements.SCRIPT_TERMINATION, lineInst)) {
+                    bracesLineList.add(0, lineInst); // Add braces here since it wasn't added above
+                } else if (Statements.isApplicable(Statements.TERMINATION, lineInst)) {
                     checkNotNull(currentScript, "No script is being declared");
 
-                    scriptsFile.getScripts().add(currentScript);
-                    currentScript.run(ScriptInstance.builder().script(currentScript).cause(Causes.COMPILE).predicate(Script.compileTimePredicate()).build());
-                    currentScript = null;
-                    scriptLine = 0;
+                    Line starting = currentScript.lookupStartingLine(lineInst);
+                    if (starting.getIStatement().isPresent() && starting.getIStatement().get() instanceof ScriptDeclaration) {
+                        scriptsFile.getScripts().add(currentScript);
+                        currentScript.run(ScriptInstance.builder().script(currentScript).cause(Causes.COMPILE).predicate(Script.compileTimePredicate()).build());
+
+                        // Reset cache for the script
+                        currentScript = null;
+                        bracesLineList.clear();
+                        scriptLine = 0;
+                    } else {
+                        currentScript.getLines().add(lineInst); // If not, add termination to normal script line list
+                    }
                 } else if (currentScript != null) {
                     currentScript.getLines().add(lineInst);
                 }
@@ -120,7 +148,9 @@ public class Reader {
 
             bufferedReader.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            DirectScript.instance().getErrorHandler().log("Error in compilation of " + file.getName());
+            DirectScript.instance().getErrorHandler().log(e);
+            DirectScript.instance().getErrorHandler().flush();
         }
 
         return scriptsFile;

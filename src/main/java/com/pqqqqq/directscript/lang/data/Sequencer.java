@@ -6,9 +6,7 @@ import com.pqqqqq.directscript.lang.data.variable.Variable;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
-import com.pqqqqq.directscript.lang.statement.Statements;
-import com.pqqqqq.directscript.lang.util.StringUtil;
-import org.apache.commons.lang3.tuple.Triple;
+import com.pqqqqq.directscript.lang.util.StringParser;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -37,13 +35,19 @@ public class Sequencer {
         checkNotNull(sequence, "Sequence cannot be null");
         Literal result = Literal.empty();
 
-        List<Triple<String, String, String>> triples = StringUtil.splitPairNoQuotes(sequence, "+", "-", "*", "/"); // Split into ordered triple segments
-        for (Triple<String, String, String> triple : triples) {
+        List<StringParser.SplitSequence> triples = StringParser.instance().parseSplitSeq(sequence, "+", "-", "*", "/"); // Split into ordered triple segments
+        for (StringParser.SplitSequence triple : triples) {
             String beforeSplit = triple.getLeft();
             String segment = triple.getMiddle().trim();
             String afterSplit = triple.getRight();
 
             Literal segmentLiteral = Literal.empty();
+
+            // Pre-parse anything in brackets
+            String bracket;
+            while ((bracket = StringParser.instance().getFirstBracket(segment)) != null) {
+                segment = segment.replace(bracket, parse(bracket.substring(1, bracket.length() - 1)).getString());
+            }
 
             // Check plain data
             Optional<Literal> literal = Literal.getLiteral(segment);
@@ -64,13 +68,15 @@ public class Sequencer {
                         segmentLiteral = variable.get().getData();
                     } else {
                         // Check if it's a statement
-                        Line curLine = scriptInstance.getCurrentLine().get();
-                        Line line = new Line(curLine.getAbsoluteNumber(), curLine.getScriptNumber(), segment);
-                        Optional<IStatement> statement = Statements.getIStatement(line);
-                        if (statement.isPresent()) {
-                            StatementResult<?> statementResult = statement.get().run(scriptInstance, line);
-                            if (statementResult.getLiteralResult().isPresent()) {
-                                segmentLiteral = statementResult.getLiteralResult().get();
+                        Optional<Line> curLine = scriptInstance.getCurrentLine();
+                        if (curLine.isPresent()) {
+                            Line line = new Line(curLine.get().getAbsoluteNumber(), curLine.get().getScriptNumber(), segment);
+                            Optional<IStatement> statement = line.getIStatement();
+                            if (statement.isPresent()) {
+                                StatementResult<?> statementResult = statement.get().run(scriptInstance, line);
+                                if (statementResult.getLiteralResult().isPresent()) {
+                                    segmentLiteral = statementResult.getLiteralResult().get();
+                                }
                             }
                         }
                     }
@@ -104,29 +110,29 @@ public class Sequencer {
         }
 
         public Optional<Literal> parse(String sequence) {
-            String[] splitOr = StringUtil.splitNotInQuotes(sequence, " or "); // 'Or' takes precedence over 'and'
+            String[] splitOr = StringParser.instance().parseSplit(sequence, " or "); // 'Or' takes precedence over 'and'
 
             for (String orCondition : splitOr) {
-                String[] splitAnd = StringUtil.splitNotInQuotes(orCondition, " and ");
+                String[] splitAnd = StringParser.instance().parseSplit(orCondition, " and ");
                 int andSuccessCounter = 0;
 
                 for (String condition : splitAnd) {
-                    List<Triple<String, String, String>> triples = StringUtil.splitPairNoQuotes(condition, "==", "!=", " < ", " > ", "<=", ">="); // TODO: Better way of less than and more than??
+                    List<StringParser.SplitSequence> triples = StringParser.instance().parseSplitSeq(condition, "==", "!=", "~", "!~", " < ", " > ", "<=", ">="); // TODO: Better way of less than and more than??
 
                     if (triples.size() != 2) {
                         return Optional.absent(); // Need exactly a left side and a right side
                     }
 
-                    Triple<String, String, String> leftSideTriple = triples.get(0);
-                    Triple<String, String, String> rightSideTriple = triples.get(1);
-                    String comparator = leftSideTriple.getRight();
+                    StringParser.SplitSequence leftSideTriple = triples.get(0);
+                    StringParser.SplitSequence rightSideTriple = triples.get(1);
+                    String comparator = leftSideTriple.getAfterSplit();
 
-                    if (!comparator.equals(rightSideTriple.getLeft())) { // This should never happen, but it's just an insurance check
+                    if (!comparator.equals(rightSideTriple.getBeforeSplit())) { // This should never happen, but it's just an insurance check
                         return Optional.absent();
                     }
 
-                    String leftSide = leftSideTriple.getMiddle();
-                    String rightSide = rightSideTriple.getMiddle();
+                    String leftSide = leftSideTriple.getSequence();
+                    String rightSide = rightSideTriple.getSequence();
 
                     if (leftSide == null || rightSide == null) { // Quick null check
                         return Optional.absent();
@@ -150,6 +156,14 @@ public class Sequencer {
                         if (!leftSideLiteral.getValue().equals(rightSideLiteral.getValue())) {
                             andSuccessCounter++;
                         }
+                    } else if (comparator.equals("~")) { // Similar
+                        if (leftSideLiteral.getString().equalsIgnoreCase(rightSideLiteral.getString())) {
+                            andSuccessCounter++;
+                        }
+                    } else if (comparator.equals("!~")) { // Not similar
+                        if (!leftSideLiteral.getString().equalsIgnoreCase(rightSideLiteral.getString())) {
+                            andSuccessCounter++;
+                        }
                     } else if (comparator.equals(" < ")) { // Less than
                         if (leftSideLiteral.getNumber() < rightSideLiteral.getNumber()) {
                             andSuccessCounter++;
@@ -171,7 +185,7 @@ public class Sequencer {
                     }
                 }
 
-                if (andSuccessCounter == splitAnd.length) { // Successful and sequence, the condition is true!
+                if (andSuccessCounter == splitAnd.length) { // Successful 'and' sequence, the condition is true!
                     return Optional.of(Literal.trueLiteral());
                 }
             }

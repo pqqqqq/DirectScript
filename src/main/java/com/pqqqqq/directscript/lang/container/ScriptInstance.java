@@ -2,11 +2,13 @@ package com.pqqqqq.directscript.lang.container;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Maps;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.Sequencer;
 import com.pqqqqq.directscript.lang.data.variable.Variable;
 import com.pqqqqq.directscript.lang.env.Environment;
 import com.pqqqqq.directscript.lang.reader.Line;
+import com.pqqqqq.directscript.lang.statement.StatementResult;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import org.spongepowered.api.entity.player.Player;
@@ -30,7 +32,12 @@ public class ScriptInstance implements Environment {
     @Nonnull private final Sequencer sequencer;
     @Nonnull private final Map<String, Variable> variableMap;
 
+    @Nonnull
+    private final Map<Line, StatementResult> resultMap = Maps.newHashMap();
+    @Nonnull
     private Optional<Line> currentLine = Optional.absent();
+    @Nonnull
+    private boolean skipLines = false;
 
     ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Map<String, Variable> variableMap) {
         this.script = script;
@@ -79,6 +86,26 @@ public class ScriptInstance implements Environment {
 
     public void setCurrentLine(Optional<Line> currentLine) {
         this.currentLine = currentLine;
+    }
+
+    public boolean isSkipLines() {
+        return skipLines;
+    }
+
+    public void setSkipLines(boolean skipLines) {
+        this.skipLines = skipLines;
+    }
+
+    public Map<Line, StatementResult> getResultMap() {
+        return resultMap;
+    }
+
+    public StatementResult getResultOf(Line line) {
+        return resultMap.get(line);
+    }
+
+    public StatementResult getResultOfEnding(Line ending) { // Convenience method
+        return getResultOf(script.lookupStartingLine(ending));
     }
 
     public static class Builder {
