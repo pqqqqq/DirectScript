@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-02.
@@ -15,6 +16,8 @@ public class Variable {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z0-9]*$");
 
     @Nonnull private final String name;
+    @Nonnull
+    private final boolean isFinal;
     @Nonnull private Literal data;
 
     public Variable(String name) {
@@ -22,8 +25,13 @@ public class Variable {
     }
 
     public Variable(String name, Literal data) {
+        this(name, data, false);
+    }
+
+    public Variable(String name, Literal data, boolean isFinal) {
         this.name = name;
-        setData(data);
+        forceSetData(data);
+        this.isFinal = isFinal;
     }
 
     public static Pattern namePattern() {
@@ -39,7 +47,16 @@ public class Variable {
     }
 
     public void setData(Literal data) {
+        checkState(!isFinal, "You cannot change the value of a finalized vaiable");
+        forceSetData(data);
+    }
+
+    private void forceSetData(Literal data) {
         checkNotNull(data, "Data itself cannot be null. Use Literal#empty for null data");
         this.data = data;
+    }
+
+    public boolean isFinal() {
+        return isFinal;
     }
 }

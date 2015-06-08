@@ -57,7 +57,7 @@ public class Literal<T> {
     }
 
     public static Optional<Literal> getLiteral(String literal) {
-        if (literal == null) {
+        if (literal == null || literal.isEmpty() || literal.equals("null")) { // Null or empty values return an empty literal
             return Optional.of(empty());
         }
 

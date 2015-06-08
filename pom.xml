@@ -20,6 +20,14 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>flow-repo</id>
+            <name>Flow maven repo</name>
+            <url>https://oss.sonatype.org/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -47,7 +55,7 @@
                             <minimizeJar>true</minimizeJar>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>org.spongepowered.spongeapi:*:*</exclude>
+                                    <exclude>org.spongepowered:spongeapi:*:*</exclude>
                                 </excludes>
                             </artifactSet>
                         </configuration>

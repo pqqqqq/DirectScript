@@ -1,6 +1,6 @@
 package com.pqqqqq.directscript.lang.reader;
 
-import com.google.common.base.Optional;
+import com.google.common.base.Objects;
 import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.data.Literal;
@@ -11,6 +11,8 @@ import com.pqqqqq.directscript.lang.util.Utilities;
 
 import javax.annotation.Nonnull;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Created by Kevin on 2015-06-02.
  * Represents a line in a script
@@ -20,13 +22,14 @@ public class Line {
     private final int absoluteNumber;
     @Nonnull
     private final int scriptNumber;
-    @Nonnull private final String line;
+    @Nonnull
+    private final String line;
     @Nonnull
     private final String trimmedLine;
     @Nonnull
-    private final Optional<IStatement> istatement;
+    private final IStatement istatement;
     @Nonnull
-    private final Optional<Statement> statement;
+    private final Statement statement;
     @Nonnull
     private final String[] arguments;
 
@@ -34,16 +37,17 @@ public class Line {
         this.absoluteNumber = absoluteNumber;
         this.scriptNumber = scriptNumber;
         this.line = Utilities.fullLineTrim(line);
-        this.istatement = Statements.getIStatement(this);
-        this.statement = Statements.getStatement(this);
+        this.istatement = Statements.getIStatement(this).orNull();
+        this.statement = Statements.getStatement(this).orNull();
 
-        String trimmedLine = this.line.substring(this.line.indexOf(' ') + 1).trim();
-        if (statement.isPresent() && statement.get().suffix() != null) {
-            trimmedLine = trimmedLine.substring(0, trimmedLine.length() - statement.get().suffix().length()).trim();
-        }
+        checkNotNull(this.istatement, "Unknown line statement: " + this.line);
+        checkNotNull(this.statement, "Unknown line statement: " + this.line);
+
+        String trimmedLine = this.line.substring(this.line.indexOf(' ') + 1).trim(); // Trim prefix
+        trimmedLine = trimmedLine.substring(0, trimmedLine.length() - this.statement.suffix().length()).trim(); // Trim suffix
 
         this.trimmedLine = trimmedLine;
-        this.arguments = StringParser.instance().parseSplit(trimmedLine, ","); // TODO: Better way to do this???
+        this.arguments = StringParser.instance().parseSplit(this.trimmedLine, ","); // TODO: Better way to do this???
     }
 
     @Nonnull
@@ -67,12 +71,12 @@ public class Line {
     }
 
     @Nonnull
-    public Optional<IStatement> getIStatement() {
+    public IStatement getIStatement() {
         return istatement;
     }
 
     @Nonnull
-    public Optional<Statement> getStatement() {
+    public Statement getStatement() {
         return statement;
     }
 
@@ -93,5 +97,16 @@ public class Line {
 
     public Literal sequenceArg(ScriptInstance scriptInstance, int i) {
         return scriptInstance.getSequencer().parse(getArg(i));
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("absoluteLine", this.absoluteNumber)
+                .add("scriptLine", this.scriptNumber)
+                .add("line", this.line)
+                .add("trimmedLine", this.trimmedLine)
+                .add("statement", this.istatement.getClass().getName())
+                .toString();
     }
 }

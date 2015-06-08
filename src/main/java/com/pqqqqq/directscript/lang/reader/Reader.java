@@ -1,17 +1,16 @@
 package com.pqqqqq.directscript.lang.reader;
 
-import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
-import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.container.Script;
 import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.container.ScriptsFile;
+import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
-import com.pqqqqq.directscript.lang.statement.Statements;
 import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptDeclaration;
 import com.pqqqqq.directscript.lang.statement.statements.internal.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
+import com.pqqqqq.directscript.lang.util.Utilities;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -102,35 +101,37 @@ public class Reader {
                     scriptLine++;
                 }
 
-                Line lineInst = new Line(absoluteLine, scriptLine, line);
-                if (lineInst.getLine().isEmpty() || lineInst.getLine().startsWith("//")) {
+                String trim = Utilities.fullLineTrim(line);
+                if (trim.isEmpty() || trim.startsWith("//")) {
                     continue;
                 }
 
+                Line lineInst = new Line(absoluteLine, scriptLine, line);
                 if (currentScript != null) {
-                    Optional<Statement> statementOptional = lineInst.getStatement();
-                    if (statementOptional.isPresent()) {
-                        if (statementOptional.get().suffix() != null && statementOptional.get().suffix().equals("{")) {
-                            bracesLineList.add(0, lineInst);
-                        } else if (lineInst.getIStatement().isPresent() && lineInst.getIStatement().get() instanceof Termination) {
-                            currentScript.getLinkedLines().put(bracesLineList.remove(0), lineInst);
-                        }
+                    if (lineInst.getIStatement() instanceof Termination) { // Else is an instance of Termination
+                        currentScript.getLinkedLines().put(bracesLineList.remove(0), lineInst);
+                    }
+
+                    if (lineInst.getStatement().suffix().equals("{") || lineInst.getTrimmedLine().endsWith("{")) { // Necessary for else and else if statements
+                        bracesLineList.add(0, lineInst);
                     }
                 }
 
-                if (Statements.isApplicable(Statements.SCRIPT_DECLARATION, lineInst)) { // Check if this is a script declaration
-                    checkState(currentScript == null, "Please end a script declaration with !endscript");
+                IStatement iStatementOptional = lineInst.getIStatement();
+                if (iStatementOptional instanceof ScriptDeclaration) { // Check if this is a script declaration
+                    checkState(currentScript == null, "Please end a script declaration with an end brace (})");
 
-                    StatementResult<String> result = Statements.SCRIPT_DECLARATION.run(ScriptInstance.compile(), lineInst);
+                    StatementResult<String> result = iStatementOptional.run(ScriptInstance.compile(), lineInst);
                     checkState(result.isSuccess() && result.getResult().isPresent(), String.format("File %s has an improper formatted script declaration", file.getName()));
 
                     currentScript = new Script(scriptsFile, result.getResult().get());
                     bracesLineList.add(0, lineInst); // Add braces here since it wasn't added above
-                } else if (Statements.isApplicable(Statements.TERMINATION, lineInst)) {
-                    checkNotNull(currentScript, "No script is being declared");
+                    continue;
+                } else if (iStatementOptional instanceof Termination) {
+                    checkNotNull(currentScript, "No script is being declared line " + lineInst.getLine() + " " + lineInst.getAbsoluteNumber());
 
                     Line starting = currentScript.lookupStartingLine(lineInst);
-                    if (starting.getIStatement().isPresent() && starting.getIStatement().get() instanceof ScriptDeclaration) {
+                    if (starting.getIStatement() instanceof ScriptDeclaration) {
                         scriptsFile.getScripts().add(currentScript);
                         currentScript.run(ScriptInstance.builder().script(currentScript).cause(Causes.COMPILE).predicate(Script.compileTimePredicate()).build());
 
@@ -138,10 +139,11 @@ public class Reader {
                         currentScript = null;
                         bracesLineList.clear();
                         scriptLine = 0;
-                    } else {
-                        currentScript.getLines().add(lineInst); // If not, add termination to normal script line list
+                        continue;
                     }
-                } else if (currentScript != null) {
+                }
+
+                if (currentScript != null) { // Otherwise, if there's an active script, add the line to the script line list
                     currentScript.getLines().add(lineInst);
                 }
             }

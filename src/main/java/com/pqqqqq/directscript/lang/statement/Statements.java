@@ -3,10 +3,7 @@ package com.pqqqqq.directscript.lang.statement;
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.statement.statements.generic.CallStatement;
-import com.pqqqqq.directscript.lang.statement.statements.generic.IfStatement;
-import com.pqqqqq.directscript.lang.statement.statements.generic.PrintStatement;
-import com.pqqqqq.directscript.lang.statement.statements.generic.VarDeclaration;
+import com.pqqqqq.directscript.lang.statement.statements.generic.*;
 import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptDeclaration;
 import com.pqqqqq.directscript.lang.statement.statements.internal.Termination;
 import com.pqqqqq.directscript.lang.statement.statements.option.TriggerStatement;
@@ -24,12 +21,14 @@ public class Statements {
 
     // Internal statements
     public static final IStatement<String> SCRIPT_DECLARATION = new ScriptDeclaration();
+    public static final IStatement ELSE_STATEMENT = new ElseStatement();
     public static final IStatement TERMINATION = new Termination();
 
     // Generic statements
     public static final IStatement PRINT = new PrintStatement();
     public static final IStatement VAR_DECLARATION = new VarDeclaration();
     public static final IStatement CALL = new CallStatement();
+
     public static final IStatement<Boolean> IF_STATEMENT = new IfStatement();
 
     // Option script statements
@@ -50,30 +49,7 @@ public class Statements {
     }
 
     public static boolean isStatementEqual(final Statement statement, Line lineInst) {
-        String line = lineInst.getLine().trim();
-
-        /*String identifierStringBuild = "(";
-        for (String identifier : statement.identifiers()) {
-            identifierStringBuild += "\\Q" + identifier + "\\E|";
-        }
-        final String identifierString = identifierStringBuild.substring(0, identifierStringBuild.length() - 1);
-
-        return StringParser.instance().matches(lineInst.getLine(), new Predicate<String>() {
-            public boolean apply(String input) {
-                if (statement.useBrackets()) {
-                    return Pattern.matches("\\Q" + statement.prefix() + "\\E" + identifierString + "(\\s*?)\\(", input);
-                }
-                return Pattern.matches("\\Q" + statement.prefix() + "\\E" + identifierString, input);
-            }
-        }) && StringParser.instance().matches(lineInst.getLine(), new Predicate<String>() {
-            public boolean apply(String input) {
-                if (statement.useBrackets()) {
-                    return Pattern.matches("^(.*?)\\)$", input);
-                }
-                return true;
-            }
-        });*/
-
+        String line = lineInst.getLine();
         for (String identifier : statement.identifiers()) {
             if (line.startsWith(statement.prefix() + identifier + " ") && (statement.suffix().isEmpty() || line.endsWith(statement.suffix())) || line.equals(statement.prefix() + identifier + statement.suffix())) {
                 return true;

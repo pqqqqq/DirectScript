@@ -42,6 +42,7 @@ public class Sequencer {
             String afterSplit = triple.getRight();
 
             Literal segmentLiteral = Literal.empty();
+            boolean successful = false;
 
             // Pre-parse anything in brackets
             String bracket;
@@ -53,38 +54,40 @@ public class Sequencer {
             Optional<Literal> literal = Literal.getLiteral(segment);
             if (literal.isPresent()) {
                 segmentLiteral = literal.get();
+                successful = true;
             } else {
                 // Check if it's a condition
                 literal = conditionInstance.parse(segment);
                 if (literal.isPresent()) {
                     segmentLiteral = literal.get();
+                    successful = true;
                 } else {
-                    if (segment.startsWith("$")) { // Check variable
-                        Optional<Variable> variable = scriptInstance.getVariable(segment);
-                        if (!variable.isPresent()) {
-                            throw new IllegalArgumentException("Invalid variable: " + segment + " in " + sequence);
-                        }
-
+                    // Check variable
+                    Optional<Variable> variable = scriptInstance.getVariable(segment);
+                    if (variable.isPresent()) {
                         segmentLiteral = variable.get().getData();
+                        successful = true;
                     } else {
                         // Check if it's a statement
                         Optional<Line> curLine = scriptInstance.getCurrentLine();
                         if (curLine.isPresent()) {
-                            Line line = new Line(curLine.get().getAbsoluteNumber(), curLine.get().getScriptNumber(), segment);
-                            Optional<IStatement> statement = line.getIStatement();
-                            if (statement.isPresent()) {
-                                StatementResult<?> statementResult = statement.get().run(scriptInstance, line);
+                            try {
+                                Line line = new Line(curLine.get().getAbsoluteNumber(), curLine.get().getScriptNumber(), segment);
+                                IStatement statement = line.getIStatement();
+                                StatementResult<?> statementResult = statement.run(scriptInstance, line);
                                 if (statementResult.getLiteralResult().isPresent()) {
                                     segmentLiteral = statementResult.getLiteralResult().get();
+                                    successful = true;
                                 }
+                            } catch (NullPointerException e) {
                             }
                         }
                     }
                 }
             }
 
-            if (segmentLiteral.isEmpty()) {
-                throw new IllegalStateException("No coherent sequence could be created from: " + segment + " in: " + sequence); // If all else fails, throw an exception
+            if (!successful) {
+                throw new IllegalStateException("No coherent segment could be created from: '" + segment + "' in the sequence: '" + sequence + "'"); // If all else fails, throw an exception
             }
 
             if (beforeSplit == null) { // Operators
@@ -142,8 +145,8 @@ public class Sequencer {
                     Literal leftSideLiteral = Sequencer.this.parse(leftSide);
                     Literal rightSideLiteral = Sequencer.this.parse(rightSide);
 
-                    // Ensure they're not empty
-                    if (leftSideLiteral.isEmpty() || rightSideLiteral.isEmpty()) {
+                    // Ensure they're not null
+                    if (leftSideLiteral == null || rightSideLiteral == null) {
                         return Optional.absent();
                     }
 

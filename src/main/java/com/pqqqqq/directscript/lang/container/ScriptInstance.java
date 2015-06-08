@@ -61,7 +61,7 @@ public class ScriptInstance implements Environment {
 
     public Optional<Variable> getVariable(String name) {
         // TODO: More robust version of this?
-        return Optional.fromNullable(variableMap.get(name.trim().substring(1)));
+        return Optional.fromNullable(variableMap.get(name.trim()));
     }
 
     public Cause getCause() {

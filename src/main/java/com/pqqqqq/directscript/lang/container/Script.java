@@ -22,15 +22,15 @@ public class Script {
     private static final Predicate<Line> COMPILETIME_PREDICATE = new Predicate<Line>() {
 
         public boolean apply(Line input) {
-            Optional<Statement> statement = input.getStatement();
-            return statement.isPresent() && (statement.get().executionTime() == Statement.ExecutionTime.COMPILE || statement.get().executionTime() == Statement.ExecutionTime.ALWAYS);
+            Statement statement = input.getStatement();
+            return statement.executionTime() == Statement.ExecutionTime.COMPILE || statement.executionTime() == Statement.ExecutionTime.ALWAYS;
         }
     };
     private static final Predicate<Line> RUNTIME_PREDICATE = new Predicate<Line>() {
 
         public boolean apply(Line input) {
-            Optional<Statement> statement = input.getStatement();
-            return !statement.isPresent() || statement.get().executionTime() != Statement.ExecutionTime.COMPILE;
+            Statement statement = input.getStatement();
+            return statement.executionTime() != Statement.ExecutionTime.COMPILE;
         }
     };
 
@@ -85,13 +85,9 @@ public class Script {
                 if (scriptInstance.getLinePredicate() == null || scriptInstance.getLinePredicate().apply(line)) {
                     scriptInstance.setCurrentLine(Optional.of(line)); // Set current line
 
-                    Optional<IStatement> statement = line.getIStatement();
-                    if (!statement.isPresent()) {
-                        throw new IllegalStateException("Unknown statement");
-                    }
-
-                    if (!scriptInstance.isSkipLines() || statement.get() instanceof Termination) {
-                        scriptInstance.getResultMap().put(line, statement.get().run(scriptInstance, line)); // Add to result map
+                    IStatement statement = line.getIStatement();
+                    if (!scriptInstance.isSkipLines() || statement instanceof Termination) {
+                        scriptInstance.getResultMap().put(line, statement.run(scriptInstance, line)); // Add to result map
                     }
                 }
             } catch (Throwable e) {
