@@ -291,7 +291,8 @@ public class Literal<T> {
         if (!isNormalized()) {
             if (isString()) {
                 return new Literal<String>("\"" + getString() + "\"", true);
-            } else if (isArray()) {
+            }
+            if (isArray()) {
                 for (Variable var : getArray()) {
                     Literal data = var.getData();
                     if (!data.isEmpty() && !data.isNormalized()) {

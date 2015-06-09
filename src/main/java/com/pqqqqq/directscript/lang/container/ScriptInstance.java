@@ -219,11 +219,11 @@ public class ScriptInstance implements Environment, Runnable {
         }
 
         private Builder variables() { // Adds generic variables for script (run on build)
-            return variables(new Variable("GENERIC:cause", Literal.getLiteralBlindly(cause.getCause()), true), new Variable("GENERIC:millis", Literal.getLiteralBlindly(System.currentTimeMillis()), true));
+            return variables(new Variable("GENERICcause", Literal.getLiteralBlindly(cause.getCause()), true), new Variable("GENERICmillis", Literal.getLiteralBlindly(System.currentTimeMillis()), true));
         }
 
         public Builder variables(Player player) { // Adds sponge variables for a player
-            return variables(new Variable("SPONGE:playername", Literal.getLiteralBlindly(player.getName()), true), new Variable("SPONGE:playeruuid", Literal.getLiteralBlindly(player.getIdentifier()), true));
+            return variables(new Variable("SPONGEplayername", Literal.getLiteralBlindly(player.getName()), true), new Variable("SPONGEplayeruuid", Literal.getLiteralBlindly(player.getIdentifier()), true));
         }
 
         public Builder variables(CommandSource source) { // Adds sponge variables for a command source
@@ -231,7 +231,7 @@ public class ScriptInstance implements Environment, Runnable {
                 variables((Player) source);
             }
 
-            return variables(new Variable("SPONGE:sourcename", Literal.getLiteralBlindly(source.getName()), true));
+            return variables(new Variable("SPONGEsourcename", Literal.getLiteralBlindly(source.getName()), true));
         }
 
         public Builder copy() {

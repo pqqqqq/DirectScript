@@ -49,6 +49,21 @@ public class Sequencer {
             }
         }
 
+        // Check if it's an inline if
+        int questionMark = StringParser.instance().indexOf(sequence, '?');
+        int colon = StringParser.instance().indexOf(sequence, ':');
+        if (questionMark > -1 && colon > -1) {
+            String operandCondition = sequence.substring(0, questionMark).trim();
+            String trueSegment = sequence.substring(questionMark + 1, colon).trim();
+            String falseSegment = sequence.substring(colon + 1).trim();
+
+            if (parse(operandCondition).getBoolean()) {
+                return parse(trueSegment);
+            } else {
+                return parse(falseSegment);
+            }
+        }
+
         List<StringParser.SplitSequence> triples = StringParser.instance().parseSplitSeq(sequence, "+", "-", "*", "/"); // Split into ordered triple segments
         for (StringParser.SplitSequence triple : triples) {
             String beforeSplit = triple.getLeft();
@@ -64,14 +79,15 @@ public class Sequencer {
                 segment = segment.replace(bracket, parse(bracket.substring(1, bracket.length() - 1)).normalize().getString()).trim(); // Normalize brackets since they're being put back in
             }
 
-            // Check plain data
-            Optional<Literal> literal = Literal.getLiteral(scriptInstance, segment);
+
+            // Check if it's a condition
+            Optional<Literal> literal = conditionInstance.parse(segment);
             if (literal.isPresent()) {
                 segmentLiteral = literal.get();
                 successful = true;
             } else {
-                // Check if it's a condition
-                literal = conditionInstance.parse(segment);
+                // Check plain data
+                literal = Literal.getLiteral(scriptInstance, segment);
                 if (literal.isPresent()) {
                     segmentLiteral = literal.get();
                     successful = true;

@@ -108,6 +108,41 @@ public class StringParser {
         return null;
     }
 
+    public int indexOf(String string, char ch) {
+        boolean quotes = false;
+        int roundBrackets = 0, squareBrackets = 0;
+        String builder = "";
+
+        for (int count = 0; count < string.length(); count++) {
+            char c = string.charAt(count);
+
+            if (c == '"') {
+                if (!builder.endsWith("\\") || builder.endsWith("\\\\")) {
+                    quotes = !quotes;
+                }
+            } else if (!quotes) {
+                if (c == '(') {
+                    roundBrackets++;
+                } else if (c == ')') {
+                    roundBrackets--;
+                } else if (c == '[') {
+                    squareBrackets++;
+                } else if (c == ']') {
+                    squareBrackets--;
+                }
+            }
+
+            builder += c;
+            if (!quotes && roundBrackets == 0 && squareBrackets == 0) {
+                if (ch == c) {
+                    return count;
+                }
+            }
+        }
+
+        return -1;
+    }
+
     public static class SplitSequence extends Triple<String, String, String> {
         private final String beforeSplit;
         private final String sequence;
