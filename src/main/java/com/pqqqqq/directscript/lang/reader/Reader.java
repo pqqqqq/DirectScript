@@ -6,8 +6,8 @@ import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.container.ScriptsFile;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
-import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptDeclaration;
-import com.pqqqqq.directscript.lang.statement.statements.internal.Termination;
+import com.pqqqqq.directscript.lang.statement.setters.internal.ScriptDeclaration;
+import com.pqqqqq.directscript.lang.statement.setters.internal.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import com.pqqqqq.directscript.lang.util.Utilities;
@@ -95,11 +95,7 @@ public class Reader {
             List<Line> bracesLineList = new ArrayList<Line>();
 
             while ((line = bufferedReader.readLine()) != null) {
-                // Up the line #s
-                absoluteLine++;
-                if (currentScript != null) {
-                    scriptLine++;
-                }
+                absoluteLine++; // Up the line #s
 
                 String trim = Utilities.fullLineTrim(line);
                 if (trim.isEmpty() || trim.startsWith("//")) {
@@ -108,6 +104,7 @@ public class Reader {
 
                 Line lineInst = new Line(absoluteLine, scriptLine, line);
                 if (currentScript != null) {
+                    scriptLine++;
                     if (lineInst.getIStatement() instanceof Termination) { // Else is an instance of Termination
                         currentScript.getLinkedLines().put(bracesLineList.remove(0), lineInst);
                     }
@@ -121,7 +118,7 @@ public class Reader {
                 if (iStatementOptional instanceof ScriptDeclaration) { // Check if this is a script declaration
                     checkState(currentScript == null, "Please end a script declaration with an end brace (})");
 
-                    StatementResult<String> result = iStatementOptional.run(ScriptInstance.compile(), lineInst);
+                    StatementResult<String> result = iStatementOptional.run(ScriptInstance.compile(null), lineInst);
                     checkState(result.isSuccess() && result.getResult().isPresent(), String.format("File %s has an improper formatted script declaration", file.getName()));
 
                     currentScript = new Script(scriptsFile, result.getResult().get());
@@ -133,7 +130,7 @@ public class Reader {
                     Line starting = currentScript.lookupStartingLine(lineInst);
                     if (starting.getIStatement() instanceof ScriptDeclaration) {
                         scriptsFile.getScripts().add(currentScript);
-                        currentScript.run(ScriptInstance.builder().script(currentScript).cause(Causes.COMPILE).predicate(Script.compileTimePredicate()).build());
+                        ScriptInstance.compile(currentScript).run();
 
                         // Reset cache for the script
                         currentScript = null;

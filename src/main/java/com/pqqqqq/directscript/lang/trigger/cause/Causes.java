@@ -22,6 +22,7 @@ public class Causes {
 
     // Player causes
     public static final Cause PLAYER_JOIN = new Cause("PlayerJoin");
+    public static final Cause COMMAND = new Cause("Command");
 
     private static final List<Cause> REGISTRY;
     static {

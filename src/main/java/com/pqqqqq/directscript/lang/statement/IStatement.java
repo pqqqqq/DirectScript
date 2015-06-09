@@ -6,7 +6,7 @@ import com.pqqqqq.directscript.lang.reader.Line;
 /**
  * Created by Kevin on 2015-06-02.
  */
-public interface IStatement<T> {
+public interface IStatement<V> {
 
-    StatementResult<T> run(ScriptInstance scriptInstance, Line line);
+    StatementResult<V> run(ScriptInstance scriptInstance, Line line);
 }

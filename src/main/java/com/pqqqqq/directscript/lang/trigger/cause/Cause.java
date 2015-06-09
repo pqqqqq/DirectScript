@@ -42,4 +42,9 @@ public class Cause {
             }
         }
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj == this;
+    }
 }

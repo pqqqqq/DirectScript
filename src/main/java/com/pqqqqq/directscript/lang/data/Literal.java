@@ -2,11 +2,16 @@ package com.pqqqqq.directscript.lang.data;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
+import com.pqqqqq.directscript.lang.container.ScriptInstance;
+import com.pqqqqq.directscript.lang.data.variable.Variable;
+import com.pqqqqq.directscript.lang.util.StringParser;
 import com.pqqqqq.directscript.lang.util.Utilities;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.spongepowered.api.entity.player.Player;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -19,29 +24,40 @@ public class Literal<T> {
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.###");
 
     private static final Literal EMPTY = new Literal();
-    private static final Literal TRUE = new Literal(true);
-    private static final Literal FALSE = new Literal(false);
+    private static final Literal<Boolean> TRUE = new Literal(true);
+    private static final Literal<Boolean> FALSE = new Literal(false);
+    private static final Literal<String> NULL = new Literal("null");
 
     private final Optional<T> value;
+    private final boolean normalized;
 
     private Literal() {
         this(null);
     }
 
     private Literal(T value) {
+        this(value, false);
+    }
+
+    private Literal(T value, boolean normalized) {
         this.value = Optional.fromNullable(value);
+        this.normalized = normalized;
     }
 
     public static Literal empty() {
         return EMPTY;
     }
 
-    public static Literal trueLiteral() {
+    public static Literal<Boolean> trueLiteral() {
         return TRUE;
     }
 
-    public static Literal falseLiteral() {
+    public static Literal<Boolean> falseLiteral() {
         return FALSE;
+    }
+
+    public static Literal<String> nullLiteral() {
+        return NULL;
     }
 
     public static <T> Literal getLiteralBlindly(T value) {
@@ -53,12 +69,31 @@ public class Literal<T> {
             return new Literal<Double>(Double.parseDouble(value.toString()));
         }
 
+        if (value.getClass().isArray()) { // Special for arrays
+            List<Variable> array = new ArrayList<Variable>();
+            for (Object obj : (Object[]) value) {
+                array.add(new Variable(null, Literal.getLiteralBlindly(obj)));
+            }
+            return new Literal<List<Variable>>(array);
+        }
+
         return new Literal<T>(value);
     }
 
-    public static Optional<Literal> getLiteral(String literal) {
+    public static Optional<Literal> getLiteral(ScriptInstance scriptInstance, String literal) {
         if (literal == null || literal.isEmpty() || literal.equals("null")) { // Null or empty values return an empty literal
             return Optional.of(empty());
+        }
+
+        // If there's [], it's an array
+        if (literal.startsWith("[") && literal.endsWith("]")) {
+            List<Variable> array = new ArrayList<Variable>(); // Max size of list is 1000
+
+            int index = 0;
+            for (String arrayValue : StringParser.instance().parseSplit(literal.substring(1, literal.length() - 1), ",")) {
+                array.add(new Variable(null, scriptInstance.getSequencer().parse(arrayValue)));
+            }
+            return Optional.<Literal>of(new Literal<List<Variable>>(array));
         }
 
         // If there's quotes, it's a string
@@ -68,11 +103,11 @@ public class Literal<T> {
 
         // Literal booleans are only true or false
         if (literal.equals("true")) {
-            return Optional.of(TRUE);
+            return Optional.<Literal>of(TRUE);
         }
 
         if (literal.equals("false")) {
-            return Optional.of(FALSE);
+            return Optional.<Literal>of(FALSE);
         }
 
         // Everything in literals are basically just numbers, just make them all doubles
@@ -92,6 +127,10 @@ public class Literal<T> {
         return value;
     }
 
+    public boolean isNormalized() {
+        return normalized || !isString() && !isArray();
+    }
+
     public boolean isString() {
         checkState(value.isPresent(), "This literal must be present to check this");
         return value.get() instanceof String;
@@ -105,6 +144,11 @@ public class Literal<T> {
     public boolean isNumber() {
         checkState(value.isPresent(), "This literal must be present to check this");
         return value.get() instanceof Double;
+    }
+
+    public boolean isArray() {
+        checkState(value.isPresent(), "This literal must be present to check this");
+        return value.get() instanceof List;
     }
 
     // Some nice literal to literal conversions
@@ -123,11 +167,24 @@ public class Literal<T> {
     }
 
     public Literal<String> parseString() {
-        checkState(value.isPresent(), "This literal must be present to do this");
+        if (!value.isPresent()) {
+            return NULL;
+        }
 
         // Make integers not have the .0
         if (isNumber()) {
             return new Literal<String>(decimalFormat.format(getNumber()));
+        }
+
+        // Format arrays
+        if (isArray()) {
+            String string = "[";
+            List<Variable> array = getArray();
+
+            for (Variable variable : array) {
+                string += variable.getData().getString() + ", ";
+            }
+            return new Literal<String>((array.isEmpty() ? string : string.substring(0, string.length() - 2)) + "]");
         }
 
         return new Literal<String>(value.get().toString());
@@ -148,6 +205,12 @@ public class Literal<T> {
         checkState(value.isPresent(), "This literal must be present to do this");
         checkState(isNumber(), "This literal is not a number");
         return (Double) value.get();
+    }
+
+    public List<Variable> getArray() {
+        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(isArray(), "This literal is not a literal");
+        return (List<Variable>) value.get();
     }
 
     // Some common additional getters (sponge)
@@ -220,5 +283,28 @@ public class Literal<T> {
         }
 
         throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be divided by " + value.get().getClass().getName());
+    }
+
+    public Literal normalize() {
+        checkState(value.isPresent(), "This literal must be present to do this");
+
+        if (!isNormalized()) {
+            if (isString()) {
+                return new Literal<String>("\"" + getString() + "\"", true);
+            } else if (isArray()) {
+                for (Variable var : getArray()) {
+                    Literal data = var.getData();
+                    if (!data.isEmpty() && !data.isNormalized()) {
+                        var.setData(data.normalize());
+                    }
+                }
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return getString();
     }
 }

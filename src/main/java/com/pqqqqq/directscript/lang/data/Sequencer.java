@@ -35,6 +35,20 @@ public class Sequencer {
         checkNotNull(sequence, "Sequence cannot be null");
         Literal result = Literal.empty();
 
+        // Check if it's a statement from the get-go
+        Optional<Line> curLine = scriptInstance.getCurrentLine();
+        if (curLine.isPresent()) {
+            try {
+                Line line = new Line(curLine.get().getAbsoluteNumber(), curLine.get().getScriptNumber(), sequence.trim());
+                IStatement statement = line.getIStatement();
+                StatementResult<?> statementResult = statement.run(scriptInstance, line);
+                if (statementResult.getLiteralResult().isPresent()) {
+                    return statementResult.getLiteralResult().get();
+                }
+            } catch (NullPointerException e) {
+            }
+        }
+
         List<StringParser.SplitSequence> triples = StringParser.instance().parseSplitSeq(sequence, "+", "-", "*", "/"); // Split into ordered triple segments
         for (StringParser.SplitSequence triple : triples) {
             String beforeSplit = triple.getLeft();
@@ -46,12 +60,12 @@ public class Sequencer {
 
             // Pre-parse anything in brackets
             String bracket;
-            while ((bracket = StringParser.instance().getFirstBracket(segment)) != null) {
-                segment = segment.replace(bracket, parse(bracket.substring(1, bracket.length() - 1)).getString());
+            while ((bracket = StringParser.instance().getFirstBracket(segment, '(', ')')) != null) {
+                segment = segment.replace(bracket, parse(bracket.substring(1, bracket.length() - 1)).normalize().getString()).trim(); // Normalize brackets since they're being put back in
             }
 
             // Check plain data
-            Optional<Literal> literal = Literal.getLiteral(segment);
+            Optional<Literal> literal = Literal.getLiteral(scriptInstance, segment);
             if (literal.isPresent()) {
                 segmentLiteral = literal.get();
                 successful = true;
@@ -67,21 +81,6 @@ public class Sequencer {
                     if (variable.isPresent()) {
                         segmentLiteral = variable.get().getData();
                         successful = true;
-                    } else {
-                        // Check if it's a statement
-                        Optional<Line> curLine = scriptInstance.getCurrentLine();
-                        if (curLine.isPresent()) {
-                            try {
-                                Line line = new Line(curLine.get().getAbsoluteNumber(), curLine.get().getScriptNumber(), segment);
-                                IStatement statement = line.getIStatement();
-                                StatementResult<?> statementResult = statement.run(scriptInstance, line);
-                                if (statementResult.getLiteralResult().isPresent()) {
-                                    segmentLiteral = statementResult.getLiteralResult().get();
-                                    successful = true;
-                                }
-                            } catch (NullPointerException e) {
-                            }
-                        }
                     }
                 }
             }
@@ -189,11 +188,11 @@ public class Sequencer {
                 }
 
                 if (andSuccessCounter == splitAnd.length) { // Successful 'and' sequence, the condition is true!
-                    return Optional.of(Literal.trueLiteral());
+                    return Optional.<Literal>of(Literal.trueLiteral());
                 }
             }
 
-            return Optional.of(Literal.falseLiteral());
+            return Optional.<Literal>of(Literal.falseLiteral());
         }
     }
 }

@@ -3,12 +3,15 @@ package com.pqqqqq.directscript.lang.statement;
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.statement.statements.generic.*;
-import com.pqqqqq.directscript.lang.statement.statements.internal.ScriptDeclaration;
-import com.pqqqqq.directscript.lang.statement.statements.internal.Termination;
-import com.pqqqqq.directscript.lang.statement.statements.option.TriggerStatement;
-import com.pqqqqq.directscript.lang.statement.statements.sponge.GetPlayerUUID;
-import com.pqqqqq.directscript.lang.statement.statements.sponge.PlayerStatement;
+import com.pqqqqq.directscript.lang.statement.getters.generic.SizeStatement;
+import com.pqqqqq.directscript.lang.statement.getters.generic.SplitStatement;
+import com.pqqqqq.directscript.lang.statement.getters.sponge.GetPlayerUUID;
+import com.pqqqqq.directscript.lang.statement.setters.generic.*;
+import com.pqqqqq.directscript.lang.statement.setters.internal.ScriptDeclaration;
+import com.pqqqqq.directscript.lang.statement.setters.internal.Termination;
+import com.pqqqqq.directscript.lang.statement.setters.option.TriggerStatement;
+import com.pqqqqq.directscript.lang.statement.setters.sponge.CancelStatement;
+import com.pqqqqq.directscript.lang.statement.setters.sponge.PlayerStatement;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 import com.pqqqqq.directscript.lang.util.RegistryUtil;
 
@@ -21,23 +24,30 @@ public class Statements {
 
     // Internal statements
     public static final IStatement<String> SCRIPT_DECLARATION = new ScriptDeclaration();
-    public static final IStatement ELSE_STATEMENT = new ElseStatement();
+    public static final IStatement ELSE = new ElseStatement();
     public static final IStatement TERMINATION = new Termination();
 
     // Generic statements
     public static final IStatement PRINT = new PrintStatement();
-    public static final IStatement VAR_DECLARATION = new VarDeclaration();
+    public static final IStatement VAR_DECLARATION = new VarStatement();
+    public static final IStatement SET = new SetStatement();
     public static final IStatement CALL = new CallStatement();
+    public static final IStatement<Boolean> IF = new IfStatement();
+    public static final IStatement WHILE = new WhileStatement();
+    public static final IStatement EXIT = new ExitStatement();
 
-    public static final IStatement<Boolean> IF_STATEMENT = new IfStatement();
+    public static final IStatement<String[]> SPLIT = new SplitStatement();
+    public static final IStatement<Integer> SIZE = new SizeStatement();
 
     // Option script statements
     public static final IStatement<Trigger> TRIGGER = new TriggerStatement();
 
     // Sponge statements
     public static final IStatement PLAYER = new PlayerStatement();
+    public static final IStatement CANCEL = new CancelStatement();
 
     public static final IStatement<String> GET_PLAYER_UUID = new GetPlayerUUID();
+
 
     private static final List<IStatement> REGISTRY;
     static {

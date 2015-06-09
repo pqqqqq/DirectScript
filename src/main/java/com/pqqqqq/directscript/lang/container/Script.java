@@ -4,11 +4,8 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.statement.IStatement;
-import com.pqqqqq.directscript.lang.statement.statements.internal.Termination;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 
 import java.util.ArrayList;
@@ -39,6 +36,8 @@ public class Script {
 
     private final List<Line> lines = new ArrayList<Line>();
     private final BiMap<Line, Line> linkedLines = HashBiMap.create();
+
+    private Optional<Trigger> trigger;
 
     public Script(ScriptsFile scriptsFile, String name) {
         this.scriptsFile = scriptsFile;
@@ -78,23 +77,11 @@ public class Script {
         return linkedLines.inverse().get(ending);
     }
 
-    // Tentative method, run the container
-    public void run(ScriptInstance scriptInstance) {
-        for (Line line : lines) {
-            try {
-                if (scriptInstance.getLinePredicate() == null || scriptInstance.getLinePredicate().apply(line)) {
-                    scriptInstance.setCurrentLine(Optional.of(line)); // Set current line
+    public Optional<Trigger> getTrigger() {
+        return trigger;
+    }
 
-                    IStatement statement = line.getIStatement();
-                    if (!scriptInstance.isSkipLines() || statement instanceof Termination) {
-                        scriptInstance.getResultMap().put(line, statement.run(scriptInstance, line)); // Add to result map
-                    }
-                }
-            } catch (Throwable e) {
-                DirectScript.instance().getErrorHandler().log(String.format("Error in script '%s' -> '%s' at line #%d (script line #%d): ", scriptsFile.getStringRepresentation(), name, line.getAbsoluteNumber(), line.getScriptNumber()));
-                DirectScript.instance().getErrorHandler().log(e);
-                DirectScript.instance().getErrorHandler().flush();
-            }
-        }
+    public void setTrigger(Optional<Trigger> trigger) {
+        this.trigger = trigger;
     }
 }

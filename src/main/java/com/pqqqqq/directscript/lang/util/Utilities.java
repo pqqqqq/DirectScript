@@ -1,6 +1,9 @@
 package com.pqqqqq.directscript.lang.util;
 
 import java.io.File;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-02.
@@ -61,5 +64,17 @@ public class Utilities {
         }
 
         return line;
+    }
+
+    public static <T> void buildToIndex(List<T> list, int index, ICopyable<T> defaultValue) {
+        checkState(index >= 0, "Index must be positive");
+
+        if (index < list.size()) {
+            return; // No need for this
+        }
+
+        for (int i = list.size(); i <= index; i++) { // Go from the current size to the index
+            list.add(defaultValue.copy()); // Add default value
+        }
     }
 }

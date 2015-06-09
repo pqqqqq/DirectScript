@@ -33,7 +33,7 @@ public class StringParser {
         List<SplitSequence> list = new ArrayList<SplitSequence>();
 
         boolean quotes = false;
-        int brackets = 0;
+        int roundBrackets = 0, squareBrackets = 0;
         String builder = "";
 
         String lastSplitSeq = null;
@@ -48,15 +48,19 @@ public class StringParser {
                 }
             } else if (!quotes) {
                 if (c == '(') {
-                    brackets++;
+                    roundBrackets++;
                 } else if (c == ')') {
-                    brackets--;
+                    roundBrackets--;
+                } else if (c == '[') {
+                    squareBrackets++;
+                } else if (c == ']') {
+                    squareBrackets--;
                 }
             }
 
             builder += c;
 
-            if (!quotes && brackets == 0) {
+            if (!quotes && roundBrackets == 0 && squareBrackets == 0) {
                 for (String split : splits) {
                     if (builder.endsWith(split)) {
                         String sequence = string.substring(lastSplitIndex, builder.length() - split.length());
@@ -74,7 +78,7 @@ public class StringParser {
         return list;
     }
 
-    public String getFirstBracket(String string) {
+    public String getFirstBracket(String string, char startChar, char endChar) {
         boolean quotes = false;
         String builder = "";
         int brackets = -1;
@@ -87,14 +91,14 @@ public class StringParser {
                     quotes = !quotes;
                 }
             } else if (!quotes) {
-                if (c == '(') {
+                if (c == startChar) {
                     brackets = count;
-                } else if (c == ')') {
+                } else if (c == endChar) {
                     if (brackets < 0) {
-                        throw new IllegalArgumentException("Unknown stray right bracket");
+                        throw new IllegalArgumentException("Unknown stray ending bracket");
                     }
 
-                    return builder.substring(brackets, count) + ")";
+                    return builder.substring(brackets, count) + endChar;
                 }
             }
 

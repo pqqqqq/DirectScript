@@ -1,4 +1,4 @@
-package com.pqqqqq.directscript.lang.statement.statements.generic;
+package com.pqqqqq.directscript.lang.statement.setters.generic;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
@@ -12,6 +12,8 @@ import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
+import static com.google.common.base.Preconditions.checkState;
+
 /**
  * Created by Kevin on 2015-06-02.
  */
@@ -20,13 +22,16 @@ public class CallStatement implements IStatement {
 
     public StatementResult run(ScriptInstance scriptInstance, Line line) {
         String scriptName = line.sequenceArg(scriptInstance, 0).getString();
-        Optional<Script> script = DirectScript.instance().getScript(scriptName);
+        Optional<Script> scriptOptional = DirectScript.instance().getScript(scriptName);
 
-        if (!script.isPresent()) {
-            throw new IllegalArgumentException("Unknown script: " + scriptName);
-        }
+        checkState(scriptOptional.isPresent(), "Unknown script: " + scriptName);
 
-        ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script.get()).cause(Causes.CALL).build();
+        Script script = scriptOptional.get();
+
+        checkState(script.getTrigger().get().hasCause(Causes.CALL), "This script cannot be called");
+
+        ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).build();
+
         for (int i = 1; i < line.getArgCount(); i += 2) {
             String varName = line.sequenceArg(scriptInstance, i).getString();
             Literal value = line.sequenceArg(scriptInstance, i + 1);
@@ -36,7 +41,11 @@ public class CallStatement implements IStatement {
             }
         }
 
-        script.get().run(scriptInstanceNew);
+        scriptInstanceNew.run();
         return StatementResult.success();
+    }
+
+    public boolean apply(Line input) {
+        return false;
     }
 }

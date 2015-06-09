@@ -1,4 +1,4 @@
-package com.pqqqqq.directscript.lang.statement.statements.generic;
+package com.pqqqqq.directscript.lang.statement.setters.generic;
 
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.annotation.Statement;

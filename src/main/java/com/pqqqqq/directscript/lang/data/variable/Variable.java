@@ -1,6 +1,8 @@
 package com.pqqqqq.directscript.lang.data.variable;
 
+import com.google.common.base.Objects;
 import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.util.ICopyable;
 
 import javax.annotation.Nonnull;
 import java.util.regex.Pattern;
@@ -12,7 +14,7 @@ import static com.google.common.base.Preconditions.checkState;
  * Created by Kevin on 2015-06-02.
  * Represents a memory section that contains a {@link Literal} and is read by a specific name
  */
-public class Variable {
+public class Variable implements ICopyable<Variable> {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z0-9]*$");
 
     @Nonnull private final String name;
@@ -32,6 +34,10 @@ public class Variable {
         this.name = name;
         forceSetData(data);
         this.isFinal = isFinal;
+    }
+
+    public static Variable empty() {
+        return new Variable(null);
     }
 
     public static Pattern namePattern() {
@@ -58,5 +64,17 @@ public class Variable {
 
     public boolean isFinal() {
         return isFinal;
+    }
+
+    public Variable copy() {
+        return new Variable(name, data, isFinal);
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("name", name)
+                .add("isFinal", isFinal)
+                .add("data", data).toString();
     }
 }

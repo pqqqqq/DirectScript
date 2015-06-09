@@ -1,12 +1,14 @@
 package com.pqqqqq.directscript.lang.trigger;
 
+import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.container.Script;
 import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 
-import java.util.ArrayList;
+import javax.annotation.Nonnull;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -22,6 +24,8 @@ public class Trigger {
     Trigger(Script script, Cause... causes) {
         this.script = script;
         this.causes = causes;
+
+        this.script.setTrigger(Optional.of(this));
     }
 
     public static Builder builder() {
@@ -36,13 +40,24 @@ public class Trigger {
         return causes;
     }
 
+    public boolean hasCause(@Nonnull Cause cause) {
+        checkNotNull(cause, "Cause cannot be null");
+        for (Cause check : this.causes) {
+            if (check.equals(cause)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void trigger(ScriptInstance.Builder builder) {
-        script.run(builder.copy().script(script).build()); // Each trigger needs a separate builder instance
+        builder.copy().script(script).build().run(); // Each trigger needs a separate builder instance
     }
 
     public static class Builder {
         private Script script = null;
-        private List<Cause> causes = new ArrayList<Cause>();
+        private Set<Cause> causes = new HashSet<Cause>();
 
         Builder() { // Default visibility
         }

@@ -1,12 +1,10 @@
-package com.pqqqqq.directscript.lang.statement.statements.internal;
+package com.pqqqqq.directscript.lang.statement.setters.internal;
 
 import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
-import com.pqqqqq.directscript.lang.statement.statements.generic.ElseStatement;
-import com.pqqqqq.directscript.lang.statement.statements.generic.IfStatement;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
 /**
@@ -27,8 +25,9 @@ public class Termination implements IStatement {
                 return StatementResult.success();
             }
         } else {
-            if (iStatement instanceof IfStatement || iStatement instanceof ElseStatement) {
-                scriptInstance.setSkipLines(false);
+            StatementResult statementResult = scriptInstance.getResultOf(associatedLine);
+            if (statementResult != null) { // Basically if the line was run
+                scriptInstance.setSkipLines(false); // Ensure that skipping lines is off
                 return StatementResult.success();
             }
         }

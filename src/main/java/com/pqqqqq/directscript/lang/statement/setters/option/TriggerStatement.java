@@ -1,4 +1,4 @@
-package com.pqqqqq.directscript.lang.statement.statements.option;
+package com.pqqqqq.directscript.lang.statement.setters.option;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.annotation.Statement;
@@ -21,7 +21,6 @@ public class TriggerStatement implements IStatement<Trigger> {
 
         for (int i = 0; i < line.getArgCount(); i++) {
             String causeString = line.sequenceArg(scriptInstance, i).getString();
-            System.out.println("trig: " + causeString);
             Optional<Cause> cause = Causes.getCause(causeString);
 
             if (!cause.isPresent()) {

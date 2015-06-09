@@ -1,4 +1,4 @@
-package com.pqqqqq.directscript.lang.statement.statements.generic;
+package com.pqqqqq.directscript.lang.statement.setters.generic;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.annotation.Statement;
@@ -6,8 +6,10 @@ import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
-import com.pqqqqq.directscript.lang.statement.statements.internal.Termination;
+import com.pqqqqq.directscript.lang.statement.setters.internal.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
+
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-08.
@@ -30,13 +32,11 @@ public class ElseStatement extends Termination {
             }
 
             Optional<Object> result = statementResult.getResult();
-            if (!result.isPresent()) {
-                throw new IllegalStateException("Reverse lookup for the if statement at line " + associatedLine.getAbsoluteNumber() + " failed");
-            }
+            checkState(result.isPresent(), "Reverse lookup for the if statement at line " + associatedLine.getAbsoluteNumber() + " failed");
 
             Boolean bool = (Boolean) result.get();
             if (!bool) {
-                scriptInstance.setSkipLines(false);
+                scriptInstance.setSkipLines(false); // Turn off skipping lines for this
                 String trimBeginning = line.getLine().substring(6);
                 try {
                     Line truncatedLine = new Line(line.getAbsoluteNumber(), line.getAbsoluteNumber(), trimBeginning);
@@ -44,7 +44,7 @@ public class ElseStatement extends Termination {
                 } catch (NullPointerException e) {
                 }
             } else {
-                scriptInstance.setSkipLines(true);
+                scriptInstance.setSkipLines(true); // Skip lines if previously one was true
             }
         }
 
