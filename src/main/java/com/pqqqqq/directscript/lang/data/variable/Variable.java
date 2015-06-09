@@ -15,10 +15,9 @@ import static com.google.common.base.Preconditions.checkState;
  * Represents a memory section that contains a {@link Literal} and is read by a specific name
  */
 public class Variable implements ICopyable<Variable> {
-    private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z0-9]*$");
+    private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z]([A-Za-z0-9]|\\.)*$");
 
     @Nonnull private final String name;
-    @Nonnull
     private final boolean isFinal;
     @Nonnull private Literal data;
 

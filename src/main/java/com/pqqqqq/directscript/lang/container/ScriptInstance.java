@@ -14,15 +14,12 @@ import com.pqqqqq.directscript.lang.statement.StatementResult;
 import com.pqqqqq.directscript.lang.statement.setters.internal.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
-import com.pqqqqq.directscript.lang.util.StringParser;
-import com.pqqqqq.directscript.lang.util.Utilities;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.util.command.CommandSource;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -31,14 +28,13 @@ import static com.google.common.base.Preconditions.checkState;
 /**
  * Created by Kevin on 2015-06-02.
  */
-public class ScriptInstance implements Environment, Runnable {
+public class ScriptInstance extends Environment implements Runnable {
     private static final Builder COMPILE = builder().cause(Causes.COMPILE).predicate(Script.compileTimePredicate());
 
     @Nonnull private final Script script;
     @Nonnull private final Cause cause;
     @Nonnull private final Predicate<Line> linePredicate;
     @Nonnull private final Sequencer sequencer;
-    @Nonnull private final Map<String, Variable> variableMap;
     @Nonnull
     private final Optional<Cancellable> cancellable;
 
@@ -50,11 +46,11 @@ public class ScriptInstance implements Environment, Runnable {
     private boolean haltExecution = false;
 
     ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Map<String, Variable> variableMap, Cancellable cancellable) {
+        super(variableMap);
         this.script = script;
         this.cause = cause;
         this.linePredicate = linePredicate;
         this.sequencer = Sequencer.instance(this);
-        this.variableMap = variableMap;
         this.cancellable = Optional.fromNullable(cancellable);
     }
 
@@ -64,33 +60,6 @@ public class ScriptInstance implements Environment, Runnable {
 
     public static ScriptInstance compile(Script script) {
         return COMPILE.copy().script(script).build();
-    }
-
-    public Map<String, Variable> getVariables() {
-        return variableMap;
-    }
-
-    public Optional<Variable> getVariable(String name) {
-        int openBracket = name.indexOf('[');
-        String noBracketName = name.substring(0, (openBracket == -1 ? name.length() : openBracket));
-
-        return Optional.fromNullable(getArrayValue(name.trim(), variableMap.get(noBracketName.trim())));
-    }
-
-    private Variable getArrayValue(String name, Variable variable) {
-        if (variable == null) {
-            return null;
-        }
-
-        String bracket = StringParser.instance().getFirstBracket(name, '[', ']');
-        if (bracket != null) {
-            int index = Integer.parseInt(bracket.substring(1, bracket.length() - 1));
-            List<Variable> variableList = variable.getData().getArray();
-
-            Utilities.buildToIndex(variableList, index, Variable.empty());
-            return getArrayValue(name.replace(bracket, ""), variableList.get(index));
-        }
-        return variable;
     }
 
     public Cause getCause() {
@@ -143,10 +112,6 @@ public class ScriptInstance implements Environment, Runnable {
 
     public StatementResult getResultOf(Line line) {
         return resultMap.get(line);
-    }
-
-    public StatementResult getResultOfEnding(Line ending) { // Convenience method
-        return getResultOf(script.lookupStartingLine(ending));
     }
 
     // Run the container
@@ -219,11 +184,11 @@ public class ScriptInstance implements Environment, Runnable {
         }
 
         private Builder variables() { // Adds generic variables for script (run on build)
-            return variables(new Variable("GENERICcause", Literal.getLiteralBlindly(cause.getCause()), true), new Variable("GENERICmillis", Literal.getLiteralBlindly(System.currentTimeMillis()), true));
+            return variables(new Variable("GENERIC.cause", Literal.getLiteralBlindly(cause.getCause()), true), new Variable("GENERIC.millis", Literal.getLiteralBlindly(System.currentTimeMillis()), true));
         }
 
         public Builder variables(Player player) { // Adds sponge variables for a player
-            return variables(new Variable("SPONGEplayername", Literal.getLiteralBlindly(player.getName()), true), new Variable("SPONGEplayeruuid", Literal.getLiteralBlindly(player.getIdentifier()), true));
+            return variables(new Variable("SPONGE.playername", Literal.getLiteralBlindly(player.getName()), true), new Variable("SPONGE.playeruuid", Literal.getLiteralBlindly(player.getIdentifier()), true));
         }
 
         public Builder variables(CommandSource source) { // Adds sponge variables for a command source
@@ -231,7 +196,7 @@ public class ScriptInstance implements Environment, Runnable {
                 variables((Player) source);
             }
 
-            return variables(new Variable("SPONGEsourcename", Literal.getLiteralBlindly(source.getName()), true));
+            return variables(new Variable("SPONGE.sourcename", Literal.getLiteralBlindly(source.getName()), true));
         }
 
         public Builder copy() {

@@ -285,6 +285,12 @@ public class Literal<T> {
         throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be divided by " + value.get().getClass().getName());
     }
 
+    public Literal<Boolean> negative() {
+        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(isBoolean(), "Negation can only be done to booleans");
+        return new Literal<Boolean>(!getBoolean());
+    }
+
     public Literal normalize() {
         checkState(value.isPresent(), "This literal must be present to do this");
 

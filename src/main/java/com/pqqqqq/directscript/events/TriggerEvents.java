@@ -27,6 +27,6 @@ public class TriggerEvents {
     @Subscribe
     public void command(CommandEvent event) {
         Causes.COMMAND.trigger(ScriptInstance.builder().variables(event.getSource()).event(event)
-                .variables(new Variable("SPONGEcommand", Literal.getLiteralBlindly(event.getCommand()), true), new Variable("SPONGEarguments", Literal.getLiteralBlindly(event.getArguments()), true)));
+                .variables(new Variable("SPONGE.command", Literal.getLiteralBlindly(event.getCommand()), true), new Variable("SPONGE.arguments", Literal.getLiteralBlindly(event.getArguments()), true)));
     }
 }

@@ -64,6 +64,12 @@ public class Sequencer {
             }
         }
 
+        // Check if it's a condition
+        Optional<Literal<Boolean>> conditionLiteral = conditionInstance.parse(sequence);
+        if (conditionLiteral.isPresent()) {
+            return conditionLiteral.get();
+        }
+
         List<StringParser.SplitSequence> triples = StringParser.instance().parseSplitSeq(sequence, "+", "-", "*", "/"); // Split into ordered triple segments
         for (StringParser.SplitSequence triple : triples) {
             String beforeSplit = triple.getLeft();
@@ -79,30 +85,32 @@ public class Sequencer {
                 segment = segment.replace(bracket, parse(bracket.substring(1, bracket.length() - 1)).normalize().getString()).trim(); // Normalize brackets since they're being put back in
             }
 
+            boolean negative = false; // Check preceding exclamation points (negation)
+            while (segment.startsWith("!")) {
+                negative = !negative;
+                segment = segment.substring(1);
+            }
 
-            // Check if it's a condition
-            Optional<Literal> literal = conditionInstance.parse(segment);
+            // Check plain data
+            Optional<Literal> literal = Literal.getLiteral(scriptInstance, segment);
             if (literal.isPresent()) {
                 segmentLiteral = literal.get();
                 successful = true;
             } else {
-                // Check plain data
-                literal = Literal.getLiteral(scriptInstance, segment);
-                if (literal.isPresent()) {
-                    segmentLiteral = literal.get();
+                // Check variable
+                Optional<Variable> variable = scriptInstance.getVariable(segment);
+                if (variable.isPresent()) {
+                    segmentLiteral = variable.get().getData();
                     successful = true;
-                } else {
-                    // Check variable
-                    Optional<Variable> variable = scriptInstance.getVariable(segment);
-                    if (variable.isPresent()) {
-                        segmentLiteral = variable.get().getData();
-                        successful = true;
-                    }
                 }
             }
 
-            if (!successful) {
+            if (!successful) { // Ensure a segment was found
                 throw new IllegalStateException("No coherent segment could be created from: '" + segment + "' in the sequence: '" + sequence + "'"); // If all else fails, throw an exception
+            }
+
+            if (negative) {
+                segmentLiteral = segmentLiteral.negative(); // Negate if necessary
             }
 
             if (beforeSplit == null) { // Operators
@@ -127,7 +135,7 @@ public class Sequencer {
         private Condition() {
         }
 
-        public Optional<Literal> parse(String sequence) {
+        public Optional<Literal<Boolean>> parse(String sequence) {
             String[] splitOr = StringParser.instance().parseSplit(sequence, " or "); // 'Or' takes precedence over 'and'
 
             for (String orCondition : splitOr) {
@@ -204,11 +212,11 @@ public class Sequencer {
                 }
 
                 if (andSuccessCounter == splitAnd.length) { // Successful 'and' sequence, the condition is true!
-                    return Optional.<Literal>of(Literal.trueLiteral());
+                    return Optional.of(Literal.trueLiteral());
                 }
             }
 
-            return Optional.<Literal>of(Literal.falseLiteral());
+            return Optional.of(Literal.falseLiteral());
         }
     }
 }

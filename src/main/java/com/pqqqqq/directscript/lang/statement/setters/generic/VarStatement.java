@@ -32,7 +32,7 @@ public class VarStatement implements IStatement {
                 isFinal = true;
             } else {
                 // Done with modifiers, start with name and value
-                checkState(Variable.namePattern().matcher(word).matches(), "This variable name has illegal characters (only alphanumeric)");
+                checkState(Variable.namePattern().matcher(word).matches(), "This variable name has illegal characters (only alphanumeric/period and must start with alphabetic).");
                 checkState(!scriptInstance.getVariables().containsKey(word), "A variable with this name already exists");
 
                 if (words.length > i) {
