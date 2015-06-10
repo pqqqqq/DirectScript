@@ -20,6 +20,8 @@ public @interface Statement {
 
     ExecutionTime executionTime() default ExecutionTime.RUNTIME;
 
+    boolean useBrackets() default true;
+
     enum ExecutionTime {
         RUNTIME, COMPILE, ALWAYS
     }

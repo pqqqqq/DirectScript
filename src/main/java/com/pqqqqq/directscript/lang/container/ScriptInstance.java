@@ -15,7 +15,7 @@ import com.pqqqqq.directscript.lang.statement.setters.internal.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import org.spongepowered.api.entity.player.Player;
-import org.spongepowered.api.event.Cancellable;
+import org.spongepowered.api.event.Event;
 import org.spongepowered.api.util.command.CommandSource;
 
 import javax.annotation.Nonnull;
@@ -36,7 +36,9 @@ public class ScriptInstance extends Environment implements Runnable {
     @Nonnull private final Predicate<Line> linePredicate;
     @Nonnull private final Sequencer sequencer;
     @Nonnull
-    private final Optional<Cancellable> cancellable;
+    private final Optional<Event> event;
+    @Nonnull
+    private final Optional<Player> causedBy;
 
     @Nonnull
     private final Map<Line, StatementResult> resultMap = Maps.newHashMap();
@@ -45,13 +47,14 @@ public class ScriptInstance extends Environment implements Runnable {
     private boolean skipLines = false;
     private boolean haltExecution = false;
 
-    ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Map<String, Variable> variableMap, Cancellable cancellable) {
+    ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Map<String, Variable> variableMap, Event event, Player causedBy) {
         super(variableMap);
         this.script = script;
         this.cause = cause;
         this.linePredicate = linePredicate;
         this.sequencer = Sequencer.instance(this);
-        this.cancellable = Optional.fromNullable(cancellable);
+        this.event = Optional.fromNullable(event);
+        this.causedBy = Optional.fromNullable(causedBy);
     }
 
     public static Builder builder() {
@@ -78,8 +81,12 @@ public class ScriptInstance extends Environment implements Runnable {
         return sequencer;
     }
 
-    public Optional<Cancellable> getCancellable() {
-        return cancellable;
+    public Optional<Event> getEvent() {
+        return event;
+    }
+
+    public Optional<Player> getCausedBy() {
+        return causedBy;
     }
 
     public Optional<Line> getCurrentLine() {
@@ -128,7 +135,7 @@ public class ScriptInstance extends Environment implements Runnable {
 
                     IStatement statement = line.getIStatement();
                     if (!doSkipLines() || statement instanceof Termination) {
-                        getResultMap().put(line, statement.run(this, line)); // Add to result map
+                        getResultMap().put(line, line.toContainer(this).run()); // Add to result map
                     }
                 }
             } catch (Throwable e) {
@@ -144,7 +151,8 @@ public class ScriptInstance extends Environment implements Runnable {
         private Cause cause = null;
         private Predicate<Line> linePredicate = Script.runtimePredicate();
         private Map<String, Variable> variableMap = new HashMap<String, Variable>();
-        private Cancellable cancellable = null;
+        private Event event = null;
+        private Player causedBy = null;
 
         Builder() { // Default view
         }
@@ -169,8 +177,13 @@ public class ScriptInstance extends Environment implements Runnable {
             return this;
         }
 
-        public Builder event(Cancellable cancellable) {
-            this.cancellable = cancellable;
+        public Builder event(Event event) {
+            this.event = event;
+            return this;
+        }
+
+        public Builder causedBy(Player causedBy) {
+            this.causedBy = causedBy;
             return this;
         }
 
@@ -200,7 +213,7 @@ public class ScriptInstance extends Environment implements Runnable {
         }
 
         public Builder copy() {
-            return new Builder().script(script).cause(cause).predicate(linePredicate).variables(variableMap).event(cancellable);
+            return new Builder().script(script).cause(cause).predicate(linePredicate).variables(variableMap).event(event).causedBy(causedBy);
         }
 
         public ScriptInstance build() {
@@ -209,7 +222,7 @@ public class ScriptInstance extends Environment implements Runnable {
             checkState(script != null || cause.equals(Causes.COMPILE), "Script cannot be null");
 
             variables(); // Generic variables
-            return new ScriptInstance(script, cause, linePredicate, variableMap, cancellable);
+            return new ScriptInstance(script, cause, linePredicate, variableMap, event, causedBy);
         }
     }
 }

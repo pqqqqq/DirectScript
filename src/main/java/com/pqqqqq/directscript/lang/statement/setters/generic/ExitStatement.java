@@ -1,7 +1,6 @@
 package com.pqqqqq.directscript.lang.statement.setters.generic;
 
 import com.pqqqqq.directscript.lang.annotation.Statement;
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
@@ -12,8 +11,8 @@ import com.pqqqqq.directscript.lang.statement.StatementResult;
 @Statement(identifiers = {"exit"})
 public class ExitStatement implements IStatement {
 
-    public StatementResult run(ScriptInstance scriptInstance, Line line) {
-        scriptInstance.setHaltExecution(true);
+    public StatementResult run(Line.LineContainer line) {
+        line.getScriptInstance().setHaltExecution(true);
         return StatementResult.success();
     }
 }

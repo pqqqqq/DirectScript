@@ -1,14 +1,11 @@
 package com.pqqqqq.directscript.lang.statement.setters.generic;
 
 import com.pqqqqq.directscript.lang.annotation.Statement;
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.variable.Variable;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
-import com.pqqqqq.directscript.lang.util.StringParser;
-import org.apache.commons.lang3.StringUtils;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -18,14 +15,12 @@ import static com.google.common.base.Preconditions.checkState;
 @Statement(identifiers = {"var"})
 public class VarStatement implements IStatement {
 
-    public StatementResult run(ScriptInstance scriptInstance, Line line) {
-        String[] words = StringParser.instance().parseSplit(line.getTrimmedLine(), " "); // Split spaces
-
+    public StatementResult run(Line.LineContainer line) {
         boolean isFinal = false;
         Literal value = Literal.empty();
 
-        for (int i = 0; i < words.length; i++) {
-            String word = words[i];
+        for (int i = 0; i < line.getLiteralCount(); i++) {
+            String word = line.getLiteral(i).getString();
 
             // Check modifiers first (eg final)
             if (word.equals("final")) {
@@ -33,16 +28,13 @@ public class VarStatement implements IStatement {
             } else {
                 // Done with modifiers, start with name and value
                 checkState(Variable.namePattern().matcher(word).matches(), "This variable name has illegal characters (only alphanumeric/period and must start with alphabetic).");
-                checkState(!scriptInstance.getVariables().containsKey(word), "A variable with this name already exists");
+                checkState(!line.getScriptInstance().getVariables().containsKey(word), "A variable with this name already exists");
 
-                if (words.length > i) {
-                    String EQUALS = words[i + 1];
-                    checkState(EQUALS.equals("="), "Unknown word: " + EQUALS);
-
-                    value = scriptInstance.getSequencer().parse(StringUtils.join(words, " ", i + 2, words.length));
+                if (line.getLiteralCount() > i) {
+                    value = line.getLiteral(i + 1);
                 }
 
-                scriptInstance.getVariables().put(word, new Variable(word, value, isFinal));
+                line.getScriptInstance().getVariables().put(word, new Variable(word, value, isFinal));
                 return StatementResult.success();
             }
         }

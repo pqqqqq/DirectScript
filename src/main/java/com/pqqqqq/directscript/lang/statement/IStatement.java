@@ -1,6 +1,5 @@
 package com.pqqqqq.directscript.lang.statement;
 
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.reader.Line;
 
 /**
@@ -8,5 +7,5 @@ import com.pqqqqq.directscript.lang.reader.Line;
  */
 public interface IStatement<V> {
 
-    StatementResult<V> run(ScriptInstance scriptInstance, Line line);
+    StatementResult<V> run(Line.LineContainer line);
 }

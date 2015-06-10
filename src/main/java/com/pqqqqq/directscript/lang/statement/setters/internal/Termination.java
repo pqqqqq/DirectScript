@@ -10,10 +10,13 @@ import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 /**
  * Created by Kevin on 2015-06-05.
  */
-@Statement(identifiers = "}", executionTime = Statement.ExecutionTime.ALWAYS)
+@Statement(identifiers = "}", executionTime = Statement.ExecutionTime.ALWAYS, useBrackets = false)
 public class Termination implements IStatement {
 
-    public StatementResult run(ScriptInstance scriptInstance, Line line) {
+    public StatementResult run(Line.LineContainer lineContainer) {
+        ScriptInstance scriptInstance = lineContainer.getScriptInstance();
+        Line line = lineContainer.getLine();
+
         Line associatedLine = scriptInstance.getScript().lookupStartingLine(line);
         if (associatedLine == null) {
             throw new IllegalStateException("Unknown termination sequence");

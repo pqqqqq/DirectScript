@@ -20,8 +20,8 @@ import static com.google.common.base.Preconditions.checkState;
 @Statement(identifiers = { "call", "run" })
 public class CallStatement implements IStatement {
 
-    public StatementResult run(ScriptInstance scriptInstance, Line line) {
-        String scriptName = line.sequenceArg(scriptInstance, 0).getString();
+    public StatementResult run(Line.LineContainer line) {
+        String scriptName = line.getLiteral(0).getString();
         Optional<Script> scriptOptional = DirectScript.instance().getScript(scriptName);
 
         checkState(scriptOptional.isPresent(), "Unknown script: " + scriptName);
@@ -32,9 +32,9 @@ public class CallStatement implements IStatement {
 
         ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).build();
 
-        for (int i = 1; i < line.getArgCount(); i += 2) {
-            String varName = line.sequenceArg(scriptInstance, i).getString();
-            Literal value = line.sequenceArg(scriptInstance, i + 1);
+        for (int i = 1; i < line.getLiteralCount(); i += 2) {
+            String varName = line.getLiteral(i).getString();
+            Literal value = line.getLiteral(i + 1);
 
             if (!scriptInstanceNew.getVariables().containsKey(varName)) {
                 scriptInstanceNew.getVariables().put(varName, new Variable(varName, value));

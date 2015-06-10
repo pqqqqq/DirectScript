@@ -4,7 +4,6 @@ import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.data.variable.Variable;
 import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
 import com.pqqqqq.directscript.lang.util.StringParser;
 
@@ -40,8 +39,7 @@ public class Sequencer {
         if (curLine.isPresent()) {
             try {
                 Line line = new Line(curLine.get().getAbsoluteNumber(), curLine.get().getScriptNumber(), sequence.trim());
-                IStatement statement = line.getIStatement();
-                StatementResult<?> statementResult = statement.run(scriptInstance, line);
+                StatementResult<?> statementResult = line.toContainer(scriptInstance).run();
                 if (statementResult.getLiteralResult().isPresent()) {
                     return statementResult.getLiteralResult().get();
                 }

@@ -310,6 +310,13 @@ public class Literal<T> {
         return this;
     }
 
+    public Literal or(Object newvalue) {
+        if (isEmpty()) {
+            return Literal.getLiteralBlindly(newvalue);
+        }
+        return this;
+    }
+
     @Override
     public String toString() {
         return getString();

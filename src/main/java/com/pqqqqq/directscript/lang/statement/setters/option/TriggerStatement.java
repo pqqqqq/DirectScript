@@ -2,7 +2,6 @@ package com.pqqqqq.directscript.lang.statement.setters.option;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.annotation.Statement;
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
@@ -16,11 +15,11 @@ import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 @Statement(prefix = "@", identifiers = {"TRIGGER"}, executionTime = Statement.ExecutionTime.COMPILE)
 public class TriggerStatement implements IStatement<Trigger> {
 
-    public StatementResult<Trigger> run(ScriptInstance scriptInstance, Line line) {
-        Trigger.Builder triggerBuilder = Trigger.builder().script(scriptInstance.getScript());
+    public StatementResult<Trigger> run(Line.LineContainer line) {
+        Trigger.Builder triggerBuilder = Trigger.builder().script(line.getScriptInstance().getScript());
 
-        for (int i = 0; i < line.getArgCount(); i++) {
-            String causeString = line.sequenceArg(scriptInstance, i).getString();
+        for (int i = 0; i < line.getLiteralCount(); i++) {
+            String causeString = line.getLiteral(i).getString();
             Optional<Cause> cause = Causes.getCause(causeString);
 
             if (!cause.isPresent()) {

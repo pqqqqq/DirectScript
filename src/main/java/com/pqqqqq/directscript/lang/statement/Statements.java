@@ -3,6 +3,7 @@ package com.pqqqqq.directscript.lang.statement;
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.reader.Line;
+import com.pqqqqq.directscript.lang.statement.getters.generic.JoinStatement;
 import com.pqqqqq.directscript.lang.statement.getters.generic.SizeStatement;
 import com.pqqqqq.directscript.lang.statement.getters.generic.SplitStatement;
 import com.pqqqqq.directscript.lang.statement.getters.sponge.GetPlayerUUID;
@@ -16,6 +17,7 @@ import com.pqqqqq.directscript.lang.trigger.Trigger;
 import com.pqqqqq.directscript.lang.util.RegistryUtil;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Created by Kevin on 2015-06-02.
@@ -38,6 +40,7 @@ public class Statements {
 
     public static final IStatement<String[]> SPLIT = new SplitStatement();
     public static final IStatement<Integer> SIZE = new SizeStatement();
+    public static final IStatement<String> JOIN = new JoinStatement();
 
     // Option script statements
     public static final IStatement<Trigger> TRIGGER = new TriggerStatement();
@@ -59,14 +62,28 @@ public class Statements {
     }
 
     public static boolean isStatementEqual(final Statement statement, Line lineInst) {
-        String line = lineInst.getLine();
-        for (String identifier : statement.identifiers()) {
-            if (line.startsWith(statement.prefix() + identifier + " ") && (statement.suffix().isEmpty() || line.endsWith(statement.suffix())) || line.equals(statement.prefix() + identifier + statement.suffix())) {
-                return true;
+        if (!statement.useBrackets()) {
+            String line = lineInst.getLine();
+            for (String identifier : statement.identifiers()) {
+                if (line.startsWith(statement.prefix() + identifier + " ") && (statement.suffix().isEmpty() || line.endsWith(statement.suffix())) || line.equals(statement.prefix() + identifier + statement.suffix())) {
+                    return true;
+                }
             }
+
+            return false;
         }
 
-        return false;
+        String identifierString = "(";
+
+        for (String identifier : statement.identifiers()) {
+            identifierString += "\\Q" + identifier + "\\E|";
+        }
+
+        identifierString = identifierString.substring(0, identifierString.length() - 1) + ")";
+        String prefixString = (statement.prefix().isEmpty() ? "" : "\\Q" + statement.prefix() + "\\E");
+
+        Pattern pattern = Pattern.compile(prefixString + identifierString + "(\\s*?)\\((.*?)\\)(\\s*?)\\Q" + statement.suffix() + "\\E");
+        return pattern.matcher(lineInst.getLine()).matches();
     }
 
     public static Optional<Statement> getStatement(Line line) {

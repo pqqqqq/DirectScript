@@ -4,27 +4,27 @@ import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
 import com.pqqqqq.directscript.lang.statement.setters.internal.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-08.
  */
-@Statement(identifiers = {"} else"}, suffix = "{")
+@Statement(identifiers = {"} else"}, suffix = "{", useBrackets = false)
 public class ElseStatement extends Termination {
 
     @Override
-    public StatementResult run(ScriptInstance scriptInstance, Line line) {
-        Line associatedLine = scriptInstance.getScript().lookupStartingLine(line);
-        if (associatedLine == null) {
-            throw new IllegalStateException("Unknown termination sequence");
-        }
+    public StatementResult run(Line.LineContainer lineContainer) {
+        ScriptInstance scriptInstance = lineContainer.getScriptInstance();
+        Line line = lineContainer.getLine();
 
-        IStatement iStatement = associatedLine.getIStatement();
+        Line associatedLine = scriptInstance.getScript().lookupStartingLine(line);
+        checkNotNull(associatedLine, "Unknown termination sequence");
+
         if (scriptInstance.getCause() != Causes.COMPILE) {
             StatementResult statementResult = scriptInstance.getResultOf(associatedLine);
             if (statementResult == null) {
@@ -40,7 +40,7 @@ public class ElseStatement extends Termination {
                 String trimBeginning = line.getLine().substring(6);
                 try {
                     Line truncatedLine = new Line(line.getAbsoluteNumber(), line.getAbsoluteNumber(), trimBeginning);
-                    return truncatedLine.getIStatement().run(scriptInstance, truncatedLine);
+                    return truncatedLine.toContainer(scriptInstance).run();
                 } catch (NullPointerException e) {
                 }
             } else {

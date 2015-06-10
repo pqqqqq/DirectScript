@@ -1,7 +1,6 @@
 package com.pqqqqq.directscript.lang.statement.getters.generic;
 
 import com.pqqqqq.directscript.lang.annotation.Statement;
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
@@ -12,8 +11,8 @@ import com.pqqqqq.directscript.lang.statement.StatementResult;
 @Statement(identifiers = {"size"})
 public class SizeStatement implements IStatement<Integer> {
 
-    public StatementResult<Integer> run(ScriptInstance scriptInstance, Line line) {
-        int size = line.sequenceArg(scriptInstance, 0).getArray().size();
+    public StatementResult<Integer> run(Line.LineContainer line) {
+        int size = line.getLiteral(0).getArray().size();
         return StatementResult.<Integer>builder().success().result(size).literal(size).build();
     }
 }
