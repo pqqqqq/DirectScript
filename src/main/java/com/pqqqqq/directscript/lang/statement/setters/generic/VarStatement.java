@@ -30,7 +30,7 @@ public class VarStatement implements IStatement {
                 checkState(Variable.namePattern().matcher(word).matches(), "This variable name has illegal characters (only alphanumeric/period and must start with alphabetic).");
                 checkState(!line.getScriptInstance().getVariables().containsKey(word), "A variable with this name already exists");
 
-                if (line.getLiteralCount() > i) {
+                if (line.getLiteralCount() > (i + 1)) {
                     value = line.getLiteral(i + 1);
                 }
 

@@ -14,3 +14,19 @@ script("MessagePlayer") {
 		}
 	}
 }
+
+script("NullCheck") {
+	trigger("command")
+
+	// Script starts here
+	if (sponge.command ~ "nullcheck") {
+		@cancel()
+		var("nullvar")
+
+		if (nullvar == null) {
+			@player(, "Nullvar is a null value")
+		} else {
+			@player(, "Nullvar is not a null value")
+		}
+	}
+}
