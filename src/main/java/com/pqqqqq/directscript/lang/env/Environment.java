@@ -44,7 +44,7 @@ public abstract class Environment implements IVariableContainer {
             return null;
         }
 
-        String bracket = StringParser.instance().getFirstBracket(name, '[', ']');
+        String bracket = StringParser.instance().getOuterBracket(name, '[', ']');
         if (bracket != null) {
             int index = Integer.parseInt(bracket.substring(1, bracket.length() - 1));
             List<Variable> variableList = variable.getData().getArray();

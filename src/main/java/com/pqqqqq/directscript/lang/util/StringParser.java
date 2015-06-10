@@ -78,10 +78,10 @@ public class StringParser {
         return list;
     }
 
-    public String getFirstBracket(String string, char startChar, char endChar) {
+    public String getOuterBracket(String string, char startChar, char endChar) {
         boolean quotes = false;
         String builder = "";
-        int brackets = -1;
+        int brackets = -1, counter = 0;
 
         for (int count = 0; count < string.length(); count++) {
             char c = string.charAt(count);
@@ -92,13 +92,19 @@ public class StringParser {
                 }
             } else if (!quotes) {
                 if (c == startChar) {
-                    brackets = count;
+                    if (brackets < 0) {
+                        brackets = count;
+                    }
+                    counter++;
                 } else if (c == endChar) {
                     if (brackets < 0) {
                         throw new IllegalArgumentException("Unknown stray ending bracket");
                     }
 
-                    return builder.substring(brackets, count) + endChar;
+                    counter--;
+                    if (counter == 0) {
+                        return builder.substring(brackets, count) + endChar;
+                    }
                 }
             }
 

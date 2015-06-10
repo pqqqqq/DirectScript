@@ -79,7 +79,7 @@ public class Sequencer {
 
             // Pre-parse anything in brackets
             String bracket;
-            while ((bracket = StringParser.instance().getFirstBracket(segment, '(', ')')) != null) {
+            while ((bracket = StringParser.instance().getOuterBracket(segment, '(', ')')) != null) {
                 segment = segment.replace(bracket, parse(bracket.substring(1, bracket.length() - 1)).normalize().getString()).trim(); // Normalize brackets since they're being put back in
             }
 
