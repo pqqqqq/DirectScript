@@ -13,7 +13,7 @@ import org.spongepowered.api.util.command.CommandResult;
 /**
  * Created by Kevin on 2015-06-09.
  */
-@Statement(prefix = "@", identifiers = {"CANCEL"})
+@Statement(prefix = "@", identifiers = {"cancel"})
 public class CancelStatement implements IStatement {
 
     public StatementResult run(Line.LineContainer line) {

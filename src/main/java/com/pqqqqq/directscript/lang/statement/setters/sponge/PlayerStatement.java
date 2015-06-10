@@ -11,7 +11,7 @@ import org.spongepowered.api.text.Texts;
 /**
  * Created by Kevin on 2015-06-02.
  */
-@Statement(prefix = "@", identifiers = { "PLAYER" })
+@Statement(prefix = "@", identifiers = {"player"})
 public class PlayerStatement implements IStatement {
 
     public StatementResult run(Line.LineContainer line) {

@@ -6,7 +6,10 @@ import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.getters.generic.JoinStatement;
 import com.pqqqqq.directscript.lang.statement.getters.generic.SizeStatement;
 import com.pqqqqq.directscript.lang.statement.getters.generic.SplitStatement;
+import com.pqqqqq.directscript.lang.statement.getters.generic.TrimStatement;
 import com.pqqqqq.directscript.lang.statement.getters.sponge.GetPlayerUUID;
+import com.pqqqqq.directscript.lang.statement.getters.sponge.OnlineStatement;
+import com.pqqqqq.directscript.lang.statement.getters.sponge.PermissionStatement;
 import com.pqqqqq.directscript.lang.statement.setters.generic.*;
 import com.pqqqqq.directscript.lang.statement.setters.internal.ScriptDeclaration;
 import com.pqqqqq.directscript.lang.statement.setters.internal.Termination;
@@ -41,6 +44,7 @@ public class Statements {
     public static final IStatement<String[]> SPLIT = new SplitStatement();
     public static final IStatement<Integer> SIZE = new SizeStatement();
     public static final IStatement<String> JOIN = new JoinStatement();
+    public static final IStatement<String> TRIM = new TrimStatement();
 
     // Option script statements
     public static final IStatement<Trigger> TRIGGER = new TriggerStatement();
@@ -49,8 +53,9 @@ public class Statements {
     public static final IStatement PLAYER = new PlayerStatement();
     public static final IStatement CANCEL = new CancelStatement();
 
-    public static final IStatement<String> GET_PLAYER_UUID = new GetPlayerUUID();
-
+    public static final IStatement<String> PLAYER_UUID = new GetPlayerUUID();
+    public static final IStatement<Boolean> PERMISSION = new PermissionStatement();
+    public static final IStatement<Boolean> ONLINE = new OnlineStatement();
 
     private static final List<IStatement> REGISTRY;
     static {

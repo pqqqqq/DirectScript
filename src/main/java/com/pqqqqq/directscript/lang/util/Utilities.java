@@ -1,5 +1,7 @@
 package com.pqqqqq.directscript.lang.util;
 
+import org.spongepowered.api.text.Texts;
+
 import java.io.File;
 import java.util.List;
 
@@ -76,5 +78,23 @@ public class Utilities {
         for (int i = list.size(); i <= index; i++) { // Go from the current size to the index
             list.add(defaultValue.copy()); // Add default value
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    public static String formatColour(String str) {
+        if (str == null) {
+            return null;
+        }
+
+        return str.replaceAll("&([0-9a-fA-FkKlLmMnNoOrR])", Texts.getLegacyChar() + "$1");
+    }
+
+    @SuppressWarnings("deprecation")
+    public static String unformatColour(String str) {
+        if (str == null) {
+            return null;
+        }
+
+        return str.replaceAll(Texts.getLegacyChar() + "([0-9a-fA-FkKlLmMnNoOrR])", "&$1");
     }
 }

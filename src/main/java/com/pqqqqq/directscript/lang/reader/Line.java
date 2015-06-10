@@ -46,7 +46,6 @@ public class Line {
         checkNotNull(this.istatement, "Unknown line statement: " + this.line);
         checkNotNull(this.statement, "Unknown line statement: " + this.line);
 
-        // TODO: useBrackets
         if (this.statement.useBrackets()) {
             this.trimmedLine = this.line.substring(this.line.indexOf('(') + 1, this.line.lastIndexOf(')')); // Trim to what's inside brackets
         } else {

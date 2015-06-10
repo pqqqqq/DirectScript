@@ -14,6 +14,7 @@ import com.pqqqqq.directscript.lang.statement.StatementResult;
 import com.pqqqqq.directscript.lang.statement.setters.internal.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
+import com.pqqqqq.directscript.lang.util.ICopyable;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.util.command.CommandSource;
@@ -146,7 +147,7 @@ public class ScriptInstance extends Environment implements Runnable {
         }
     }
 
-    public static class Builder {
+    public static class Builder implements ICopyable<Builder> {
         private Script script = null;
         private Cause cause = null;
         private Predicate<Line> linePredicate = Script.runtimePredicate();
@@ -197,11 +198,11 @@ public class ScriptInstance extends Environment implements Runnable {
         }
 
         private Builder variables() { // Adds generic variables for script (run on build)
-            return variables(new Variable("GENERIC.cause", Literal.getLiteralBlindly(cause.getCause()), true), new Variable("GENERIC.millis", Literal.getLiteralBlindly(System.currentTimeMillis()), true));
+            return variables(new Variable("generic.cause", Literal.getLiteralBlindly(cause.getCause()), true), new Variable("generic.millis", Literal.getLiteralBlindly(System.currentTimeMillis()), true));
         }
 
         public Builder variables(Player player) { // Adds sponge variables for a player
-            return variables(new Variable("SPONGE.playername", Literal.getLiteralBlindly(player.getName()), true), new Variable("SPONGE.playeruuid", Literal.getLiteralBlindly(player.getIdentifier()), true));
+            return variables(new Variable("sponge.playername", Literal.getLiteralBlindly(player.getName()), true), new Variable("sponge.playeruuid", Literal.getLiteralBlindly(player.getIdentifier()), true));
         }
 
         public Builder variables(CommandSource source) { // Adds sponge variables for a command source
@@ -209,7 +210,7 @@ public class ScriptInstance extends Environment implements Runnable {
                 variables((Player) source);
             }
 
-            return variables(new Variable("SPONGE.sourcename", Literal.getLiteralBlindly(source.getName()), true));
+            return variables(new Variable("sponge.sourcename", Literal.getLiteralBlindly(source.getName()), true));
         }
 
         public Builder copy() {

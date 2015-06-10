@@ -34,6 +34,6 @@ public class TriggerEvents {
         Causes.COMMAND.trigger(ScriptInstance.builder()
                 .event(event).causedBy((source instanceof Player ? (Player) source : null))
                 .variables(source)
-                .variables(new Variable("SPONGE.command", Literal.getLiteralBlindly(event.getCommand()), true), new Variable("SPONGE.arguments", Literal.getLiteralBlindly(event.getArguments()), true)));
+                .variables(new Variable("sponge.command", Literal.getLiteralBlindly(event.getCommand()), true), new Variable("sponge.arguments", Literal.getLiteralBlindly(event.getArguments()), true)));
     }
 }

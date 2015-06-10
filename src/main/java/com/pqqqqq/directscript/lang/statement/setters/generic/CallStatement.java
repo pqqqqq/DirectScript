@@ -12,6 +12,9 @@ import com.pqqqqq.directscript.lang.statement.IStatement;
 import com.pqqqqq.directscript.lang.statement.StatementResult;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -27,25 +30,16 @@ public class CallStatement implements IStatement {
         checkState(scriptOptional.isPresent(), "Unknown script: " + scriptName);
 
         Script script = scriptOptional.get();
-
         checkState(script.getTrigger().get().hasCause(Causes.CALL), "This script cannot be called");
 
-        ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).build();
-
-        for (int i = 1; i < line.getLiteralCount(); i += 2) {
-            String varName = line.getLiteral(i).getString();
-            Literal value = line.getLiteral(i + 1);
-
-            if (!scriptInstanceNew.getVariables().containsKey(varName)) {
-                scriptInstanceNew.getVariables().put(varName, new Variable(varName, value));
-            }
+        List<Variable> arguments = new ArrayList<Variable>();
+        for (int i = 1; i < line.getLiteralCount(); i++) {
+            arguments.add(new Variable(null, line.getLiteral(i)));
         }
 
+        ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).causedBy(line.getScriptInstance().getCausedBy().orNull()).variables(line.getScriptInstance().getVariables()).build();
+        scriptInstanceNew.getVariables().put("generic.arguments", new Variable("generic.arguments", Literal.getLiteralBlindly(arguments)));
         scriptInstanceNew.run();
         return StatementResult.success();
-    }
-
-    public boolean apply(Line input) {
-        return false;
     }
 }

@@ -98,7 +98,7 @@ public class Literal<T> {
 
         // If there's quotes, it's a string
         if (literal.startsWith("\"") && literal.endsWith("\"")) {
-            return Optional.<Literal>of(new Literal<String>(StringEscapeUtils.unescapeJava(literal.substring(1, literal.length() - 1))));
+            return Optional.<Literal>of(new Literal<String>(Utilities.formatColour(StringEscapeUtils.unescapeJava(literal.substring(1, literal.length() - 1)))));
         }
 
         // Literal booleans are only true or false
