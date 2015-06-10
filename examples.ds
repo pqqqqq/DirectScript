@@ -1,0 +1,16 @@
+script("MessagePlayer") {
+	trigger("command")
+
+	// Script starts here
+	if (sponge.command ~ "sendmsg") {
+		@cancel()
+
+		var("arguments", split(sponge.arguments, " "))
+
+		if (size(arguments) < 2) {
+			@player(, "&cInvalid format: /sendmsg <player> <message ...>")
+		} else {
+			@player(arguments[0], join(arguments, " ", 1,))
+		}
+	}
+}
