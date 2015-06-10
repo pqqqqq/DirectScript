@@ -39,7 +39,7 @@ public class Statements {
     public static final IStatement CALL = new CallStatement();
     public static final IStatement<Boolean> IF = new IfStatement();
     public static final IStatement WHILE = new WhileStatement();
-    public static final IStatement EXIT = new ExitStatement();
+    public static final IStatement RETURN = new ReturnStatement();
 
     public static final IStatement<String[]> SPLIT = new SplitStatement();
     public static final IStatement<Integer> SIZE = new SizeStatement();

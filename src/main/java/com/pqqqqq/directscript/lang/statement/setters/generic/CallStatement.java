@@ -37,9 +37,12 @@ public class CallStatement implements IStatement {
             arguments.add(new Variable(null, line.getLiteral(i)));
         }
 
-        ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).causedBy(line.getScriptInstance().getCausedBy().orNull()).variables(line.getScriptInstance().getVariables()).build();
+        ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).causedBy(line.getScriptInstance().getCausedBy().orNull()).build();
         scriptInstanceNew.getVariables().put("generic.arguments", new Variable("generic.arguments", Literal.getLiteralBlindly(arguments)));
         scriptInstanceNew.run();
-        return StatementResult.success();
+
+        Literal returnLiteral = scriptInstanceNew.getReturnValue().orNull();
+        Object returnValue = (returnLiteral == null ? null : returnLiteral.getValue().orNull());
+        return StatementResult.builder().success().result(returnValue).literal(returnValue).build();
     }
 }

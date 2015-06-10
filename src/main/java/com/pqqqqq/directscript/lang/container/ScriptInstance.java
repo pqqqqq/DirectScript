@@ -46,7 +46,8 @@ public class ScriptInstance extends Environment implements Runnable {
     @Nonnull
     private Optional<Line> currentLine = Optional.absent();
     private boolean skipLines = false;
-    private boolean haltExecution = false;
+    @Nonnull
+    private Optional<Literal> returnValue = Optional.absent();
 
     ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Map<String, Variable> variableMap, Event event, Player causedBy) {
         super(variableMap);
@@ -106,12 +107,12 @@ public class ScriptInstance extends Environment implements Runnable {
         this.skipLines = skipLines;
     }
 
-    public boolean doHaltExecution() {
-        return haltExecution;
+    public Optional<Literal> getReturnValue() {
+        return returnValue;
     }
 
-    public void setHaltExecution(boolean haltExecution) {
-        this.haltExecution = haltExecution;
+    public void setReturnValue(Optional<Literal> returnValue) {
+        this.returnValue = returnValue;
     }
 
     public Map<Line, StatementResult> getResultMap() {
@@ -127,7 +128,7 @@ public class ScriptInstance extends Environment implements Runnable {
         checkNotNull(getScript(), "Script cannot be null");
         for (Line line : getScript().getLines()) {
             try {
-                if (doHaltExecution()) {
+                if (getReturnValue().isPresent()) {
                     return; // Return if execution is halted
                 }
 
