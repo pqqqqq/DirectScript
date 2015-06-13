@@ -9,6 +9,8 @@ import java.util.Map;
  */
 public interface IVariableContainer {
 
+    Variable addVariable(Variable variable);
+
     Map<String, Variable> getVariables();
 
     Optional<Variable> getVariable(String name);

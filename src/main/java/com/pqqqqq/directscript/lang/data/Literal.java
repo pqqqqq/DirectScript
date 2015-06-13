@@ -11,6 +11,7 @@ import org.spongepowered.api.entity.player.Player;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-02.
- * A literal is a value that is not dependent on any environment; a constant
+ * A parse is a value that is not dependent on any environment; a constant
  */
 public class Literal<T> {
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.###");
@@ -81,7 +82,7 @@ public class Literal<T> {
     }
 
     public static Optional<Literal> getLiteral(ScriptInstance scriptInstance, String literal) {
-        if (literal == null || literal.isEmpty() || literal.equals("null")) { // Null or empty values return an empty literal
+        if (literal == null || literal.isEmpty() || literal.equals("null")) { // Null or empty values return an empty parse
             return Optional.of(empty());
         }
 
@@ -132,40 +133,26 @@ public class Literal<T> {
     }
 
     public boolean isString() {
-        checkState(value.isPresent(), "This literal must be present to check this");
+        checkState(value.isPresent(), "This parse must be present to check this");
         return value.get() instanceof String;
     }
 
     public boolean isBoolean() {
-        checkState(value.isPresent(), "This literal must be present to check this");
+        checkState(value.isPresent(), "This parse must be present to check this");
         return value.get() instanceof Boolean;
     }
 
     public boolean isNumber() {
-        checkState(value.isPresent(), "This literal must be present to check this");
+        checkState(value.isPresent(), "This parse must be present to check this");
         return value.get() instanceof Double;
     }
 
     public boolean isArray() {
-        checkState(value.isPresent(), "This literal must be present to check this");
+        checkState(value.isPresent(), "This parse must be present to check this");
         return value.get() instanceof List;
     }
 
-    // Some nice literal to literal conversions
-    public Literal<Double> parseNumber() {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isString(), "The value must be a string to use this method");
-
-        return new Literal<Double>(Double.parseDouble((String) value.get()));
-    }
-
-    public Literal<Boolean> parseBoolean() {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isString(), "The value must be a string to use this method");
-
-        return new Literal<Boolean>(Boolean.parseBoolean((String) value.get()));
-    }
-
+    // Some nice parse to parse conversions
     public Literal<String> parseString() {
         if (!value.isPresent()) {
             return NULL;
@@ -190,27 +177,52 @@ public class Literal<T> {
         return new Literal<String>(value.get().toString());
     }
 
+    public Literal<Boolean> parseBoolean() {
+        checkState(value.isPresent(), "This parse must be present to do this");
+        checkState(isString(), "The value must be a string to use this method");
+
+        return new Literal<Boolean>(Boolean.parseBoolean((String) value.get()));
+    }
+
+    public Literal<Double> parseNumber() {
+        checkState(value.isPresent(), "This parse must be present to do this");
+        checkState(isString(), "The value must be a string to use this method");
+
+        return new Literal<Double>(Double.parseDouble((String) value.get()));
+    }
+
+    public Literal<List<Variable>> parseArray() {
+        checkState(value.isPresent(), "This parse must be present to do this");
+        return new Literal<List<Variable>>(new ArrayList<Variable>(Arrays.asList(new Variable[]{new Variable(null, this)}))); // Create a singleton of the data
+    }
+
     public String getString() {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        return value.get() instanceof String ? (String) value.get() : parseString().getString();
+        checkState(value.isPresent(), "This parse must be present to do this");
+        return isString() ? (String) value.get() : parseString().getString();
     }
 
     public Boolean getBoolean() {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isBoolean(), "This literal is not a boolean");
-        return (Boolean) value.get();
+        checkState(value.isPresent(), "This parse must be present to do this");
+        return isBoolean() ? (Boolean) value.get() : parseBoolean().getBoolean();
     }
 
     public Double getNumber() {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isNumber(), "This literal is not a number");
-        return (Double) value.get();
+        checkState(value.isPresent(), "This parse must be present to do this");
+        return isNumber() ? (Double) value.get() : parseNumber().getNumber();
     }
 
     public List<Variable> getArray() {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(isArray(), "This literal is not a literal");
-        return (List<Variable>) value.get();
+        checkState(value.isPresent(), "This parse must be present to do this");
+        return isArray() ? (List<Variable>) value.get() : parseArray().getArray();
+    }
+
+    public Variable getArrayValue(int index) {
+        checkState(value.isPresent(), "This parse must be present to do this");
+        checkState(isArray(), "This parse is not an array");
+
+        List<Variable> variableList = getArray();
+        Utilities.buildToIndex(variableList, index, Variable.empty());
+        return variableList.get(index);
     }
 
     // Some common additional getters (sponge)
@@ -229,8 +241,8 @@ public class Literal<T> {
 
     // Arithmetic
     public Literal add(Literal other) {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(other.getValue().isPresent(), "This literal must be present to do this");
+        checkState(value.isPresent(), "This parse must be present to do this");
+        checkState(other.getValue().isPresent(), "This parse must be present to do this");
 
         if (isString() || other.isString()) {
             return Literal.getLiteralBlindly(getString() + other.getString()); // Everything can be a string
@@ -247,8 +259,8 @@ public class Literal<T> {
     }
 
     public Literal sub(Literal other) {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(other.getValue().isPresent(), "This literal must be present to do this");
+        checkState(value.isPresent(), "This parse must be present to do this");
+        checkState(other.getValue().isPresent(), "This parse must be present to do this");
 
         if (isNumber()) {
             if (other.isNumber()) {
@@ -260,8 +272,8 @@ public class Literal<T> {
     }
 
     public Literal mult(Literal other) {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(other.getValue().isPresent(), "This literal must be present to do this");
+        checkState(value.isPresent(), "This parse must be present to do this");
+        checkState(other.getValue().isPresent(), "This parse must be present to do this");
 
         if (isNumber()) {
             if (other.isNumber()) {
@@ -273,8 +285,8 @@ public class Literal<T> {
     }
 
     public Literal div(Literal other) {
-        checkState(value.isPresent(), "This literal must be present to do this");
-        checkState(other.getValue().isPresent(), "This literal must be present to do this");
+        checkState(value.isPresent(), "This parse must be present to do this");
+        checkState(other.getValue().isPresent(), "This parse must be present to do this");
 
         if (isNumber()) {
             if (other.isNumber()) {
@@ -286,13 +298,13 @@ public class Literal<T> {
     }
 
     public Literal<Boolean> negative() {
-        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(value.isPresent(), "This parse must be present to do this");
         checkState(isBoolean(), "Negation can only be done to booleans");
         return new Literal<Boolean>(!getBoolean());
     }
 
     public Literal normalize() {
-        checkState(value.isPresent(), "This literal must be present to do this");
+        checkState(value.isPresent(), "This parse must be present to do this");
 
         if (!isNormalized()) {
             if (isString()) {

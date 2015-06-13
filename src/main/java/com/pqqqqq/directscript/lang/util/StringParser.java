@@ -1,5 +1,6 @@
 package com.pqqqqq.directscript.lang.util;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.ArrayList;
@@ -114,7 +115,7 @@ public class StringParser {
         return null;
     }
 
-    public int indexOf(String string, char ch) {
+    public int indexOf(String string, String find) {
         boolean quotes = false;
         int roundBrackets = 0, squareBrackets = 0;
         String builder = "";
@@ -140,13 +141,66 @@ public class StringParser {
 
             builder += c;
             if (!quotes && roundBrackets == 0 && squareBrackets == 0) {
-                if (ch == c) {
-                    return count;
+                if (builder.endsWith(find)) {
+                    return builder.length() - find.length();
                 }
             }
         }
 
         return -1;
+    }
+
+    public int indexOfAllowBrackets(String string, String find) {
+        boolean quotes = false;
+        String builder = "";
+
+        for (int count = 0; count < string.length(); count++) {
+            char c = string.charAt(count);
+
+            if (c == '"') {
+                if (!builder.endsWith("\\") || builder.endsWith("\\\\")) {
+                    quotes = !quotes;
+                }
+            }
+
+            builder += c;
+            if (!quotes) {
+                if (builder.endsWith(find)) {
+                    return builder.length() - find.length();
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    public Pair<Boolean, String> removeComments(boolean blockComment, String string) {
+        if (blockComment) {
+            int endBlock = indexOfAllowBrackets(string, "*/");
+
+            if (endBlock >= 0) {
+                return removeComments(false, string.substring(endBlock + 2));
+            }
+            return Pair.of(true, "");
+        } else {
+            int startBlock = indexOfAllowBrackets(string, "/*");
+            int inlineBlock = indexOfAllowBrackets(string, "//");
+
+            if (startBlock < 0 && inlineBlock < 0) {
+                return Pair.of(false, string);
+            }
+
+            if (startBlock >= 0 && (inlineBlock < 0 || startBlock < inlineBlock)) {
+                Pair<Boolean, String> booleanStringPair = removeComments(true, string.substring(startBlock + 2));
+                return Pair.of(booleanStringPair.getLeft(), string.substring(0, startBlock) + booleanStringPair.getRight());
+            }
+
+            if (inlineBlock >= 0 && (startBlock < 0 || inlineBlock < startBlock)) {
+                return Pair.of(false, string.substring(0, inlineBlock));
+            }
+        }
+
+        return null;
     }
 
     public static class SplitSequence extends Triple<String, String, String> {

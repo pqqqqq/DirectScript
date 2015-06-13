@@ -4,14 +4,14 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.pqqqqq.directscript.DirectScript;
+import com.pqqqqq.directscript.lang.container.env.Environment;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.Sequencer;
 import com.pqqqqq.directscript.lang.data.variable.Variable;
-import com.pqqqqq.directscript.lang.env.Environment;
 import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.statement.IStatement;
-import com.pqqqqq.directscript.lang.statement.StatementResult;
-import com.pqqqqq.directscript.lang.statement.setters.internal.Termination;
+import com.pqqqqq.directscript.lang.statement.Result;
+import com.pqqqqq.directscript.lang.statement.Statement;
+import com.pqqqqq.directscript.lang.statement.internal.setters.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import com.pqqqqq.directscript.lang.util.ICopyable;
@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkState;
 /**
  * Created by Kevin on 2015-06-02.
  */
-public class ScriptInstance extends Environment implements Runnable {
+public class ScriptInstance implements Runnable {
     private static final Builder COMPILE = builder().cause(Causes.COMPILE).predicate(Script.compileTimePredicate());
 
     @Nonnull private final Script script;
@@ -42,7 +42,9 @@ public class ScriptInstance extends Environment implements Runnable {
     private final Optional<Player> causedBy;
 
     @Nonnull
-    private final Map<Line, StatementResult> resultMap = Maps.newHashMap();
+    private final Map<Line, Result> resultMap = Maps.newHashMap();
+    @Nonnull
+    private final Environment environment = new Environment(this);
     @Nonnull
     private Optional<Line> currentLine = Optional.absent();
     private boolean skipLines = false;
@@ -50,13 +52,13 @@ public class ScriptInstance extends Environment implements Runnable {
     private Optional<Literal> returnValue = Optional.absent();
 
     ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Map<String, Variable> variableMap, Event event, Player causedBy) {
-        super(variableMap);
         this.script = script;
         this.cause = cause;
         this.linePredicate = linePredicate;
         this.sequencer = Sequencer.instance(this);
         this.event = Optional.fromNullable(event);
         this.causedBy = Optional.fromNullable(causedBy);
+        getEnvironment().getVariables().putAll(variableMap);
     }
 
     public static Builder builder() {
@@ -115,12 +117,16 @@ public class ScriptInstance extends Environment implements Runnable {
         this.returnValue = returnValue;
     }
 
-    public Map<Line, StatementResult> getResultMap() {
+    public Map<Line, Result> getResultMap() {
         return resultMap;
     }
 
-    public StatementResult getResultOf(Line line) {
+    public Result getResultOf(Line line) {
         return resultMap.get(line);
+    }
+
+    public Environment getEnvironment() {
+        return environment;
     }
 
     // Run the container
@@ -135,15 +141,16 @@ public class ScriptInstance extends Environment implements Runnable {
                 if (getLinePredicate().apply(line)) {
                     setCurrentLine(Optional.of(line)); // Set current line
 
-                    IStatement statement = line.getIStatement();
+                    Statement statement = line.getStatement();
                     if (!doSkipLines() || statement instanceof Termination) {
-                        getResultMap().put(line, line.toContainer(this).run()); // Add to result map
+                        getResultMap().put(line, line.toContex(this).run()); // Add to result map
                     }
                 }
             } catch (Throwable e) {
                 DirectScript.instance().getErrorHandler().log(String.format("Error in script '%s' -> '%s' at line #%d (script line #%d): ", getScript().getScriptsFile().getStringRepresentation(), getScript().getName(), line.getAbsoluteNumber(), line.getScriptNumber()));
                 DirectScript.instance().getErrorHandler().log(e);
                 DirectScript.instance().getErrorHandler().flush();
+                return; // Stop running of script
             }
         }
     }
@@ -202,15 +209,7 @@ public class ScriptInstance extends Environment implements Runnable {
             return variables(new Variable("generic.cause", Literal.getLiteralBlindly(cause.getCause()), true), new Variable("generic.millis", Literal.getLiteralBlindly(System.currentTimeMillis()), true));
         }
 
-        public Builder variables(Player player) { // Adds sponge variables for a player
-            return variables(new Variable("sponge.playername", Literal.getLiteralBlindly(player.getName()), true), new Variable("sponge.playeruuid", Literal.getLiteralBlindly(player.getIdentifier()), true));
-        }
-
         public Builder variables(CommandSource source) { // Adds sponge variables for a command source
-            if (source instanceof Player) {
-                variables((Player) source);
-            }
-
             return variables(new Variable("sponge.sourcename", Literal.getLiteralBlindly(source.getName()), true));
         }
 

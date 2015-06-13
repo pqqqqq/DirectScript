@@ -4,8 +4,8 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.pqqqqq.directscript.lang.annotation.Statement;
 import com.pqqqqq.directscript.lang.reader.Line;
+import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 
 import java.util.ArrayList;
@@ -20,14 +20,14 @@ public class Script {
 
         public boolean apply(Line input) {
             Statement statement = input.getStatement();
-            return statement.executionTime() == Statement.ExecutionTime.COMPILE || statement.executionTime() == Statement.ExecutionTime.ALWAYS;
+            return statement.getExecutionTime() == Statement.ExecutionTime.COMPILE || statement.getExecutionTime() == Statement.ExecutionTime.ALWAYS;
         }
     };
     private static final Predicate<Line> RUNTIME_PREDICATE = new Predicate<Line>() {
 
         public boolean apply(Line input) {
             Statement statement = input.getStatement();
-            return statement.executionTime() != Statement.ExecutionTime.COMPILE;
+            return statement.getExecutionTime() != Statement.ExecutionTime.COMPILE;
         }
     };
 

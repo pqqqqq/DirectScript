@@ -6,7 +6,6 @@ script("MessagePlayer") {
 		@cancel()
 
 		var("arguments", split(sponge.arguments, " "))
-
 		if (size(arguments) < 2) {
 			@player(, "&cInvalid format: /sendmsg <player> <message ...>")
 		} else {

@@ -24,7 +24,6 @@ public class TriggerEvents {
     @Subscribe
     public void join(PlayerJoinEvent event) {
         Causes.PLAYER_JOIN.trigger(ScriptInstance.builder()
-                .variables(event.getEntity())
                 .causedBy(event.getEntity()));
     }
 
@@ -32,7 +31,8 @@ public class TriggerEvents {
     public void command(CommandEvent event) {
         CommandSource source = event.getSource();
         Causes.COMMAND.trigger(ScriptInstance.builder()
-                .event(event).causedBy((source instanceof Player ? (Player) source : null))
+                .event(event)
+                .causedBy((source instanceof Player ? (Player) source : null))
                 .variables(source)
                 .variables(new Variable("sponge.command", Literal.getLiteralBlindly(event.getCommand()), true), new Variable("sponge.arguments", Literal.getLiteralBlindly(event.getArguments()), true)));
     }

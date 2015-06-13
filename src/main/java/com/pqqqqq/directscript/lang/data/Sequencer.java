@@ -4,7 +4,7 @@ import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.data.variable.Variable;
 import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.statement.StatementResult;
+import com.pqqqqq.directscript.lang.statement.Result;
 import com.pqqqqq.directscript.lang.util.StringParser;
 
 import javax.annotation.Nonnull;
@@ -32,24 +32,26 @@ public class Sequencer {
     public Literal parse(@Nonnull String sequence) {
         // TODO: Tidying up and some stray functionality
         checkNotNull(sequence, "Sequence cannot be null");
-        Literal result = Literal.empty();
+
+        if (sequence.trim().isEmpty()) {
+            return Literal.empty();
+        }
 
         // Check if it's a statement from the get-go
         Optional<Line> curLine = scriptInstance.getCurrentLine();
         if (curLine.isPresent()) {
-            try {
-                Line line = new Line(curLine.get().getAbsoluteNumber(), curLine.get().getScriptNumber(), sequence.trim());
-                StatementResult<?> statementResult = line.toContainer(scriptInstance).run();
+            Line line = new Line(curLine.get().getAbsoluteNumber(), curLine.get().getScriptNumber(), sequence.trim(), false);
+            if (line.getStatement() != null) {
+                Result<?> statementResult = line.toContex(scriptInstance).run();
                 if (statementResult.getLiteralResult().isPresent()) {
                     return statementResult.getLiteralResult().get();
                 }
-            } catch (NullPointerException e) {
             }
         }
 
         // Check if it's an inline if
-        int questionMark = StringParser.instance().indexOf(sequence, '?');
-        int colon = StringParser.instance().indexOf(sequence, ':');
+        int questionMark = StringParser.instance().indexOf(sequence, "?");
+        int colon = StringParser.instance().indexOf(sequence, ":");
         if (questionMark > -1 && colon > -1) {
             String operandCondition = sequence.substring(0, questionMark).trim();
             String trueSegment = sequence.substring(questionMark + 1, colon).trim();
@@ -68,6 +70,7 @@ public class Sequencer {
             return conditionLiteral.get();
         }
 
+        Literal result = Literal.empty();
         List<StringParser.SplitSequence> triples = StringParser.instance().parseSplitSeq(sequence, "+", "-", "*", "/"); // Split into ordered triple segments
         for (StringParser.SplitSequence triple : triples) {
             String beforeSplit = triple.getLeft();
@@ -96,7 +99,7 @@ public class Sequencer {
                 successful = true;
             } else {
                 // Check variable
-                Optional<Variable> variable = scriptInstance.getVariable(segment);
+                Optional<Variable> variable = scriptInstance.getEnvironment().getVariable(segment);
                 if (variable.isPresent()) {
                     segmentLiteral = variable.get().getData();
                     successful = true;
