@@ -19,7 +19,6 @@ import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.util.command.CommandSource;
 
-import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,28 +27,25 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-02.
+ * Represents a running instance of a {@link Script} that can be executed
  */
 public class ScriptInstance implements Runnable {
     private static final Builder COMPILE = builder().cause(Causes.COMPILE).predicate(Script.compileTimePredicate());
 
-    @Nonnull private final Script script;
-    @Nonnull private final Cause cause;
-    @Nonnull private final Predicate<Line> linePredicate;
-    @Nonnull private final Sequencer sequencer;
-    @Nonnull
+    private final Script script;
+    private final Cause cause;
+    private final Predicate<Line> linePredicate;
+    private final Sequencer sequencer;
     private final Optional<Event> event;
-    @Nonnull
     private final Optional<Player> causedBy;
 
-    @Nonnull
     private final Map<Line, Result> resultMap = Maps.newHashMap();
-    @Nonnull
     private final Environment environment = new Environment(this);
-    @Nonnull
+
     private Optional<Line> currentLine = Optional.absent();
-    private boolean skipLines = false;
-    @Nonnull
     private Optional<Literal> returnValue = Optional.absent();
+
+    private boolean skipLines = false;
 
     ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Map<String, Variable> variableMap, Event event, Player causedBy) {
         this.script = script;
@@ -61,75 +57,146 @@ public class ScriptInstance implements Runnable {
         getEnvironment().getVariables().putAll(variableMap);
     }
 
+    /**
+     * Retrieves an instance of a {@link ScriptInstance} {@link com.pqqqqq.directscript.lang.container.ScriptInstance.Builder}
+     *
+     * @return
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Retrieves the {@link ScriptInstance} for a {@link Script} with the compile time predicate
+     *
+     * @param script the script
+     * @return the new script instance
+     * @see Script#compileTimePredicate()
+     */
     public static ScriptInstance compile(Script script) {
         return COMPILE.copy().script(script).build();
     }
 
+    /**
+     * Gets the {@link Cause} that triggered this {@link ScriptInstance}
+     *
+     * @return the cause
+     */
     public Cause getCause() {
         return null;
     }
 
+    /**
+     * Gets the {@link Script} this {@link ScriptInstance} is attached to
+     *
+     * @return the script
+     */
     public Script getScript() {
         return script;
     }
 
+    /**
+     * Gets the line {@link Predicate} that is applied to {@link Line}s before their execution
+     *
+     * @return the predicate
+     */
     public Predicate<Line> getLinePredicate() {
         return linePredicate;
     }
 
+    /**
+     * Gets the specific {@link Sequencer} for this {@link ScriptInstance}
+     *
+     * @return the sequencer
+     */
     public Sequencer getSequencer() {
         return sequencer;
     }
 
+    /**
+     * Gets the {@link Optional} {@link Event} that triggered this {@link ScriptInstance}
+     * @return the event
+     */
     public Optional<Event> getEvent() {
         return event;
     }
 
+    /**
+     * Gets the {@link Optional} {@link Player} who caused the triggering of this {@link ScriptInstance}
+     * @return the player
+     */
     public Optional<Player> getCausedBy() {
         return causedBy;
     }
 
+    /**
+     * Gets the {@link Optional} current {@link Line} in execution
+     * @return the current line
+     */
     public Optional<Line> getCurrentLine() {
         return currentLine;
     }
 
-    public void setCurrentLine(Optional<Line> currentLine) {
-        this.currentLine = currentLine;
-    }
-
+    /**
+     * Gets whether this {@link ScriptInstance} is current skipping line execution
+     * @return true if skipping execution
+     */
     public boolean doSkipLines() {
         return skipLines;
     }
 
+    /**
+     * Sets whether this {@link ScriptInstance} shoudl skip line execution
+     * @param skipLines the new skip value boolean
+     */
     public void setSkipLines(boolean skipLines) {
         this.skipLines = skipLines;
     }
 
+    /**
+     * Gets the {@link Optional} {@link Literal} for the return value of this {@link ScriptInstance}
+     * @return the literal return value
+     */
     public Optional<Literal> getReturnValue() {
         return returnValue;
     }
 
+    /**
+     * Sets the {@link Literal} return value for this {@link ScriptInstance}
+     * @param returnValue the new return value
+     */
     public void setReturnValue(Optional<Literal> returnValue) {
         this.returnValue = returnValue;
     }
 
+    /**
+     * Gets a {@link Map} of {@link Line} vs {@link Result} for lines that have already been executed in this {@link ScriptInstance}
+     * @return the map
+     */
     public Map<Line, Result> getResultMap() {
         return resultMap;
     }
 
+    /**
+     * Gets the {@link Result} of a specific {@link Line}. This method is analogous to: <code>getResultMap().get(line)</code>
+     * @param line the line to check
+     * @return the result
+     */
     public Result getResultOf(Line line) {
         return resultMap.get(line);
     }
 
+    /**
+     * Gets this {@link ScriptInstance}'s {@link Environment}
+     * @return the environment
+     */
     public Environment getEnvironment() {
         return environment;
     }
 
-    // Run the container
+    /**
+     * Runs the container
+     */
     public void run() {
         checkNotNull(getScript(), "Script cannot be null");
         for (Line line : getScript().getLines()) {
@@ -139,7 +206,7 @@ public class ScriptInstance implements Runnable {
                 }
 
                 if (getLinePredicate().apply(line)) {
-                    setCurrentLine(Optional.of(line)); // Set current line
+                    this.currentLine = Optional.of(line); // Set current line
 
                     Statement statement = line.getStatement();
                     if (!doSkipLines() || statement instanceof Termination) {
@@ -155,6 +222,9 @@ public class ScriptInstance implements Runnable {
         }
     }
 
+    /**
+     * The builder class for {@link ScriptInstance}
+     */
     public static class Builder implements ICopyable<Builder> {
         private Script script = null;
         private Cause cause = null;
@@ -166,36 +236,54 @@ public class ScriptInstance implements Runnable {
         Builder() { // Default view
         }
 
+        /**
+         * Sets the {@link Script} for this {@link ScriptInstance} builder
+         * @param script the script
+         * @return this builder, for fluency
+         * @see ScriptInstance#getScript()
+         */
         public Builder script(Script script) {
             this.script = script;
             return this;
         }
 
+        /**
+         * Sets the {@link Cause} for this {@link ScriptInstance} builder
+         * @param cause the cause
+         * @return this builder, for fluency
+         * @see ScriptInstance#getCause()
+         */
         public Builder cause(Cause cause) {
             this.cause = cause;
             return this;
         }
 
+        /**
+         * Sets the {@link Line} {@link Predicate} for this {@link ScriptInstance} builder
+         * @param linePredicate the line predicate
+         * @return this builder, for fluency
+         * @see ScriptInstance#getLinePredicate()
+         */
         public Builder predicate(Predicate<Line> linePredicate) {
             this.linePredicate = linePredicate;
             return this;
         }
 
+        /**
+         * Sets the {@link Variable} {@link Map} ({@link String} vs Variable) for this {@link ScriptInstance} builder
+         * @param variableMap the variable map
+         * @return this builder, for fluency
+         */
         public Builder variables(Map<String, Variable> variableMap) {
             this.variableMap.putAll(variableMap);
             return this;
         }
 
-        public Builder event(Event event) {
-            this.event = event;
-            return this;
-        }
-
-        public Builder causedBy(Player causedBy) {
-            this.causedBy = causedBy;
-            return this;
-        }
-
+        /**
+         * Sets the {@link Variable} {@link Map} ({@link String} vs Variable) for this {@link ScriptInstance} builder
+         * @param variables the variable array
+         * @return this builder, for fluency
+         */
         public Builder variables(Variable... variables) {
             Map<String, Variable> variableMap = new HashMap<String, Variable>();
             for (Variable variable : variables) {
@@ -205,18 +293,51 @@ public class ScriptInstance implements Runnable {
             return variables(variableMap);
         }
 
-        private Builder variables() { // Adds generic variables for script (run on build)
-            return variables(new Variable("generic.cause", Literal.getLiteralBlindly(cause.getCause()), true), new Variable("generic.millis", Literal.getLiteralBlindly(System.currentTimeMillis()), true));
-        }
-
+        /**
+         * Applies {@link Variable}s associated with the given {@link CommandSource}
+         * @param source the command source
+         * @return this builder, for fluency
+         */
         public Builder variables(CommandSource source) { // Adds sponge variables for a command source
             return variables(new Variable("sponge.sourcename", Literal.getLiteralBlindly(source.getName()), true));
         }
 
+        /**
+         * Sets the {@link Event} for this {@link ScriptInstance} builder
+         *
+         * @param event the event
+         * @return this builder, for fluency
+         * @see ScriptInstance#getEvent()
+         */
+        public Builder event(Event event) {
+            this.event = event;
+            return this;
+        }
+
+        /**
+         * Sets the caused by {@link Player} this {@link ScriptInstance} builder
+         *
+         * @param causedBy the player
+         * @return this builder, for fluency
+         * @see ScriptInstance#getCausedBy()
+         */
+        public Builder causedBy(Player causedBy) {
+            this.causedBy = causedBy;
+            return this;
+        }
+
+        /**
+         * Copies the builder in its current state
+         * @return the copied builder
+         */
         public Builder copy() {
             return new Builder().script(script).cause(cause).predicate(linePredicate).variables(variableMap).event(event).causedBy(causedBy);
         }
 
+        /**
+         * Builds the {@link ScriptInstance}
+         * @return the new script instance
+         */
         public ScriptInstance build() {
             checkNotNull(cause, "Cause cannot be null");
             checkNotNull(linePredicate, "Predicate cannot be null");
@@ -224,6 +345,10 @@ public class ScriptInstance implements Runnable {
 
             variables(); // Generic variables
             return new ScriptInstance(script, cause, linePredicate, variableMap, event, causedBy);
+        }
+
+        private Builder variables() { // Adds generic variables for script (run on build)
+            return variables(new Variable("generic.cause", Literal.getLiteralBlindly(cause.getName()), true), new Variable("generic.millis", Literal.getLiteralBlindly(System.currentTimeMillis()), true));
         }
     }
 }

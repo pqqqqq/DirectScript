@@ -7,6 +7,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 
 /**
  * Created by Kevin on 2015-06-09.
+ * Trims a string througb {@link String#trim()}
  */
 public class TrimStatement extends Statement<String> {
 

@@ -25,10 +25,22 @@ public class Sequencer {
         this.scriptInstance = scriptInstance;
     }
 
+    /**
+     * Gets a {@link Sequencer} instance for the specific {@link ScriptInstance}
+     *
+     * @param scriptInstance the script instance
+     * @return a new sequencer instance
+     */
     public static Sequencer instance(ScriptInstance scriptInstance) {
         return new Sequencer(scriptInstance);
     }
 
+    /**
+     * Parses a sequence into a {@link Literal}
+     *
+     * @param sequence the sequence to parse
+     * @return the new literal
+     */
     public Literal parse(@Nonnull String sequence) {
         // TODO: Tidying up and some stray functionality
         checkNotNull(sequence, "Sequence cannot be null");
@@ -136,7 +148,7 @@ public class Sequencer {
         private Condition() {
         }
 
-        public Optional<Literal<Boolean>> parse(String sequence) {
+        Optional<Literal<Boolean>> parse(String sequence) {
             String[] splitOr = StringParser.instance().parseSplit(sequence, " or "); // 'Or' takes precedence over 'and'
 
             for (String orCondition : splitOr) {

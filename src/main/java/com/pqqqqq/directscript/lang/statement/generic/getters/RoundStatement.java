@@ -8,6 +8,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 
 /**
  * Created by Kevin on 2015-06-10.
+ * A statement that rounds a number (0.5 up)
  */
 public class RoundStatement extends Statement<Double> {
 

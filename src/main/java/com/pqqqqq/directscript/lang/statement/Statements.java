@@ -17,6 +17,7 @@ import java.util.List;
 
 /**
  * Created by Kevin on 2015-06-02.
+ * Represents a registry of {@link Statement}s
  */
 public class Statements {
 
@@ -62,14 +63,32 @@ public class Statements {
         REGISTRY = RegistryUtil.getAllOf(Statement.class, Statements.class);
     }
 
+    /**
+     * Gets the {@link List} of {@link Statement}s in the registry
+     *
+     * @return the registry
+     */
     public static List<Statement> getRegistry() {
         return REGISTRY;
     }
 
+    /**
+     * Gets if the given {@link Statement} is applicable to the {@link Line}
+     *
+     * @param statement the statement
+     * @param lineInst  the line
+     * @return
+     */
     public static boolean isStatementEqual(Statement statement, Line lineInst) {
         return statement.matches(lineInst);
     }
 
+    /**
+     * Gets an {@link Optional} {@link Statement} for the {@link Line}, such that {@link #isStatementEqual(Statement, Line)} is true
+     *
+     * @param line the line
+     * @return the statement
+     */
     public static Optional<Statement> getStatement(Line line) {
         for (Statement statement : REGISTRY) {
             if (isStatementEqual(statement, line)) {

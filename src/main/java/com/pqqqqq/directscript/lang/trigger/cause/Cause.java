@@ -11,26 +11,44 @@ import java.util.Set;
  * Represents something that can be identified as the cause of something (in game or otherwise)
  */
 public class Cause {
-    private final String cause;
+    private final String name;
     private final Set<Trigger> triggers = new HashSet<Trigger>();
 
-    public Cause(String cause) {
-        this.cause = cause;
+    Cause(String name) {
+        this.name = name;
     }
 
-    public String getCause() {
-        return cause;
+    /**
+     * Gets the name of this cause
+     *
+     * @return the name
+     */
+    public String getName() {
+        return name;
     }
 
+    /**
+     * Gets the {@link Set} of {@link Trigger}s to be triggered with this cause is activated
+     *
+     * @return the trigger set
+     */
     public Set<Trigger> getTriggers() {
         return triggers;
     }
 
-    public void trigger() {
-        trigger(null);
+    /**
+     * Activates this trigger with no {@link com.pqqqqq.directscript.lang.container.ScriptInstance.Builder} active
+     */
+    public void activate() {
+        activate(null);
     }
 
-    public void trigger(ScriptInstance.Builder builder) {
+    /**
+     * Activates this trigger with a specific {@link com.pqqqqq.directscript.lang.container.ScriptInstance.Builder}
+     *
+     * @param builder the builder
+     */
+    public void activate(ScriptInstance.Builder builder) {
         if (!triggers.isEmpty()) {
             if (builder == null) {
                 builder = ScriptInstance.builder();

@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-02.
+ * Calls a certain {@link Script} with given arguments
  */
 public class CallStatement extends Statement {
 

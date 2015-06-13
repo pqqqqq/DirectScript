@@ -7,8 +7,6 @@ import com.pqqqqq.directscript.lang.statement.Statements;
 import com.pqqqqq.directscript.lang.util.StringParser;
 import com.pqqqqq.directscript.lang.util.Utilities;
 
-import javax.annotation.Nonnull;
-
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -16,23 +14,32 @@ import static com.google.common.base.Preconditions.checkState;
  * Represents a line in a script
  */
 public class Line {
-    @Nonnull
     private final int absoluteNumber;
-    @Nonnull
     private final int scriptNumber;
-    @Nonnull
     private final String line;
-    @Nonnull
     private final String trimmedLine;
-    @Nonnull
     private final Statement statement;
-    @Nonnull
     private final String[] arguments;
 
+    /**
+     * Creates a new line with the corresponding absolute and script number, and the string representation of the line, that throws errors
+     *
+     * @param absoluteNumber the absolute line number (of the file)
+     * @param scriptNumber   the script line number
+     * @param line           the line string
+     */
     public Line(int absoluteNumber, int scriptNumber, String line) {
         this(absoluteNumber, scriptNumber, line, true);
     }
 
+    /**
+     * Creates a new line with the corresponding absolute and script number, the string representation of the line and whether it throws errors
+     *
+     * @param absoluteNumber the absolute line number (of the file)
+     * @param scriptNumber   the script line number
+     * @param line           the line string
+     * @param throwError     whether to throw errors
+     */
     public Line(int absoluteNumber, int scriptNumber, String line, boolean throwError) {
         this.absoluteNumber = absoluteNumber;
         this.scriptNumber = scriptNumber;
@@ -57,46 +64,80 @@ public class Line {
         }
     }
 
-    @Nonnull
+    /**
+     * Gets the absolute line number (of the file)
+     *
+     * @return the absolute line number
+     */
     public int getAbsoluteNumber() {
         return absoluteNumber;
     }
 
-    @Nonnull
+    /**
+     * Gets the script line number, such that <code>script.getLines().get(getScriptNumber())</code> is this line
+     *
+     * @return the line number of the script
+     */
     public int getScriptNumber() {
         return scriptNumber;
     }
 
-    @Nonnull
+    /**
+     * Gets the string representation of this line
+     *
+     * @return the line string
+     */
     public String getLine() {
         return line;
     }
 
-    @Nonnull
+    /**
+     * Gets the trimmed line string, without the prefix, identifier and suffix
+     *
+     * @return the trimmed line
+     */
     public String getTrimmedLine() {
         return trimmedLine;
     }
 
-    @Nonnull
+    /**
+     * Gets the corresponding {@link Statement} attached to this line
+     * @return the statement
+     */
     public Statement getStatement() {
         return statement;
     }
 
-    @Nonnull
+    /**
+     * Gets an array of arguments split by {@link Statement#getSplitString()}
+     * @return the string array
+     */
     public String[] getArguments() {
         return arguments;
     }
 
-    @Nonnull
+    /**
+     * Gets the number of arguments
+     * @return the size of the argument array
+     */
     public int getArgCount() {
         return arguments.length;
     }
 
-    @Nonnull
+    /**
+     * Gets the string argument at the given index
+     * @param index the index to check
+     * @return the string argument at the index
+     */
     public String getArg(int index) {
         return arguments[index];
     }
 
+    /**
+     * Converts this line into a {@link Context} with the given {@link ScriptInstance}
+     * @param scriptInstance the script instance that's running this line
+     * @return the context
+     */
     public Context toContex(ScriptInstance scriptInstance) {
         return new Context(scriptInstance, this);
     }
@@ -110,5 +151,18 @@ public class Line {
                 .add("trimmedLine", this.trimmedLine)
                 .add("statement", this.statement.getClass().getName())
                 .toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(absoluteNumber, scriptNumber, line);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof Line) {
+            return hashCode() == obj.hashCode();
+        }
+        return false;
     }
 }

@@ -7,6 +7,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 
 /**
  * Created by Kevin on 2015-06-09.
+ * A statement that gets the size of an array
  */
 public class SizeStatement extends Statement<Integer> {
 

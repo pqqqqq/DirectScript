@@ -12,6 +12,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-12.
+ * The context class includes combines a {@link Line} with its {@link ScriptInstance} to create {@link Argument} {@link Literal}s
  */
 public class Context {
     private final ScriptInstance scriptInstance;
@@ -29,7 +30,7 @@ public class Context {
         for (Argument argument : args) {
             String strarg = line.getArg(curIndex);
 
-            if (argument.isMatchName() && !strarg.equals(argument.getName())) {
+            if (argument.isModifier() && !strarg.equals(argument.getName())) {
                 continue; // Basically skip this argument but keep the string
             }
 
@@ -44,39 +45,86 @@ public class Context {
         }
     }
 
+    /**
+     * Gets the {@link ScriptInstance} for this context
+     *
+     * @return the script instance
+     */
     public ScriptInstance getScriptInstance() {
         return scriptInstance;
     }
 
+    /**
+     * Gets the {@link Script} for this context. This is analogous to: <code>getScriptInstance().getScript()</code>
+     *
+     * @return the script
+     */
     public Script getScript() {
         return scriptInstance.getScript();
     }
 
+    /**
+     * Gets the {@link Line} for this context
+     *
+     * @return the line
+     */
     public Line getLine() {
         return line;
     }
 
+    /**
+     * Gets the {@link Literal} argument array
+     *
+     * @return the argument array
+     */
     public Literal[] getLiterals() {
         return literals;
     }
 
+    /**
+     * Gets the {@link Literal} at the given index
+     *
+     * @param index the index
+     * @return the literal argument
+     */
     public Literal getLiteral(int index) {
         return literals[index];
     }
 
+    /**
+     * Gets the {@link Literal} at the given index, or a literal of a default value. This is analogous to: <code>getLiteral(index).or(def)</code>
+     *
+     * @param index the index of the literal
+     * @param def   the default value
+     * @return the literal
+     */
     public Literal getLiteral(int index, Object def) {
         return literals[index].or(def);
     }
 
+    /**
+     * Gets the number of argument {@link Literal}s
+     * @return the size of the literal array
+     */
     public int getLiteralCount() {
         return literals.length;
     }
 
+    /**
+     * Runs this line. This is analagous to: <code>line.getStatement().run(this)</code>
+     * @return the {@link Result}
+     */
     public Result run() {
         return line.getStatement().run(this);
     }
 
     // Convenience stuff
+
+    /**
+     * Gets an {@link Optional} {@link Player} at the index that, if {@link Literal#empty()}, uses the {@link ScriptInstance#getCausedBy()} player instead
+     * @param index the index
+     * @return the player
+     */
     public Optional<Player> getPlayerOrCauser(int index) {
         Optional<Player> causedBy = this.scriptInstance.getCausedBy();
         Literal literal = this.literals[index];

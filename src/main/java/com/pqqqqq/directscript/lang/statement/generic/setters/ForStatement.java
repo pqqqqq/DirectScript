@@ -13,6 +13,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by Kevin on 2015-06-10.
+ * A statement that counts a variable up
  */
 public class ForStatement extends Statement {
 

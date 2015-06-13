@@ -5,7 +5,6 @@ import com.pqqqqq.directscript.lang.container.Script;
 import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,19 +27,40 @@ public class Trigger {
         this.script.setTrigger(Optional.of(this));
     }
 
+    /**
+     * Gets a builder instance for building {@link Trigger}s
+     *
+     * @return a builder
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Gets the {@link Script} associated with this trigger
+     *
+     * @return the script
+     */
     public Script getScript() {
         return script;
     }
 
+    /**
+     * Gets the {@link Cause} array for this trigger
+     *
+     * @return the cause array
+     */
     public Cause[] getCauses() {
         return causes;
     }
 
-    public boolean hasCause(@Nonnull Cause cause) {
+    /**
+     * Gets whether this trigger has the specified {@link Cause}
+     *
+     * @param cause the cause to check
+     * @return true if the cause is present in the array
+     */
+    public boolean hasCause(Cause cause) {
         checkNotNull(cause, "Cause cannot be null");
         for (Cause check : this.causes) {
             if (check.equals(cause)) {
@@ -51,10 +71,18 @@ public class Trigger {
         return false;
     }
 
+    /**
+     * Triggers and runs a given {@link ScriptInstance} by its {@link ScriptInstance.Builder}
+     *
+     * @param builder the builder
+     */
     public void trigger(ScriptInstance.Builder builder) {
         builder.copy().script(script).build().run(); // Each trigger needs a separate builder instance
     }
 
+    /**
+     * The builder for {@link Trigger}s
+     */
     public static class Builder {
         private Script script = null;
         private Set<Cause> causes = new HashSet<Cause>();
@@ -62,16 +90,34 @@ public class Trigger {
         Builder() { // Default visibility
         }
 
+        /**
+         * Sets the {@link Script} for this trigger
+         *
+         * @param script the new script
+         * @return this builder, for fluency
+         * @see Trigger#getScript()
+         */
         public Builder script(Script script) {
             this.script = script;
             return this;
         }
 
+        /**
+         * Sets the {@link Cause} array for this trigger
+         *
+         * @param causes the new cause array
+         * @return this builder, for fluency
+         * @see Trigger#getCauses()
+         */
         public Builder cause(Cause... causes) {
             this.causes.addAll(Arrays.asList(causes));
             return this;
         }
 
+        /**
+         * Builds the new {@link Trigger} instance, and notifies all of its {@link Cause}s
+         * @return the new trigger
+         */
         public Trigger build() {
             checkNotNull(script, "Script cannot be null");
             checkState(!causes.isEmpty(), "At least one cause must be present");

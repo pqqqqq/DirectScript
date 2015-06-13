@@ -1,7 +1,6 @@
 package com.pqqqqq.directscript.lang.container.env;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.container.Script;
 import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.data.variable.IVariableContainer;
 import com.pqqqqq.directscript.lang.data.variable.Variable;
@@ -14,20 +13,36 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-02.
- * Represents an environment that branches from a {@link Script}
+ * Represents an environment that holds {@link Variable}s
  */
 public class Environment implements IVariableContainer {
     private final ScriptInstance scriptInstance;
     private final Map<String, Variable> variableMap = new HashMap<String, Variable>();
 
+    /**
+     * Creates a new Environment for this {@link ScriptInstance}
+     *
+     * @param scriptInstance the script instance
+     */
     public Environment(ScriptInstance scriptInstance) {
         this.scriptInstance = scriptInstance;
     }
 
+    /**
+     * Gets the {@link Map} of {@link Variable}s
+     *
+     * @return the map
+     */
     public Map<String, Variable> getVariables() {
         return this.variableMap;
     }
 
+    /**
+     * Safely adds a new {@link Variable} to the variable {@link Map}
+     *
+     * @param variable the new variable to add
+     * @return the variable
+     */
     public Variable addVariable(Variable variable) {
         checkState(Variable.namePattern().matcher(variable.getName()).matches(), "This variable name has illegal characters (only alphanumeric/period and must start with alphabetic).");
         checkState(!getVariables().containsKey(variable.getName()), "A variable with this name already exists");
@@ -36,6 +51,12 @@ public class Environment implements IVariableContainer {
         return variable;
     }
 
+    /**
+     * Gets a {@link Optional} {@link Variable} by its corresponding name
+     *
+     * @param name the name of the variable
+     * @return the variable
+     */
     public Optional<Variable> getVariable(String name) {
         int openBracket = name.indexOf('[');
         String noBracketName = name.substring(0, (openBracket == -1 ? name.length() : openBracket));

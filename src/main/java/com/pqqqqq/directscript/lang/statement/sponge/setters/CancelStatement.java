@@ -12,6 +12,7 @@ import org.spongepowered.api.util.command.CommandResult;
 
 /**
  * Created by Kevin on 2015-06-09.
+ * A statement that cancels the event that causes the script's trigger, if possible
  */
 public class CancelStatement extends SpongeStatement {
 

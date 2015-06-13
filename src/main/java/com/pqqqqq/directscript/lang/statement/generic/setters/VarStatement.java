@@ -11,6 +11,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-02.
+ * A statement that creates a new {@link Variable} in the {@link com.pqqqqq.directscript.lang.container.env.Environment}
  */
 public class VarStatement extends Statement {
 
@@ -32,7 +33,7 @@ public class VarStatement extends Statement {
     @Override
     public Argument[] getArguments() {
         return new Argument[]{
-                Argument.builder().name("final").parse().matchName().build(),
+                Argument.builder().name("final").parse().modifier().build(),
                 Argument.builder().name("VariableName").parse().build(),
                 Argument.builder().name("EQUALS").optional().parse().build(),
                 Argument.builder().name("Value").optional().build()

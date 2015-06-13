@@ -7,6 +7,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 
 /**
  * Created by Kevin on 2015-06-09.
+ * A statement that splits a string into an array by a certain split string
  */
 public class SplitStatement extends Statement<String[]> {
 

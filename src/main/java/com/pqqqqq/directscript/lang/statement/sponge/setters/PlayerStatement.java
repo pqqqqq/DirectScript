@@ -10,6 +10,7 @@ import org.spongepowered.api.text.Texts;
 
 /**
  * Created by Kevin on 2015-06-02.
+ * A statement that sends a message to a player
  */
 public class PlayerStatement extends SpongeStatement {
 

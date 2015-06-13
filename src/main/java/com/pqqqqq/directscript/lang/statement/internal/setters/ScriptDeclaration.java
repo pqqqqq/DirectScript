@@ -7,6 +7,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 
 /**
  * Created by Kevin on 2015-06-02.
+ * A statement that declares a new {@link com.pqqqqq.directscript.lang.container.Script}
  */
 public class ScriptDeclaration extends Statement<String> {
 

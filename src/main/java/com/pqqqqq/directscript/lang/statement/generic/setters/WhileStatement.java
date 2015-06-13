@@ -11,6 +11,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by Kevin on 2015-06-09.
+ * A statement that consecutively executes its block code until its condition is false
  */
 public class WhileStatement extends Statement {
 

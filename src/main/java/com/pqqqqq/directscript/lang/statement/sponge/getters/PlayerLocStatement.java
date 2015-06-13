@@ -10,6 +10,7 @@ import org.spongepowered.api.world.Location;
 
 /**
  * Created by Kevin on 2015-06-10.
+ * A statement that gets the {@link Location} of a player
  */
 public class PlayerLocStatement extends SpongeStatement<Double[]> {
 

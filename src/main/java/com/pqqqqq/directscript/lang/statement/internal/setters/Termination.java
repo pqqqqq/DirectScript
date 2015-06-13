@@ -10,6 +10,7 @@ import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
 /**
  * Created by Kevin on 2015-06-05.
+ * A statement that terminates any blocked code
  */
 public class Termination extends Statement {
 

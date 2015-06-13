@@ -15,6 +15,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by Kevin on 2015-06-10.
+ * A statement that iterates through an array
  */
 public class ForEachStatement extends Statement {
 

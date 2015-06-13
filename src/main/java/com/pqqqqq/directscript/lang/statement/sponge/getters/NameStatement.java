@@ -9,6 +9,7 @@ import org.spongepowered.api.entity.player.Player;
 
 /**
  * Created by Kevin on 2015-06-04.
+ * A statement that gets the name of the specified player
  */
 public class NameStatement extends SpongeStatement<String> {
 

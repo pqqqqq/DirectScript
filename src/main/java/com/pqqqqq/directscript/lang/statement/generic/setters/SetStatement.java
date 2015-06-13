@@ -12,6 +12,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-08.
+ * A statement that sets the value of an existing {@link Variable}
  */
 public class SetStatement extends Statement {
 

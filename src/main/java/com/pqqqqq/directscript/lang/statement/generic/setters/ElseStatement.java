@@ -14,6 +14,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-08.
+ * A statement that only executes if the 'if' statements above are all false
  */
 public class ElseStatement extends Termination {
 

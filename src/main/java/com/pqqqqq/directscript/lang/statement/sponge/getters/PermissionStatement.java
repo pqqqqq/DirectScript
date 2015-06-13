@@ -9,6 +9,7 @@ import org.spongepowered.api.entity.player.Player;
 
 /**
  * Created by Kevin on 2015-06-09.
+ * A statement that checks the permission of a player
  */
 public class PermissionStatement extends SpongeStatement<Boolean> {
 

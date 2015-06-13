@@ -23,14 +23,14 @@ public class TriggerEvents {
 
     @Subscribe
     public void join(PlayerJoinEvent event) {
-        Causes.PLAYER_JOIN.trigger(ScriptInstance.builder()
+        Causes.PLAYER_JOIN.activate(ScriptInstance.builder()
                 .causedBy(event.getEntity()));
     }
 
     @Subscribe
     public void command(CommandEvent event) {
         CommandSource source = event.getSource();
-        Causes.COMMAND.trigger(ScriptInstance.builder()
+        Causes.COMMAND.activate(ScriptInstance.builder()
                 .event(event)
                 .causedBy((source instanceof Player ? (Player) source : null))
                 .variables(source)

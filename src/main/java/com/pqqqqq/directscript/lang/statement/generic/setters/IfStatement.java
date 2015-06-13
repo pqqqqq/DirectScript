@@ -7,6 +7,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 
 /**
  * Created by Kevin on 2015-06-04.
+ * A statement that only executes its block code if the condition is true
  */
 public class IfStatement extends Statement<Boolean> {
 

@@ -7,6 +7,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 
 /**
  * Created by Kevin on 2015-06-10.
+ * A statement that ceils (rounds up) a number
  */
 public class CeilStatement extends Statement<Double> {
 

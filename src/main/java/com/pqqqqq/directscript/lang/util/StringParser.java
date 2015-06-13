@@ -8,6 +8,7 @@ import java.util.List;
 
 /**
  * Created by Kevin on 2015-06-04.
+ * A utility for string parsing
  */
 public class StringParser {
     private static final StringParser INSTANCE = new StringParser();
@@ -15,10 +16,22 @@ public class StringParser {
     private StringParser() {
     }
 
+    /**
+     * Gets the string parser instance
+     *
+     * @return the instance
+     */
     public static StringParser instance() {
         return INSTANCE;
     }
 
+    /**
+     * Parses a split of the specified string at the given split points, excluding quotes, round and square brackets
+     *
+     * @param string the string to split
+     * @param splits the split strings
+     * @return the split string array
+     */
     public String[] parseSplit(String string, String... splits) {
         List<SplitSequence> sequences = parseSplitSeq(string, splits);
         List<String> result = new ArrayList<String>();
@@ -30,6 +43,13 @@ public class StringParser {
         return result.toArray(new String[result.size()]);
     }
 
+    /**
+     * Parses a split of the specified string at the given split points into a {@link List} of {@link com.pqqqqq.directscript.lang.util.StringParser.SplitSequence}s, excluding quotes, round and square brackets
+     *
+     * @param string the string to split
+     * @param splits the split strings
+     * @return the list of split sequences
+     */
     public List<SplitSequence> parseSplitSeq(String string, String... splits) {
         List<SplitSequence> list = new ArrayList<SplitSequence>();
 
@@ -79,6 +99,14 @@ public class StringParser {
         return list;
     }
 
+    /**
+     * Gets the outer bracket of a string as specified by the starting and closing character, excluding quotes
+     *
+     * @param string    the string
+     * @param startChar the opening character, eg '('
+     * @param endChar   the closing character, eg ')'
+     * @return the outer bracket (including the starting and ending characters)
+     */
     public String getOuterBracket(String string, char startChar, char endChar) {
         boolean quotes = false;
         String builder = "";
@@ -115,6 +143,13 @@ public class StringParser {
         return null;
     }
 
+    /**
+     * Gets the first index of a find string, excluding quotes, round and square brackets
+     *
+     * @param string the string
+     * @param find   the string to find
+     * @return the index, or -1 if none are found
+     */
     public int indexOf(String string, String find) {
         boolean quotes = false;
         int roundBrackets = 0, squareBrackets = 0;
@@ -150,6 +185,13 @@ public class StringParser {
         return -1;
     }
 
+    /**
+     * Gets the first index of a find string, excluding quotes, but allowing round and square brackets
+     *
+     * @param string the string
+     * @param find   the string to find
+     * @return the index, or -1 if none are found
+     */
     public int indexOfAllowBrackets(String string, String find) {
         boolean quotes = false;
         String builder = "";
@@ -174,6 +216,12 @@ public class StringParser {
         return -1;
     }
 
+    /**
+     * Gets a {@link Pair} of Boolean, String that represents the block comment status and the current string
+     * @param blockComment whether there is an active block comment
+     * @param string the current string
+     * @return the pair of boolean and string
+     */
     public Pair<Boolean, String> removeComments(boolean blockComment, String string) {
         if (blockComment) {
             int endBlock = indexOfAllowBrackets(string, "*/");
@@ -203,11 +251,20 @@ public class StringParser {
         return null;
     }
 
+    /**
+     * Represents an immutable split sequence, a {@link Triple} String of the before(L) and after(R) split, as well as the sequence itself(M)
+     */
     public static class SplitSequence extends Triple<String, String, String> {
         private final String beforeSplit;
         private final String sequence;
         private final String afterSplit;
 
+        /**
+         * Creates a new split sequence
+         * @param beforeSplit the before split
+         * @param sequence the actual sequence
+         * @param afterSplit the after split
+         */
         public SplitSequence(String beforeSplit, String sequence, String afterSplit) {
             this.beforeSplit = beforeSplit;
             this.sequence = sequence;
@@ -229,14 +286,26 @@ public class StringParser {
             return afterSplit;
         }
 
+        /**
+         * Gets the before split. This is analogous to {@link #getLeft()}
+         * @return the before split string
+         */
         public String getBeforeSplit() {
             return beforeSplit;
         }
 
+        /**
+         * Gets the actual sequence. This is analogous to {@link #getMiddle()}
+         * @return the actual sequence
+         */
         public String getSequence() {
             return sequence;
         }
 
+        /**
+         * Gets the after split. This is analogous to {@link #getRight()}
+         * @return the after split string
+         */
         public String getAfterSplit() {
             return afterSplit;
         }

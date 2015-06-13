@@ -9,6 +9,7 @@ import org.spongepowered.api.entity.player.Player;
 
 /**
  * Created by Kevin on 2015-06-04.
+ * A statement that retrieves the UUID of a player
  */
 public class UUIDStatement extends SpongeStatement<String> {
 

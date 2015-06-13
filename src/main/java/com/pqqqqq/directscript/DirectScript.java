@@ -69,13 +69,13 @@ public class DirectScript {
 
     @Subscribe
     public void serverStarting(ServerStartingEvent event) {
-        Causes.SERVER_STARTING.trigger(); // Trigger server starting cause
+        Causes.SERVER_STARTING.activate(); // Trigger server starting cause
     }
 
     @Subscribe
     public void serverStopping(ServerStoppingEvent event) {
         errorHandler.close(); // Close error handler stream
-        Causes.SERVER_STOPPING.trigger(); // Trigger server stopping cause
+        Causes.SERVER_STOPPING.activate(); // Trigger server stopping cause
     }
 
     public Logger getLogger() {

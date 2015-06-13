@@ -10,6 +10,7 @@ import java.util.List;
 
 /**
  * Created by Kevin on 2015-06-09.
+ * A statement that joins an array by a glue string
  */
 public class JoinStatement extends Statement<String> {
 

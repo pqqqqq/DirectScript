@@ -30,15 +30,35 @@ import static com.google.common.base.Preconditions.checkState;
  * A reader for retrieving scripts from any directory
  */
 public class Reader {
-    private static Reader INSTANCE = new Reader();
+    private static final Reader INSTANCE = new Reader();
+    private static final File SCRIPTS = new File("scripts/");
 
     private Reader() {
     }
 
+    /**
+     * Gets the {@link Reader} instance
+     *
+     * @return the instance
+     */
     public static Reader instance() {
         return INSTANCE;
     }
 
+    /**
+     * Gets the default scripts {@link File}. The file is at <code>scripts/</code>
+     *
+     * @return the scripts file directory
+     */
+    public static File scriptsFile() {
+        return SCRIPTS;
+    }
+
+    /**
+     * Loads and a retrieves a {@link Set} of {@link ScriptsFile}s, also clears any {@link Cause} triggers
+     *
+     * @return the loaded set
+     */
     public Set<ScriptsFile> load() {
         for (Cause cause : Causes.getRegistry()) {
             cause.getTriggers().clear(); // Clear all the triggers
@@ -47,18 +67,27 @@ public class Reader {
         return readInDir();
     }
 
+    /**
+     * Reads and retrieves a {@link Set} of {@link ScriptsFile}s in the /scripts directory
+     *
+     * @return the set of scripts files
+     * @see #scriptsFile()
+     */
     public Set<ScriptsFile> readInDir() { // Reads from ROOT/scripts
-        File dir = new File("scripts/");
-        dir.mkdir(); // Make /scripts if it doesn't exist
-
-        return readInDir(dir);
+        SCRIPTS.mkdir(); // Make /scripts if it doesn't exist
+        return readInDir(SCRIPTS);
     }
 
+    /**
+     * Reads and retrieves a {@link Set} of {@link ScriptsFile}s in the given directory
+     *
+     * @return the set of scripts files
+     */
     public Set<ScriptsFile> readInDir(File dir) {
         return readInDir(dir, dir);
     }
 
-    public Set<ScriptsFile> readInDir(File root, File dir) {
+    private Set<ScriptsFile> readInDir(File root, File dir) {
         checkNotNull(dir, "Directory cannot be null");
         checkState(dir.exists(), "The directory must exist");
         checkState(dir.isDirectory(), "Directory must actually be a directory");
@@ -77,6 +106,13 @@ public class Reader {
         return scriptsFiles;
     }
 
+    /**
+     * Reads and returns a {@link ScriptsFile} for the given {@link File}
+     *
+     * @param root the root file (eg {@link #scriptsFile()})
+     * @param file the file to read
+     * @return the new scripts file
+     */
     public ScriptsFile readScriptsFile(File root, File file) {
         checkNotNull(file, "File cannot be null");
         checkState(file.exists(), "The file must exist");

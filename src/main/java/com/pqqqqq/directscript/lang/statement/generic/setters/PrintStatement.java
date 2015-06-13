@@ -8,6 +8,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 
 /**
  * Created by Kevin on 2015-06-02.
+ * A statement that prints to console
  */
 public class PrintStatement extends Statement {
 

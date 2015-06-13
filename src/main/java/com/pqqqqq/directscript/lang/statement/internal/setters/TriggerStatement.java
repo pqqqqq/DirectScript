@@ -16,6 +16,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-02.
+ * A statement that defines a script's {@link Trigger} and {@link Cause}s
  */
 public class TriggerStatement extends Statement<Trigger> {
 
