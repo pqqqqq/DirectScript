@@ -7,8 +7,6 @@ import com.pqqqqq.directscript.lang.statement.Argument;
 import com.pqqqqq.directscript.lang.statement.Result;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
-import static com.google.common.base.Preconditions.checkState;
-
 /**
  * Created by Kevin on 2015-06-02.
  * A statement that creates a new {@link Variable} in the {@link com.pqqqqq.directscript.lang.container.env.Environment}
@@ -33,9 +31,9 @@ public class VarStatement extends Statement {
     @Override
     public Argument[] getArguments() {
         return new Argument[]{
-                Argument.builder().name("final").parse().modifier().build(),
+                Argument.builder().name("final").optional().parse().modifier().build(),
                 Argument.builder().name("VariableName").parse().build(),
-                Argument.builder().name("EQUALS").optional().parse().build(),
+                Argument.builder().name("=").optional().parse().modifier().build(),
                 Argument.builder().name("Value").optional().build()
         };
     }
@@ -53,8 +51,6 @@ public class VarStatement extends Statement {
                 isFinal = true;
             } else {
                 if (ctx.getLiteralCount() > (i + 2)) {
-                    String EQUALS = ctx.getLiteral(i + 1).getString();
-                    checkState(EQUALS.equals("="), "Cannot resolve symbol: '" + EQUALS + "' expected '='");
                     value = ctx.getLiteral(i + 2);
                 }
 

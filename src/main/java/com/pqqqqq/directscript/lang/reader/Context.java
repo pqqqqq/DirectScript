@@ -12,7 +12,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-12.
- * The context class includes combines a {@link Line} with its {@link ScriptInstance} to create {@link Argument} {@link Literal}s
+ * The context class combines a {@link Line} with its {@link ScriptInstance} to create {@link Argument} {@link Literal}s
  */
 public class Context {
     private final ScriptInstance scriptInstance;
@@ -28,19 +28,20 @@ public class Context {
 
         int curIndex = 0;
         for (Argument argument : args) {
-            String strarg = line.getArg(curIndex);
+            if (line.getArgCount() <= curIndex) { // If it goes over, just put empty literals
+                this.literals[curIndex++] = Literal.empty();
+                continue;
+            }
 
-            if (argument.isModifier() && !strarg.equals(argument.getName())) {
+            String strarg = line.getArg(curIndex);
+            Literal litarg = argument.doParse() ? scriptInstance.getSequencer().parse(strarg) : Literal.getLiteralBlindly(strarg); // Use doParse boolean
+            checkState(argument.isOptional() || !litarg.isEmpty(), "Argument " + curIndex + "(" + argument.getName() + ") is not optional."); // Use isOptional boolean
+
+            if (argument.isModifier() && !litarg.getString().equals(argument.getName())) { // Use isModifier boolean
                 continue; // Basically skip this argument but keep the string
             }
 
-            if (argument.doParse()) {
-                Literal literal = scriptInstance.getSequencer().parse(strarg);
-                checkState(argument.isOptional() || !literal.isEmpty(), "Argument " + curIndex + "(" + argument.getName() + ") is not optional.");
-                this.literals[curIndex] = literal;
-            } else {
-                this.literals[curIndex] = Literal.getLiteralBlindly(strarg);
-            }
+            this.literals[curIndex] = litarg;
             curIndex++;
         }
     }

@@ -35,7 +35,7 @@ public class SetStatement extends Statement {
     public Argument[] getArguments() {
         return new Argument[]{
                 Argument.builder().name("VariableName").parse().build(),
-                Argument.builder().name("EQUALS").parse().build(),
+                Argument.builder().name("=").parse().modifier().build(),
                 Argument.builder().name("Value").build()
         };
     }
@@ -43,10 +43,7 @@ public class SetStatement extends Statement {
     @Override
     public Result run(Context ctx) {
         String varName = ctx.getLiteral(0).getString();
-        String EQUALS = ctx.getLiteral(1).getString();
         Literal value = ctx.getLiteral(2);
-
-        checkState(EQUALS.equals("="), "Cannot resolve symbol: '" + EQUALS + "' expected '='");
 
         Optional<Variable> variableOptional = ctx.getScriptInstance().getEnvironment().getVariable(varName);
         checkState(variableOptional.isPresent(), "Unknown variable: " + varName);
