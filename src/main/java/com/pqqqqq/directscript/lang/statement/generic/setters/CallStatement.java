@@ -2,13 +2,11 @@ package com.pqqqqq.directscript.lang.statement.generic.setters;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
-import com.pqqqqq.directscript.lang.container.Script;
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.variable.Variable;
+import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Context;
-import com.pqqqqq.directscript.lang.statement.Argument;
-import com.pqqqqq.directscript.lang.statement.Result;
+import com.pqqqqq.directscript.lang.script.Script;
+import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 

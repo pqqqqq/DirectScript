@@ -23,6 +23,7 @@ public class Statements {
 
     // Internal statements
     public static final Statement<String> SCRIPT_DECLARATION = new ScriptDeclaration();
+    public static final Statement<Trigger> TRIGGER = new TriggerStatement();
     public static final Statement ELSE = new ElseStatement();
     public static final Statement TERMINATION = new Termination();
 
@@ -36,6 +37,8 @@ public class Statements {
     public static final Statement FOR = new ForStatement();
     public static final Statement FOREACH = new ForEachStatement();
     public static final Statement RETURN = new ReturnStatement();
+    public static final Statement BREAK = new BreakStatement();
+    public static final Statement CONTINUE = new ContinueStatement();
 
     public static final Statement<String[]> SPLIT = new SplitStatement();
     public static final Statement<Integer> SIZE = new SizeStatement();
@@ -44,9 +47,6 @@ public class Statements {
     public static final Statement<Double> ROUND = new RoundStatement();
     public static final Statement<Double> CEIL = new CeilStatement();
     public static final Statement<Double> FLOOR = new FloorStatement();
-
-    // Option script statements
-    public static final Statement<Trigger> TRIGGER = new TriggerStatement();
 
     // Sponge statements
     public static final Statement PLAYER = new PlayerStatement();

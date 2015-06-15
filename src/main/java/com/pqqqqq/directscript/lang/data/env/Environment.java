@@ -1,12 +1,11 @@
-package com.pqqqqq.directscript.lang.container.env;
+package com.pqqqqq.directscript.lang.data.env;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
-import com.pqqqqq.directscript.lang.data.variable.IVariableContainer;
-import com.pqqqqq.directscript.lang.data.variable.Variable;
+import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.util.StringParser;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -15,7 +14,7 @@ import static com.google.common.base.Preconditions.checkState;
  * Created by Kevin on 2015-06-02.
  * Represents an environment that holds {@link Variable}s
  */
-public class Environment implements IVariableContainer {
+public class Environment implements Iterable<Variable> {
     private final ScriptInstance scriptInstance;
     private final Map<String, Variable> variableMap = new HashMap<String, Variable>();
 
@@ -75,5 +74,9 @@ public class Environment implements IVariableContainer {
             return getArrayValue(name.replace(bracket, ""), variable.getData().getArrayValue(index));
         }
         return variable;
+    }
+
+    public Iterator<Variable> iterator() {
+        return this.variableMap.values().iterator();
     }
 }

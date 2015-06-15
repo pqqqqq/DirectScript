@@ -1,10 +1,10 @@
 package com.pqqqqq.directscript.lang.data;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
-import com.pqqqqq.directscript.lang.data.variable.Variable;
+import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.statement.Result;
+import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.util.StringParser;
 
 import javax.annotation.Nonnull;
@@ -54,7 +54,7 @@ public class Sequencer {
         if (curLine.isPresent()) {
             Line line = new Line(curLine.get().getAbsoluteNumber(), curLine.get().getScriptNumber(), sequence.trim(), false);
             if (line.getStatement() != null) {
-                Result<?> statementResult = line.toContex(scriptInstance).run();
+                Statement.Result<?> statementResult = line.toContex(scriptInstance).run();
                 if (statementResult.getLiteralResult().isPresent()) {
                     return statementResult.getLiteralResult().get();
                 }

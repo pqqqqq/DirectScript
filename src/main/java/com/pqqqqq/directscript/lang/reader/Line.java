@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.reader;
 
 import com.google.common.base.Objects;
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
+import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.statement.Statements;
 import com.pqqqqq.directscript.lang.util.StringParser;
@@ -20,6 +20,9 @@ public class Line {
     private final String trimmedLine;
     private final Statement statement;
     private final String[] arguments;
+
+    private Line linkedLine = null;
+    private Block internalBlock = null;
 
     /**
      * Creates a new line with the corresponding absolute and script number, and the string representation of the line, that throws errors
@@ -131,6 +134,45 @@ public class Line {
      */
     public String getArg(int index) {
         return arguments[index];
+    }
+
+    /**
+     * Gets the {@link Line} that is linked to this line
+     *
+     * @return the linked line
+     */
+    public Line getLinkedLine() {
+        return linkedLine;
+    }
+
+    /**
+     * Sets the {@link Line} that is linked to this line
+     *
+     * @param linkedLine  the new linked line
+     * @param parentBlock the parent {@link Block}
+     */
+    public void setLinkedLine(Line linkedLine, Block parentBlock) {
+        this.linkedLine = linkedLine;
+
+        if (linkedLine == null) {
+            this.internalBlock = null;
+        } else {
+            int startLine = Math.min(getScriptNumber() + 1, linkedLine.getScriptNumber()); // Don't subtract 1 since subList is exclusive for the end
+            int endLine = Math.max(getScriptNumber() + 1, linkedLine.getScriptNumber());
+
+            int maxStartLine = Math.max(0, startLine);
+            int minEndLine = Math.min(parentBlock.getLines().size(), endLine);
+            this.internalBlock = new Block(parentBlock.getLines().subList(maxStartLine, minEndLine));
+        }
+    }
+
+    /**
+     * Gets the internal nested {@link Block} that this {@link Line} initiates
+     *
+     * @return the nested block
+     */
+    public Block getInternalBlock() {
+        return internalBlock;
     }
 
     /**

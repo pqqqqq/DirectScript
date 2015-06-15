@@ -1,11 +1,9 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.statement.Argument;
-import com.pqqqqq.directscript.lang.statement.Result;
+import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.internal.setters.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
@@ -38,7 +36,7 @@ public class ElseStatement extends Termination {
         ScriptInstance scriptInstance = ctx.getScriptInstance();
         Line line = ctx.getLine();
 
-        Line associatedLine = scriptInstance.getScript().lookupStartingLine(line);
+        Line associatedLine = line.getLinkedLine();
         checkNotNull(associatedLine, "Unknown termination sequence");
 
         if (scriptInstance.getCause() != Causes.COMPILE) {

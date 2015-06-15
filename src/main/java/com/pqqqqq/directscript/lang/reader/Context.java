@@ -1,18 +1,17 @@
 package com.pqqqqq.directscript.lang.reader;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.container.Script;
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.statement.Argument;
-import com.pqqqqq.directscript.lang.statement.Result;
+import com.pqqqqq.directscript.lang.script.Script;
+import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.statement.Statement;
 import org.spongepowered.api.entity.player.Player;
 
 import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-12.
- * The context class combines a {@link Line} with its {@link ScriptInstance} to create {@link Argument} {@link Literal}s
+ * The context class combines a {@link Line} with its {@link ScriptInstance} to create {@link Statement.Argument} {@link Literal}s
  */
 public class Context {
     private final ScriptInstance scriptInstance;
@@ -23,11 +22,11 @@ public class Context {
         this.scriptInstance = scriptInstance;
         this.line = line;
 
-        Argument[] args = line.getStatement().getArguments();
+        Statement.Argument[] args = line.getStatement().getArguments();
         this.literals = new Literal[args.length];
 
         int curIndex = 0;
-        for (Argument argument : args) {
+        for (Statement.Argument argument : args) {
             if (line.getArgCount() <= curIndex) { // If it goes over, just put empty literals
                 this.literals[curIndex++] = Literal.empty();
                 continue;
@@ -113,9 +112,9 @@ public class Context {
 
     /**
      * Runs this line. This is analagous to: <code>line.getStatement().run(this)</code>
-     * @return the {@link Result}
+     * @return the {@link Statement.Result}
      */
-    public Result run() {
+    public Statement.Result run() {
         return line.getStatement().run(this);
     }
 

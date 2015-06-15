@@ -1,10 +1,8 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
+import com.pqqqqq.directscript.lang.reader.Block;
 import com.pqqqqq.directscript.lang.reader.Context;
-import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.statement.Argument;
-import com.pqqqqq.directscript.lang.statement.Result;
+import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -34,23 +32,22 @@ public class WhileStatement extends Statement {
 
     @Override
     public Result run(Context ctx) {
-        ScriptInstance scriptInstance = ctx.getScriptInstance();
-        Line line = ctx.getLine();
-
-        Line endingWhile = scriptInstance.getScript().lookupEndingLine(line);
-        checkNotNull(endingWhile, "Cannot find ending brace of while statement");
-
-        int startLine = line.getScriptNumber() + 1;
-        int endLine = endingWhile.getScriptNumber() - 1;
+        Block internalBlock = ctx.getLine().getInternalBlock();
+        checkNotNull(internalBlock, "This line has no internal block");
 
         while (ctx.getLiteral(0).getBoolean()) {
-            for (int i = startLine; i <= endLine && i < scriptInstance.getScript().getLines().size(); i++) {
-                Line whileLine = scriptInstance.getScript().getLines().get(i);
-                scriptInstance.getResultMap().put(line, whileLine.toContex(scriptInstance).run()); // Add to result map
+            ScriptInstance.Result result = ctx.getScriptInstance().run(internalBlock);
+
+            if (result == ScriptInstance.Result.FAILURE_BREAK) {
+                break;
+            }
+
+            if (result == ScriptInstance.Result.FAILURE_CONTINUE) {
+                continue;
             }
         }
 
-        scriptInstance.setSkipLines(true); // Skip lines since we've already run the code block
+        ctx.getScriptInstance().setSkipToLine(ctx.getLine().getLinkedLine()); // Skip lines since we've already run the code block
         return Result.success();
     }
 }

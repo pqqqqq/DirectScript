@@ -1,4 +1,4 @@
-package com.pqqqqq.directscript.lang.container;
+package com.pqqqqq.directscript.lang.script;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.util.Utilities;

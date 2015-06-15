@@ -1,8 +1,6 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
 import com.pqqqqq.directscript.lang.reader.Context;
-import com.pqqqqq.directscript.lang.statement.Argument;
-import com.pqqqqq.directscript.lang.statement.Result;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
 /**

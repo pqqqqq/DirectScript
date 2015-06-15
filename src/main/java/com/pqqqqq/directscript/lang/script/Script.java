@@ -1,21 +1,17 @@
-package com.pqqqqq.directscript.lang.container;
+package com.pqqqqq.directscript.lang.script;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.pqqqqq.directscript.lang.reader.Block;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Kevin on 2015-06-02.
  * A piece of code that runs or does something when {@link Trigger}ed
  */
-public class Script {
+public class Script extends Block {
     private static final Predicate<Line> COMPILETIME_PREDICATE = new Predicate<Line>() {
 
         public boolean apply(Line input) {
@@ -34,9 +30,6 @@ public class Script {
     private final ScriptsFile scriptsFile;
     private final String name;
 
-    private final List<Line> lines = new ArrayList<Line>();
-    private final BiMap<Line, Line> linkedLines = HashBiMap.create();
-
     private Optional<Trigger> trigger;
 
     /**
@@ -46,6 +39,7 @@ public class Script {
      * @param name        the name of the script
      */
     public Script(ScriptsFile scriptsFile, String name) {
+        super(); // Constructs an empty block with no parent
         this.scriptsFile = scriptsFile;
         this.name = name;
     }
@@ -84,43 +78,6 @@ public class Script {
      */
     public String getName() {
         return name;
-    }
-
-    /**
-     * Returns a {@link List} of {@link Line}s that are a part of this Script
-     *
-     * @return a list of lines
-     */
-    public List<Line> getLines() {
-        return lines;
-    }
-
-    /**
-     * Returns a {@link BiMap}, a bidirectional map that links the starting and ending {@link Line} braces
-     * @return the map
-     */
-    public BiMap<Line, Line> getLinkedLines() {
-        return linkedLines;
-    }
-
-    // Convenience methods so I don't get confused
-
-    /**
-     * Returns the closing brace {@link Line} for the given line
-     * @param starting the opening brace line
-     * @return the closing brace line
-     */
-    public Line lookupEndingLine(Line starting) {
-        return linkedLines.get(starting);
-    }
-
-    /**
-     * Returns the starting brace {@link Line} for the given line
-     * @param ending the closing brace line
-     * @return the opening brace line
-     */
-    public Line lookupStartingLine(Line ending) {
-        return linkedLines.inverse().get(ending);
     }
 
     /**

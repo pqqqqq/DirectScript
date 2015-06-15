@@ -2,8 +2,6 @@ package com.pqqqqq.directscript.lang.statement.generic.getters;
 
 import com.flowpowered.math.GenericMath;
 import com.pqqqqq.directscript.lang.reader.Context;
-import com.pqqqqq.directscript.lang.statement.Argument;
-import com.pqqqqq.directscript.lang.statement.Result;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
 /**

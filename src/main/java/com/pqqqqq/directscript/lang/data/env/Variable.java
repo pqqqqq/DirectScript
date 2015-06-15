@@ -1,4 +1,4 @@
-package com.pqqqqq.directscript.lang.data.variable;
+package com.pqqqqq.directscript.lang.data.env;
 
 import com.google.common.base.Objects;
 import com.pqqqqq.directscript.lang.data.Literal;

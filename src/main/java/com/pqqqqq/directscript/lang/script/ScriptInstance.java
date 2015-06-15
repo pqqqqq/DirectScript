@@ -1,16 +1,18 @@
-package com.pqqqqq.directscript.lang.container;
+package com.pqqqqq.directscript.lang.script;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.pqqqqq.directscript.DirectScript;
-import com.pqqqqq.directscript.lang.container.env.Environment;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.Sequencer;
-import com.pqqqqq.directscript.lang.data.variable.Variable;
+import com.pqqqqq.directscript.lang.data.env.Environment;
+import com.pqqqqq.directscript.lang.data.env.Variable;
+import com.pqqqqq.directscript.lang.reader.Block;
 import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.statement.Result;
 import com.pqqqqq.directscript.lang.statement.Statement;
+import com.pqqqqq.directscript.lang.statement.generic.setters.BreakStatement;
+import com.pqqqqq.directscript.lang.statement.generic.setters.ContinueStatement;
 import com.pqqqqq.directscript.lang.statement.internal.setters.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
@@ -39,13 +41,14 @@ public class ScriptInstance implements Runnable {
     private final Optional<Event> event;
     private final Optional<Player> causedBy;
 
-    private final Map<Line, Result> resultMap = Maps.newHashMap();
+    private final Map<Line, Statement.Result> resultMap = Maps.newHashMap();
     private final Environment environment = new Environment(this);
 
     private Optional<Line> currentLine = Optional.absent();
     private Optional<Literal> returnValue = Optional.absent();
 
     private boolean skipLines = false;
+    private Line skipToLine = null;
 
     ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Map<String, Variable> variableMap, Event event, Player causedBy) {
         this.script = script;
@@ -58,7 +61,7 @@ public class ScriptInstance implements Runnable {
     }
 
     /**
-     * Retrieves an instance of a {@link ScriptInstance} {@link com.pqqqqq.directscript.lang.container.ScriptInstance.Builder}
+     * Retrieves an instance of a {@link ScriptInstance} {@link com.pqqqqq.directscript.lang.script.ScriptInstance.Builder}
      *
      * @return
      */
@@ -154,6 +157,25 @@ public class ScriptInstance implements Runnable {
     }
 
     /**
+     * Gets the {@link Line} that needs to be reached before skipping lines is toggled off
+     *
+     * @return the skip to line
+     */
+    public Line getSkipToLine() {
+        return skipToLine;
+    }
+
+    /**
+     * Sets the {@link Line} that needs to be reached before skipping lines is toggled off
+     *
+     * @param skipToLine the new skip to line
+     */
+    public void setSkipToLine(Line skipToLine) {
+        this.skipToLine = skipToLine;
+        setSkipLines(skipToLine != null);
+    }
+
+    /**
      * Gets the {@link Optional} {@link Literal} for the return value of this {@link ScriptInstance}
      * @return the literal return value
      */
@@ -170,19 +192,19 @@ public class ScriptInstance implements Runnable {
     }
 
     /**
-     * Gets a {@link Map} of {@link Line} vs {@link Result} for lines that have already been executed in this {@link ScriptInstance}
+     * Gets a {@link Map} of {@link Line} vs {@link Statement.Result} for lines that have already been executed in this {@link ScriptInstance}
      * @return the map
      */
-    public Map<Line, Result> getResultMap() {
+    public Map<Line, Statement.Result> getResultMap() {
         return resultMap;
     }
 
     /**
-     * Gets the {@link Result} of a specific {@link Line}. This method is analogous to: <code>getResultMap().get(line)</code>
+     * Gets the {@link Statement.Result} of a specific {@link Line}. This method is analogous to: <code>getResultMap().get(line)</code>
      * @param line the line to check
      * @return the result
      */
-    public Result getResultOf(Line line) {
+    public Statement.Result getResultOf(Line line) {
         return resultMap.get(line);
     }
 
@@ -194,15 +216,24 @@ public class ScriptInstance implements Runnable {
         return environment;
     }
 
+
     /**
-     * Runs the container
+     * Runs a {@link Block} with the {@link ScriptInstance}
+     * @param block the block
      */
-    public void run() {
-        checkNotNull(getScript(), "Script cannot be null");
-        for (Line line : getScript().getLines()) {
+    public Result run(Block block) {
+        checkNotNull(block, "Block cannot be null");
+        for (Line line : block) {
             try {
                 if (getReturnValue().isPresent()) {
-                    return; // Return if execution is halted
+                    return Result.SUCCESS; // Return if execution is halted
+                }
+
+                if (getSkipToLine() != null) {
+                    if (!getSkipToLine().equals(line)) {
+                        continue;
+                    }
+                    setSkipToLine(null);
                 }
 
                 if (getLinePredicate().apply(line)) {
@@ -210,6 +241,14 @@ public class ScriptInstance implements Runnable {
 
                     Statement statement = line.getStatement();
                     if (!doSkipLines() || statement instanceof Termination) {
+                        // Break and continue get special treatment
+                        if (statement instanceof BreakStatement) {
+                            return Result.FAILURE_BREAK;
+                        }
+
+                        if (statement instanceof ContinueStatement) {
+                            return Result.FAILURE_CONTINUE;
+                        }
                         getResultMap().put(line, line.toContex(this).run()); // Add to result map
                     }
                 }
@@ -217,9 +256,42 @@ public class ScriptInstance implements Runnable {
                 DirectScript.instance().getErrorHandler().log(String.format("Error in script '%s' -> '%s' at line #%d (script line #%d): ", getScript().getScriptsFile().getStringRepresentation(), getScript().getName(), line.getAbsoluteNumber(), line.getScriptNumber()));
                 DirectScript.instance().getErrorHandler().log(e);
                 DirectScript.instance().getErrorHandler().flush();
-                return; // Stop running of script
+                return Result.FAILURE_ERROR; // Stop running of script
             }
         }
+        return Result.SUCCESS;
+    }
+
+    /**
+     * Runs the {@link Script}'s {@link Block}
+     */
+    public void run() {
+        run(getScript()); // Runs the script's block
+    }
+
+    /**
+     * An enumeration of the result of a {@link Block} run
+     */
+    public enum Result {
+        /**
+         * Represents a successful run
+         */
+        SUCCESS,
+
+        /**
+         * Represents a run that was failed due to an error
+         */
+        FAILURE_ERROR,
+
+        /**
+         * Represents a run that was failed due to being broken
+         */
+        FAILURE_BREAK,
+
+        /**
+         * Represents a run that was failed due to being continued
+         */
+        FAILURE_CONTINUE
     }
 
     /**

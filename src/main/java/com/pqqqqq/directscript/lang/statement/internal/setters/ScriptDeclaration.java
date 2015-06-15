@@ -1,13 +1,11 @@
 package com.pqqqqq.directscript.lang.statement.internal.setters;
 
 import com.pqqqqq.directscript.lang.reader.Context;
-import com.pqqqqq.directscript.lang.statement.Argument;
-import com.pqqqqq.directscript.lang.statement.Result;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
 /**
  * Created by Kevin on 2015-06-02.
- * A statement that declares a new {@link com.pqqqqq.directscript.lang.container.Script}
+ * A statement that declares a new {@link com.pqqqqq.directscript.lang.script.Script}
  */
 public class ScriptDeclaration extends Statement<String> {
 

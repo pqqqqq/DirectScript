@@ -1,8 +1,8 @@
 package com.pqqqqq.directscript.lang.trigger;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.container.Script;
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
+import com.pqqqqq.directscript.lang.script.Script;
+import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 
 import java.util.Arrays;

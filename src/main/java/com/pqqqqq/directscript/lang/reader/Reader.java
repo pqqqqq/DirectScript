@@ -1,10 +1,9 @@
 package com.pqqqqq.directscript.lang.reader;
 
 import com.pqqqqq.directscript.DirectScript;
-import com.pqqqqq.directscript.lang.container.Script;
-import com.pqqqqq.directscript.lang.container.ScriptInstance;
-import com.pqqqqq.directscript.lang.container.ScriptsFile;
-import com.pqqqqq.directscript.lang.statement.Result;
+import com.pqqqqq.directscript.lang.script.Script;
+import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.script.ScriptsFile;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.statement.internal.setters.ScriptDeclaration;
 import com.pqqqqq.directscript.lang.statement.internal.setters.Termination;
@@ -150,7 +149,9 @@ public class Reader {
                     if (currentScript != null) {
                         scriptLine++;
                         if (lineInst.getStatement() instanceof Termination) { // Else is an instance of Termination
-                            currentScript.getLinkedLines().put(bracesLineList.remove(0), lineInst);
+                            Line link = bracesLineList.remove(0); // Link both lines together
+                            link.setLinkedLine(lineInst, currentScript);
+                            lineInst.setLinkedLine(link, currentScript);
                         }
 
                         if (lineInst.getStatement().getSuffix().equals("{") || lineInst.getTrimmedLine().endsWith("{")) { // Necessary for else and else if statements
@@ -162,7 +163,7 @@ public class Reader {
                     if (statementOptional instanceof ScriptDeclaration) { // Check if this is a script declaration
                         checkState(currentScript == null, "Please end a script declaration with an end brace (})");
 
-                        Result<String> result = lineInst.toContex(ScriptInstance.compile(null)).run();
+                        Statement.Result<String> result = lineInst.toContex(ScriptInstance.compile(null)).run();
                         checkState(result.isSuccess() && result.getResult().isPresent(), String.format("File %s has an improper formatted script declaration", file.getName()));
 
                         currentScript = new Script(scriptsFile, result.getResult().get());
@@ -171,7 +172,7 @@ public class Reader {
                     } else if (statementOptional instanceof Termination) {
                         checkNotNull(currentScript, "No script is being declared line " + lineInst.getLine() + " " + lineInst.getAbsoluteNumber());
 
-                        Line starting = currentScript.lookupStartingLine(lineInst);
+                        Line starting = lineInst.getLinkedLine();
                         if (starting.getStatement() instanceof ScriptDeclaration) {
                             scriptsFile.getScripts().add(currentScript);
                             ScriptInstance.compile(currentScript).run();

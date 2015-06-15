@@ -1,15 +1,14 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.variable.Variable;
+import com.pqqqqq.directscript.lang.data.env.Environment;
+import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Context;
-import com.pqqqqq.directscript.lang.statement.Argument;
-import com.pqqqqq.directscript.lang.statement.Result;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
 /**
  * Created by Kevin on 2015-06-02.
- * A statement that creates a new {@link Variable} in the {@link com.pqqqqq.directscript.lang.container.env.Environment}
+ * A statement that creates a new {@link Variable} in the {@link Environment}
  */
 public class VarStatement extends Statement {
 
