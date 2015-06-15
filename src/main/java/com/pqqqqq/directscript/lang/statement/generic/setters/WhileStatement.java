@@ -36,7 +36,7 @@ public class WhileStatement extends Statement {
         checkNotNull(internalBlock, "This line has no internal block");
 
         while (ctx.getLiteral(0).getBoolean()) {
-            ScriptInstance.Result result = ctx.getScriptInstance().run(internalBlock);
+            ScriptInstance.Result result = ctx.getScriptInstance().execute(internalBlock);
 
             if (result == ScriptInstance.Result.FAILURE_BREAK) {
                 break;

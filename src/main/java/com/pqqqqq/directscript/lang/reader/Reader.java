@@ -175,7 +175,7 @@ public class Reader {
                         Line starting = lineInst.getLinkedLine();
                         if (starting.getStatement() instanceof ScriptDeclaration) {
                             scriptsFile.getScripts().add(currentScript);
-                            ScriptInstance.compile(currentScript).run();
+                            ScriptInstance.compile(currentScript).execute();
 
                             // Reset cache for the script
                             currentScript = null;

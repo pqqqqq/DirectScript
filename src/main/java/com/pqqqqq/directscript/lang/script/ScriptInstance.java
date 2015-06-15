@@ -218,10 +218,10 @@ public class ScriptInstance implements Runnable {
 
 
     /**
-     * Runs a {@link Block} with the {@link ScriptInstance}
+     * Executes a {@link Block} with the {@link ScriptInstance}
      * @param block the block
      */
-    public Result run(Block block) {
+    public Result execute(Block block) {
         checkNotNull(block, "Block cannot be null");
         for (Line line : block) {
             try {
@@ -263,10 +263,14 @@ public class ScriptInstance implements Runnable {
     }
 
     /**
-     * Runs the {@link Script}'s {@link Block}
+     * Executes the {@link Script}'s {@link Block}
      */
+    public Result execute() {
+        return execute(getScript()); // Runs the script's block
+    }
+
     public void run() {
-        run(getScript()); // Runs the script's block
+        execute(); // Override for Runnable, just perform the execute() method
     }
 
     /**

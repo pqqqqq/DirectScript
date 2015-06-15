@@ -47,6 +47,7 @@ public class Statements {
     public static final Statement<Double> ROUND = new RoundStatement();
     public static final Statement<Double> CEIL = new CeilStatement();
     public static final Statement<Double> FLOOR = new FloorStatement();
+    public static final Statement<Object[]> REPEAT = new RepeatStatement();
 
     // Sponge statements
     public static final Statement PLAYER = new PlayerStatement();

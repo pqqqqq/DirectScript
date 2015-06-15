@@ -47,7 +47,7 @@ public class CallStatement extends Statement {
 
         ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).causedBy(ctx.getScriptInstance().getCausedBy().orNull()).build();
         scriptInstanceNew.getEnvironment().getVariables().put("generic.arguments", new Variable("generic.arguments", Literal.getLiteralBlindly(arguments)));
-        scriptInstanceNew.run();
+        scriptInstanceNew.execute();
 
         Literal returnLiteral = scriptInstanceNew.getReturnValue().orNull();
         Object returnValue = (returnLiteral == null ? null : returnLiteral.getValue().orNull());

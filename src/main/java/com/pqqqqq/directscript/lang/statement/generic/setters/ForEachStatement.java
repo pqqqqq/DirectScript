@@ -46,7 +46,7 @@ public class ForEachStatement extends Statement {
 
         for (Variable arrayVar : array) {
             var.setData(arrayVar.getData());
-            ScriptInstance.Result result = ctx.getScriptInstance().run(internalBlock);
+            ScriptInstance.Result result = ctx.getScriptInstance().execute(internalBlock);
 
             if (result == ScriptInstance.Result.FAILURE_BREAK) {
                 break;

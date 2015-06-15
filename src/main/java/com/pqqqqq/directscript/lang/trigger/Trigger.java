@@ -77,7 +77,7 @@ public class Trigger {
      * @param builder the builder
      */
     public void trigger(ScriptInstance.Builder builder) {
-        builder.copy().script(script).build().run(); // Each trigger needs a separate builder instance
+        builder.copy().script(script).build().execute(); // Each trigger needs a separate builder instance
     }
 
     /**

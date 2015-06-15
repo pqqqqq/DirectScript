@@ -30,7 +30,8 @@ public class ForStatement extends Statement {
         return new Argument[]{
                 Argument.builder().name("VariableName").parse().build(),
                 Argument.builder().name("StartValue").build(),
-                Argument.builder().name("EndValue").build()
+                Argument.builder().name("EndValue").build(),
+                Argument.builder().name("IncrementValue").optional().build()
         };
     }
 
@@ -41,13 +42,14 @@ public class ForStatement extends Statement {
 
         double startValue = ctx.getLiteral(1).getNumber();
         double endValue = ctx.getLiteral(2).getNumber();
-
+        double increment = ctx.getLiteral(3, 1).getNumber();
+        
         Block internalBlock = ctx.getLine().getInternalBlock();
         checkNotNull(internalBlock, "This line has no internal block");
 
-        for (double x = startValue; x <= endValue; x++) {
+        for (double x = startValue; (startValue <= endValue ? x <= endValue : x >= endValue); x += increment) {
             var.setData(Literal.getLiteralBlindly(x));
-            ScriptInstance.Result result = ctx.getScriptInstance().run(internalBlock);
+            ScriptInstance.Result result = ctx.getScriptInstance().execute(internalBlock);
 
             if (result == ScriptInstance.Result.FAILURE_BREAK) {
                 break;
