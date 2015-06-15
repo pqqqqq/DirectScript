@@ -21,7 +21,8 @@ public class Line {
     private final Statement statement;
     private final String[] arguments;
 
-    private Line linkedLine = null;
+    private Line openingBrace = null;
+    private Line closingBrace = null;
     private Block internalBlock = null;
 
     /**
@@ -137,33 +138,27 @@ public class Line {
     }
 
     /**
-     * Gets the {@link Line} that is linked to this line
-     *
-     * @return the linked line
+     * Gets the opening brace {@link Line} for this line. In other words, gets the line that associates this line as a closing brace
+     * @return the line
      */
-    public Line getLinkedLine() {
-        return linkedLine;
+    public Line getOpeningBrace() {
+        return openingBrace;
+    }
+
+    void setOpeningBrace(Line openingBrace) { // Default view
+        this.openingBrace = openingBrace;
     }
 
     /**
-     * Sets the {@link Line} that is linked to this line
-     *
-     * @param linkedLine  the new linked line
-     * @param parentBlock the parent {@link Block}
+     * Gets the closing brace {@link Line} for this line. In other words, gets the line that associates this line as an opening brace
+     * @return the line
      */
-    public void setLinkedLine(Line linkedLine, Block parentBlock) {
-        this.linkedLine = linkedLine;
+    public Line getClosingBrace() {
+        return closingBrace;
+    }
 
-        if (linkedLine == null) {
-            this.internalBlock = null;
-        } else {
-            int startLine = Math.min(getScriptNumber() + 1, linkedLine.getScriptNumber()); // Don't subtract 1 since subList is exclusive for the end
-            int endLine = Math.max(getScriptNumber() + 1, linkedLine.getScriptNumber());
-
-            int maxStartLine = Math.max(0, startLine);
-            int minEndLine = Math.min(parentBlock.getLines().size(), endLine);
-            this.internalBlock = new Block(parentBlock.getLines().subList(maxStartLine, minEndLine));
-        }
+    void setClosingBrace(Line closingBrace) { // Default view
+        this.closingBrace = closingBrace;
     }
 
     /**
@@ -173,6 +168,20 @@ public class Line {
      */
     public Block getInternalBlock() {
         return internalBlock;
+    }
+
+    /**
+     * Generates the internal nested {@link Block} that this {@link Line} initiates, using {@link #getClosingBrace()} as the ending
+     *
+     * @param parentBlock the parent block
+     */
+    public void generateInternalBlock(Block parentBlock) {
+        int startLine = getScriptNumber() + 1;
+        int endLine = getClosingBrace().getScriptNumber(); // Don't subtract 1 since subList is exclusive for the end
+
+        int maxStartLine = Math.max(0, startLine);
+        int minEndLine = Math.min(parentBlock.getLines().size(), endLine);
+        this.internalBlock = new Block(parentBlock.getLines().subList(maxStartLine, minEndLine));
     }
 
     /**

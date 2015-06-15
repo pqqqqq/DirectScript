@@ -149,9 +149,11 @@ public class Reader {
                     if (currentScript != null) {
                         scriptLine++;
                         if (lineInst.getStatement() instanceof Termination) { // Else is an instance of Termination
-                            Line link = bracesLineList.remove(0); // Link both lines together
-                            link.setLinkedLine(lineInst, currentScript);
-                            lineInst.setLinkedLine(link, currentScript);
+                            Line startLine = bracesLineList.remove(0); // This is the opening brace line
+
+                            startLine.setClosingBrace(lineInst); // Set the closing brace as the current line
+                            lineInst.setOpeningBrace(startLine); // Set the opening brace as the start line
+                            startLine.generateInternalBlock(currentScript);
                         }
 
                         if (lineInst.getStatement().getSuffix().equals("{") || lineInst.getTrimmedLine().endsWith("{")) { // Necessary for else and else if statements
@@ -172,7 +174,7 @@ public class Reader {
                     } else if (statementOptional instanceof Termination) {
                         checkNotNull(currentScript, "No script is being declared line " + lineInst.getLine() + " " + lineInst.getAbsoluteNumber());
 
-                        Line starting = lineInst.getLinkedLine();
+                        Line starting = lineInst.getOpeningBrace();
                         if (starting.getStatement() instanceof ScriptDeclaration) {
                             scriptsFile.getScripts().add(currentScript);
                             ScriptInstance.compile(currentScript).execute();

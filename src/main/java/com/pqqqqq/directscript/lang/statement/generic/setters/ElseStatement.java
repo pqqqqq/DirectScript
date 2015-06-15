@@ -17,6 +17,11 @@ import static com.google.common.base.Preconditions.checkState;
 public class ElseStatement extends Termination {
 
     @Override
+    public ExecutionTime getExecutionTime() {
+        return ExecutionTime.RUNTIME;
+    }
+
+    @Override
     public String[] getIdentifiers() {
         return new String[]{"} else"};
     }
@@ -36,13 +41,13 @@ public class ElseStatement extends Termination {
         ScriptInstance scriptInstance = ctx.getScriptInstance();
         Line line = ctx.getLine();
 
-        Line associatedLine = line.getLinkedLine();
+        Line associatedLine = line.getOpeningBrace();
         checkNotNull(associatedLine, "Unknown termination sequence");
 
         if (scriptInstance.getCause() != Causes.COMPILE) {
             Result statementResult = scriptInstance.getResultOf(associatedLine);
             if (statementResult == null) {
-                return Result.success();
+                return null;
             }
 
             Optional<Object> result = statementResult.getResult();
@@ -58,9 +63,10 @@ public class ElseStatement extends Termination {
                 }
             } else {
                 scriptInstance.setSkipLines(true); // Skip lines if previously one was true
+                return Result.builder().success().result(true).build(); // Also build this one as true
             }
         }
 
-        return Result.success();
+        return null;
     }
 }

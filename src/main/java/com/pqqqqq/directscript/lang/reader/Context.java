@@ -5,6 +5,7 @@ import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
+import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.api.entity.player.Player;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -32,7 +33,7 @@ public class Context {
                 continue;
             }
 
-            String strarg = line.getArg(curIndex);
+            String strarg = argument.isRest() ? StringUtils.join(line.getArguments(), line.getStatement().getSplitString(), curIndex, line.getArguments().length) : line.getArg(curIndex);
             Literal litarg = argument.doParse() ? scriptInstance.getSequencer().parse(strarg) : Literal.getLiteralBlindly(strarg); // Use doParse boolean
             checkState(argument.isOptional() || !litarg.isEmpty(), "Argument " + curIndex + "(" + argument.getName() + ") is not optional."); // Use isOptional boolean
 

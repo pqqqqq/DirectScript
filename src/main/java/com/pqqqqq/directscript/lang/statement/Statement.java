@@ -199,12 +199,14 @@ public abstract class Statement<T> {
         private final boolean parse;
         private final boolean optional;
         private final boolean modifier;
+        private final boolean rest;
 
-        Argument(String name, boolean parse, boolean optional, boolean modifier) {
+        Argument(String name, boolean parse, boolean optional, boolean modifier, boolean rest) {
             this.name = name;
             this.parse = parse;
             this.optional = optional;
             this.modifier = modifier;
+            this.rest = rest;
         }
 
         /**
@@ -253,6 +255,14 @@ public abstract class Statement<T> {
         }
 
         /**
+         * Gets if this argument uses the rest of the line as its argument
+         * @return true if it uses the rest of the line
+         */
+        public boolean isRest() {
+            return rest;
+        }
+
+        /**
          * The builder for {@link Argument}s
          */
         public static class Builder {
@@ -260,6 +270,7 @@ public abstract class Statement<T> {
             private boolean parse = true;
             private boolean optional = false;
             private boolean modifier = false;
+            private boolean rest = false;
 
             Builder() { // Default view
             }
@@ -343,13 +354,34 @@ public abstract class Statement<T> {
             }
 
             /**
+             * Sets the rest value of the argument
+             * @param rest the new rest value
+             * @return this builder, for fluency
+             * @see Argument#isRest()
+             */
+            public Builder rest(boolean rest) {
+                this.rest = rest;
+                return this;
+            }
+
+            /**
+             * Toggles the rest value of the argument
+             *
+             * @return this builder, for fluency
+             * @see Argument#isRest()
+             */
+            public Builder rest() {
+                return rest(!rest);
+            }
+
+            /**
              * Builds the current builder data into a {@link Argument}
              *
              * @return the new argument instance
              */
             public Argument build() {
                 checkNotNull(name, "Name cannot be null.");
-                return new Argument(name, parse, optional, modifier);
+                return new Argument(name, parse, optional, modifier, rest);
             }
         }
     }

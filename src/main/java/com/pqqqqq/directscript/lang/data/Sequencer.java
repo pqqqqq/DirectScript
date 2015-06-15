@@ -83,7 +83,7 @@ public class Sequencer {
         }
 
         Literal result = Literal.empty();
-        List<StringParser.SplitSequence> triples = StringParser.instance().parseSplitSeq(sequence, "+", "-", "*", "/"); // Split into ordered triple segments
+        List<StringParser.SplitSequence> triples = StringParser.instance().parseSplitSeq(sequence, "+", " -  ", "*", "/"); // Split into ordered triple segments
         for (StringParser.SplitSequence triple : triples) {
             String beforeSplit = triple.getLeft();
             String segment = triple.getMiddle().trim();
@@ -130,7 +130,7 @@ public class Sequencer {
                 result = segmentLiteral;
             } else if (beforeSplit.equals("+")) {
                 result = result.add(segmentLiteral);
-            } else if (beforeSplit.equals("-")) {
+            } else if (beforeSplit.equals(" - ")) {
                 result = result.sub(segmentLiteral);
             } else if (beforeSplit.equals("*")) {
                 result = result.mult(segmentLiteral);

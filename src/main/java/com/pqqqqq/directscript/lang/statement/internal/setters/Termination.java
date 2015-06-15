@@ -42,7 +42,7 @@ public class Termination extends Statement {
         ScriptInstance scriptInstance = ctx.getScriptInstance();
         Line line = ctx.getLine();
 
-        Line associatedLine = line.getLinkedLine();
+        Line associatedLine = line.getOpeningBrace();
         if (associatedLine == null) {
             throw new IllegalStateException("Unknown termination sequence");
         }

@@ -33,7 +33,7 @@ public class VarStatement extends Statement {
                 Argument.builder().name("final").optional().parse().modifier().build(),
                 Argument.builder().name("VariableName").parse().build(),
                 Argument.builder().name("=").optional().parse().modifier().build(),
-                Argument.builder().name("Value").optional().build()
+                Argument.builder().name("Value").optional().rest().build()
         };
     }
 

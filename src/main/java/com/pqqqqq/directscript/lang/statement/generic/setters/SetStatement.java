@@ -34,7 +34,7 @@ public class SetStatement extends Statement {
         return new Argument[]{
                 Argument.builder().name("VariableName").parse().build(),
                 Argument.builder().name("=").parse().modifier().build(),
-                Argument.builder().name("Value").build()
+                Argument.builder().name("Value").rest().build()
         };
     }
 

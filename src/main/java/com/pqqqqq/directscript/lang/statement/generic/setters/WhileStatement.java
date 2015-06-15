@@ -26,7 +26,7 @@ public class WhileStatement extends Statement {
     @Override
     public Argument[] getArguments() {
         return new Argument[]{
-                Argument.builder().name("Condition").build()
+                Argument.builder().name("Condition").parse().build()
         };
     }
 
@@ -35,7 +35,7 @@ public class WhileStatement extends Statement {
         Block internalBlock = ctx.getLine().getInternalBlock();
         checkNotNull(internalBlock, "This line has no internal block");
 
-        while (ctx.getLiteral(0).getBoolean()) {
+        while (ctx.getScriptInstance().getSequencer().parse(ctx.getLine().getArg(0)).getBoolean()) { // This needs to be re-parsed every time
             ScriptInstance.Result result = ctx.getScriptInstance().execute(internalBlock);
 
             if (result == ScriptInstance.Result.FAILURE_BREAK) {
@@ -47,7 +47,7 @@ public class WhileStatement extends Statement {
             }
         }
 
-        ctx.getScriptInstance().setSkipToLine(ctx.getLine().getLinkedLine()); // Skip lines since we've already run the code block
+        ctx.getScriptInstance().setSkipToLine(ctx.getLine().getClosingBrace()); // Skip lines since we've already run the code block
         return Result.success();
     }
 }
