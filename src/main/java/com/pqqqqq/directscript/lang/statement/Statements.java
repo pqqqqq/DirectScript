@@ -6,10 +6,7 @@ import com.pqqqqq.directscript.lang.statement.generic.getters.*;
 import com.pqqqqq.directscript.lang.statement.generic.setters.*;
 import com.pqqqqq.directscript.lang.statement.internal.setters.*;
 import com.pqqqqq.directscript.lang.statement.sponge.getters.*;
-import com.pqqqqq.directscript.lang.statement.sponge.setters.BroadcastStatement;
-import com.pqqqqq.directscript.lang.statement.sponge.setters.CancelStatement;
-import com.pqqqqq.directscript.lang.statement.sponge.setters.KickStatement;
-import com.pqqqqq.directscript.lang.statement.sponge.setters.PlayerStatement;
+import com.pqqqqq.directscript.lang.statement.sponge.setters.*;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 import com.pqqqqq.directscript.lang.util.RegistryUtil;
 
@@ -69,6 +66,8 @@ public class Statements {
     public static final Statement BROADCAST = new BroadcastStatement();
     public static final Statement CANCEL = new CancelStatement();
     public static final Statement KICK = new KickStatement();
+    public static final Statement TELEPORT = new TeleportStatement();
+    public static final Statement ROTATE = new RotateStatement();
 
     public static final Statement<String> PLAYER_UUID = new UUIDStatement();
     public static final Statement<String> PLAYER_NAME = new NameStatement();

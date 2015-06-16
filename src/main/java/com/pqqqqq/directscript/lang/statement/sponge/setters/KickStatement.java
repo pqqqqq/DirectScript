@@ -2,7 +2,6 @@ package com.pqqqqq.directscript.lang.statement.sponge.setters;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.reader.Context;
-import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.statement.sponge.SpongeStatement;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.text.Texts;
@@ -11,7 +10,6 @@ import org.spongepowered.api.text.Texts;
  * Created by Kevin on 2015-06-16.
  * A statement that kicks a player out of the server
  */
-@Statement.Concept
 public class KickStatement extends SpongeStatement {
 
     @Override

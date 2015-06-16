@@ -4,7 +4,6 @@ import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
-import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
 /**
  * Created by Kevin on 2015-06-05.
@@ -48,7 +47,7 @@ public class Termination extends Statement {
         }
 
         Statement statement = associatedLine.getStatement();
-        if (scriptInstance.getCause() == Causes.COMPILE) {
+        if (!scriptInstance.isRuntime()) {
             if (statement instanceof ScriptDeclaration) { // Script declaration
                 return Result.success();
             }

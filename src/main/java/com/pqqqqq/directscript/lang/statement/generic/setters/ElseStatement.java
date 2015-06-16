@@ -5,7 +5,6 @@ import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.internal.setters.Termination;
-import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -44,7 +43,7 @@ public class ElseStatement extends Termination {
         Line associatedLine = line.getOpeningBrace();
         checkNotNull(associatedLine, "Unknown termination sequence");
 
-        if (scriptInstance.getCause() != Causes.COMPILE) {
+        if (scriptInstance.isRuntime()) {
             Result statementResult = scriptInstance.getResultOf(associatedLine);
             if (statementResult == null) {
                 return null;

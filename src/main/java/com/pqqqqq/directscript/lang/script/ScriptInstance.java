@@ -88,7 +88,16 @@ public class ScriptInstance implements Runnable {
      * @return the cause
      */
     public Cause getCause() {
-        return null;
+        return cause;
+    }
+
+    /**
+     * Gets if this {@link ScriptInstance} is at runtime execution
+     *
+     * @return true if at runtime
+     */
+    public boolean isRuntime() {
+        return cause != Causes.COMPILE;
     }
 
     /**

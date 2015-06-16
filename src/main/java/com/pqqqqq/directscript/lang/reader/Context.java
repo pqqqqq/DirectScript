@@ -1,12 +1,14 @@
 package com.pqqqqq.directscript.lang.reader;
 
 import com.google.common.base.Optional;
+import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.world.World;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -114,11 +116,17 @@ public class Context {
     }
 
     /**
-     * Runs this line. This is analogous to: <code>line.getStatement().run(this)</code>
+     * Runs this line.
      * @return the {@link Statement.Result}
      */
     public Statement.Result run() {
-        return (result = line.getStatement().run(this));
+        result = line.getStatement().run(this);
+        if (scriptInstance.isRuntime() && !result.isSuccess()) { // We only want this at runtime
+            DirectScript.instance().getErrorHandler().log(String.format("Statement in script '%s' -> '%s' at line #%d (script line #%d) failed. Continuing execution.", getScript().getScriptsFile().getStringRepresentation(), getScript().getName(), line.getAbsoluteNumber(), line.getScriptNumber()));
+            DirectScript.instance().getErrorHandler().flush();
+        }
+
+        return result;
     }
 
     /**
@@ -141,5 +149,24 @@ public class Context {
         Optional<Player> causedBy = this.scriptInstance.getCausedBy();
         Literal literal = this.literals[index];
         return (literal.isEmpty() ? causedBy : literal.getPlayer());
+    }
+
+    /**
+     * Gets an {@link Optional} {@link World} at the index that, if {@link Literal#empty()}, uses the {@link ScriptInstance#getCausedBy()} player's world instead
+     *
+     * @param index the index
+     * @return the world
+     */
+    public Optional<World> getWorldOrCauserWorld(int index) {
+        Literal literal = this.literals[index];
+
+        if (literal.isEmpty()) {
+            Optional<Player> causedBy = this.scriptInstance.getCausedBy();
+            if (causedBy.isPresent()) {
+                return Optional.of(causedBy.get().getWorld());
+            }
+            return Optional.absent();
+        }
+        return DirectScript.instance().getGame().getServer().getWorld(literal.getString());
     }
 }
