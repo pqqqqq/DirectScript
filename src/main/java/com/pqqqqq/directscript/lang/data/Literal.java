@@ -30,19 +30,13 @@ public class Literal<T> {
     private static final Literal<Boolean> FALSE = new Literal(false);
 
     private final Optional<T> value;
-    private final boolean normalized;
 
     private Literal() {
         this(null);
     }
 
     private Literal(T value) {
-        this(value, false);
-    }
-
-    private Literal(T value, boolean normalized) {
         this.value = Optional.fromNullable(value);
-        this.normalized = normalized;
     }
 
     /**
@@ -163,14 +157,6 @@ public class Literal<T> {
     }
 
     /**
-     * Gets whether this {@link Literal} is normalized, or has been surrounded by strings
-     * @return true if normalized
-     */
-    public boolean isNormalized() {
-        return normalized || !isString() && !isArray();
-    }
-
-    /**
      * Gets whether this {@link Literal}'s value is an instance of a String
      * @return true if a String
      */
@@ -283,21 +269,11 @@ public class Literal<T> {
      * @return the sum literal
      */
     public Literal add(Literal other) {
-        checkState(value.isPresent(), "This parse must be present to do this");
-        checkState(other.getValue().isPresent(), "This parse must be present to do this");
-
-        if (isString() || other.isString()) {
-            return Literal.getLiteralBlindly(getString() + other.getString()); // Everything can be a string
+        if (isNumber() && other.isNumber()) {
+            return Literal.getLiteralBlindly(getNumber() + other.getNumber());
         }
 
-        if (isNumber()) {
-            if (other.isNumber()) {
-                return Literal.getLiteralBlindly(getNumber() + other.getNumber());
-            }
-        }
-
-        return Literal.getLiteralBlindly(getString() + other.getString());
-        //throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be added to " + value.get().getClass().getName());
+        return Literal.getLiteralBlindly(getString() + other.getString()); // Everything can be a string
     }
 
     /**
@@ -306,16 +282,7 @@ public class Literal<T> {
      * @return the difference literal
      */
     public Literal sub(Literal other) {
-        checkState(value.isPresent(), "This parse must be present to do this");
-        checkState(other.getValue().isPresent(), "This parse must be present to do this");
-
-        if (isNumber()) {
-            if (other.isNumber()) {
-                return Literal.getLiteralBlindly(getNumber() - other.getNumber());
-            }
-        }
-
-        throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be subtraced from " + value.get().getClass().getName());
+        return Literal.getLiteralBlindly(getNumber() - other.getNumber());
     }
 
     /**
@@ -324,16 +291,7 @@ public class Literal<T> {
      * @return the product literal
      */
     public Literal mult(Literal other) {
-        checkState(value.isPresent(), "This parse must be present to do this");
-        checkState(other.getValue().isPresent(), "This parse must be present to do this");
-
-        if (isNumber()) {
-            if (other.isNumber()) {
-                return Literal.getLiteralBlindly(getNumber() * other.getNumber());
-            }
-        }
-
-        throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be multiplied by " + value.get().getClass().getName());
+        return Literal.getLiteralBlindly(getNumber() * other.getNumber());
     }
 
     /**
@@ -342,16 +300,27 @@ public class Literal<T> {
      * @return the quotient literal
      */
     public Literal div(Literal other) {
-        checkState(value.isPresent(), "This parse must be present to do this");
-        checkState(other.getValue().isPresent(), "This parse must be present to do this");
+        return Literal.getLiteralBlindly(getNumber() / other.getNumber());
+    }
 
-        if (isNumber()) {
-            if (other.isNumber()) {
-                return Literal.getLiteralBlindly(getNumber() / other.getNumber());
-            }
-        }
+    /**
+     * Raises a {@link Literal} to the power of this one numerically
+     *
+     * @param other the other literal
+     * @return the resultant literal
+     */
+    public Literal pow(Literal other) {
+        return Literal.getLiteralBlindly(Math.pow(getNumber(), other.getNumber()));
+    }
 
-        throw new IllegalArgumentException(other.getValue().get().getClass().getName() + " cannot be divided by " + value.get().getClass().getName());
+    /**
+     * Takes the nth root as per a {@link Literal} of this one numerically
+     *
+     * @param other the other literal
+     * @return the resultant literal
+     */
+    public Literal root(Literal other) {
+        return Literal.getLiteralBlindly(Math.pow(getNumber(), (1D / other.getNumber())));
     }
 
     /**
@@ -359,32 +328,8 @@ public class Literal<T> {
      * @return the negative boolean literal
      */
     public Literal<Boolean> negative() {
-        checkState(value.isPresent(), "This parse must be present to do this");
-        checkState(isBoolean(), "Negation can only be done to booleans");
+        checkState(isBoolean(), "Negation can only be done to booleans (" + getString() + ")");
         return new Literal<Boolean>(!getBoolean());
-    }
-
-    /**
-     * Normalizes this {@link Literal} by adding quotes where applicable,
-     * @return the normalized literal
-     */
-    public Literal normalize() {
-        checkState(value.isPresent(), "This parse must be present to do this");
-
-        if (!isNormalized()) {
-            if (isString()) {
-                return new Literal<String>("\"" + getString() + "\"", true);
-            }
-            if (isArray()) {
-                for (Variable var : getArray()) {
-                    Literal data = var.getData();
-                    if (!data.isEmpty() && !data.isNormalized()) {
-                        var.setData(data.normalize());
-                    }
-                }
-            }
-        }
-        return this;
     }
 
     /**

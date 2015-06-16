@@ -170,12 +170,7 @@ public class Line {
         return internalBlock;
     }
 
-    /**
-     * Generates the internal nested {@link Block} that this {@link Line} initiates, using {@link #getClosingBrace()} as the ending
-     *
-     * @param parentBlock the parent block
-     */
-    public void generateInternalBlock(Block parentBlock) {
+    void generateInternalBlock(Block parentBlock) { // Default view
         int startLine = getScriptNumber() + 1;
         int endLine = getClosingBrace().getScriptNumber(); // Don't subtract 1 since subList is exclusive for the end
 

@@ -33,32 +33,11 @@ public class StringParser {
      * @return the split string array
      */
     public String[] parseSplit(String string, String... splits) {
-        List<SplitSequence> sequences = parseSplitSeq(string, splits);
-        List<String> result = new ArrayList<String>();
-
-        for (SplitSequence sequence : sequences) {
-            result.add(sequence.getSequence());
-        }
-
-        return result.toArray(new String[result.size()]);
-    }
-
-    /**
-     * Parses a split of the specified string at the given split points into a {@link List} of {@link com.pqqqqq.directscript.lang.util.StringParser.SplitSequence}s, excluding quotes, round and square brackets
-     *
-     * @param string the string to split
-     * @param splits the split strings
-     * @return the list of split sequences
-     */
-    public List<SplitSequence> parseSplitSeq(String string, String... splits) {
-        List<SplitSequence> list = new ArrayList<SplitSequence>();
+        List<String> list = new ArrayList<String>();
 
         boolean quotes = false;
         int roundBrackets = 0, squareBrackets = 0;
         String builder = "";
-
-        String lastSplitSeq = null;
-        int lastSplitIndex = 0;
 
         for (int count = 0; count < string.length(); count++) {
             char c = string.charAt(count);
@@ -80,23 +59,70 @@ public class StringParser {
             }
 
             builder += c;
-
             if (!quotes && roundBrackets == 0 && squareBrackets == 0) {
                 for (String split : splits) {
                     if (builder.endsWith(split)) {
-                        String sequence = string.substring(lastSplitIndex, builder.length() - split.length());
-                        list.add(new SplitSequence(lastSplitSeq, sequence, split));
-
-                        lastSplitSeq = split;
-                        lastSplitIndex = count + 1;
+                        list.add(builder.substring(0, builder.length() - split.length()));
+                        builder = "";
                         break;
                     }
                 }
             }
         }
 
-        list.add(new SplitSequence(lastSplitSeq, string.substring(lastSplitIndex), null));
-        return list;
+        if (!builder.isEmpty()) {
+            list.add(builder);
+        }
+        return list.toArray(new String[list.size()]);
+    }
+
+    /**
+     * Parses the next {@link com.pqqqqq.directscript.lang.util.StringParser.SplitSequence} in a string by a prioritized split group
+     *
+     * @param string      the string to parse
+     * @param splitGroups a two-dimensional string array, where each String[] in the String[][] is prioritized by its ordinal
+     * @return the next split sequence, or null if none
+     */
+    public SplitSequence parseNextSequence(String string, String[]... splitGroups) {
+        for (String[] splitGroup : splitGroups) {
+            boolean quotes = false;
+            int roundBrackets = 0, squareBrackets = 0;
+            String builder = "";
+
+            for (int count = 0; count < string.length(); count++) {
+                char c = string.charAt(count);
+
+                if (c == '"') {
+                    if (!builder.endsWith("\\") || builder.endsWith("\\\\")) {
+                        quotes = !quotes;
+                    }
+                } else if (!quotes) {
+                    if (c == '(') {
+                        roundBrackets++;
+                    } else if (c == ')') {
+                        roundBrackets--;
+                    } else if (c == '[') {
+                        squareBrackets++;
+                    } else if (c == ']') {
+                        squareBrackets--;
+                    }
+                }
+
+                builder += c;
+                if (!quotes && roundBrackets == 0 && squareBrackets == 0) {
+                    for (String split : splitGroup) {
+                        if (builder.endsWith(split)) {
+                            String before = string.substring(0, count - split.length() + 1);
+                            String after = string.substring(count + 1);
+
+                            return new SplitSequence(before, split, after);
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -151,6 +177,18 @@ public class StringParser {
      * @return the index, or -1 if none are found
      */
     public int indexOf(String string, String find) {
+        return indexOf(string, find, false);
+    }
+
+    /**
+     * Gets the first index of a find string, excluding quotes, and ptional exclusion of round and square brackets
+     *
+     * @param string the string
+     * @param find   the string to find
+     * @param allowBrackets whether to allow the sequence inside of a bracket
+     * @return the index, or -1 if none are found
+     */
+    public int indexOf(String string, String find, boolean allowBrackets) {
         boolean quotes = false;
         int roundBrackets = 0, squareBrackets = 0;
         String builder = "";
@@ -162,7 +200,7 @@ public class StringParser {
                 if (!builder.endsWith("\\") || builder.endsWith("\\\\")) {
                     quotes = !quotes;
                 }
-            } else if (!quotes) {
+            } else if (!quotes && !allowBrackets) {
                 if (c == '(') {
                     roundBrackets++;
                 } else if (c == ')') {
@@ -186,37 +224,6 @@ public class StringParser {
     }
 
     /**
-     * Gets the first index of a find string, excluding quotes, but allowing round and square brackets
-     *
-     * @param string the string
-     * @param find   the string to find
-     * @return the index, or -1 if none are found
-     */
-    public int indexOfAllowBrackets(String string, String find) {
-        boolean quotes = false;
-        String builder = "";
-
-        for (int count = 0; count < string.length(); count++) {
-            char c = string.charAt(count);
-
-            if (c == '"') {
-                if (!builder.endsWith("\\") || builder.endsWith("\\\\")) {
-                    quotes = !quotes;
-                }
-            }
-
-            builder += c;
-            if (!quotes) {
-                if (builder.endsWith(find)) {
-                    return builder.length() - find.length();
-                }
-            }
-        }
-
-        return -1;
-    }
-
-    /**
      * Gets a {@link Pair} of Boolean, String that represents the block comment status and the current string
      * @param blockComment whether there is an active block comment
      * @param string the current string
@@ -224,15 +231,15 @@ public class StringParser {
      */
     public Pair<Boolean, String> removeComments(boolean blockComment, String string) {
         if (blockComment) {
-            int endBlock = indexOfAllowBrackets(string, "*/");
+            int endBlock = indexOf(string, "*/", true);
 
             if (endBlock >= 0) {
                 return removeComments(false, string.substring(endBlock + 2));
             }
             return Pair.of(true, "");
         } else {
-            int startBlock = indexOfAllowBrackets(string, "/*");
-            int inlineBlock = indexOfAllowBrackets(string, "//");
+            int startBlock = indexOf(string, "/*", true);
+            int inlineBlock = indexOf(string, "//", true);
 
             if (startBlock < 0 && inlineBlock < 0) {
                 return Pair.of(false, string);
@@ -252,62 +259,62 @@ public class StringParser {
     }
 
     /**
-     * Represents an immutable split sequence, a {@link Triple} String of the before(L) and after(R) split, as well as the sequence itself(M)
+     * Represents an immutable split sequence, a {@link Triple} String of the before(L) and after(R) segments, as well as the split itself(M)
      */
     public static class SplitSequence extends Triple<String, String, String> {
-        private final String beforeSplit;
-        private final String sequence;
-        private final String afterSplit;
+        private final String beforeSegment;
+        private final String split;
+        private final String afterSegment;
 
         /**
          * Creates a new split sequence
-         * @param beforeSplit the before split
-         * @param sequence the actual sequence
-         * @param afterSplit the after split
+         * @param beforeSegment the before segment
+         * @param split the split
+         * @param afterSegment the after segment
          */
-        public SplitSequence(String beforeSplit, String sequence, String afterSplit) {
-            this.beforeSplit = beforeSplit;
-            this.sequence = sequence;
-            this.afterSplit = afterSplit;
+        public SplitSequence(String beforeSegment, String split, String afterSegment) {
+            this.beforeSegment = beforeSegment;
+            this.split = split;
+            this.afterSegment = afterSegment;
         }
 
         @Override
         public String getLeft() {
-            return beforeSplit;
+            return beforeSegment;
         }
 
         @Override
         public String getMiddle() {
-            return sequence;
+            return split;
         }
 
         @Override
         public String getRight() {
-            return afterSplit;
+            return afterSegment;
         }
 
         /**
-         * Gets the before split. This is analogous to {@link #getLeft()}
-         * @return the before split string
+         * Gets the before segment. This is analogous to {@link #getLeft()}
+         * @return the before segment string
          */
-        public String getBeforeSplit() {
-            return beforeSplit;
+        public String getBeforeSegment() {
+            return beforeSegment;
         }
 
         /**
-         * Gets the actual sequence. This is analogous to {@link #getMiddle()}
-         * @return the actual sequence
+         * Gets the split. This is analogous to {@link #getMiddle()}
+         * @return the split
          */
-        public String getSequence() {
-            return sequence;
+        public String getSplit() {
+            return split;
         }
 
         /**
-         * Gets the after split. This is analogous to {@link #getRight()}
-         * @return the after split string
+         * Gets the after segment. This is analogous to {@link #getRight()}
+         * @return the after segment string
          */
-        public String getAfterSplit() {
-            return afterSplit;
+        public String getAfterSegment() {
+            return afterSegment;
         }
     }
 }
