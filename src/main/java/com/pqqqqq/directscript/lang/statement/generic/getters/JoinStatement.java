@@ -14,7 +14,7 @@ public class JoinStatement extends Statement<String> {
 
     @Override
     public String[] getIdentifiers() {
-        return new String[]{"join"};
+        return new String[]{"join", "implode"};
     }
 
     @Override

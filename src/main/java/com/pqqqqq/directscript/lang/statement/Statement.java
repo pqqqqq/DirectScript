@@ -5,6 +5,10 @@ import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.reader.Line;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -188,6 +192,14 @@ public abstract class Statement<T> {
          * Represents that this {@link Statement} is always to be run
          */
         ALWAYS
+    }
+
+    /**
+     * Denotes a class that represents a concept {@link Statement} that should work given the API, but is not yet implemented. These statements will be skipped by: {@link Statements#getStatement(Line)}
+     */
+    @Retention(value = RetentionPolicy.RUNTIME)
+    @Target(value = ElementType.TYPE)
+    public @interface Concept {
     }
 
     /**

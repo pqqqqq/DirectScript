@@ -1,69 +1,66 @@
 script("MessagePlayer") {
 	trigger("command")
+	command("sendmsg")
 
 	// Script starts here
-	if (sponge.command ~ "sendmsg") {
-		@cancel()
+	@cancel()
 
-		var arguments = split(sponge.arguments, " ")
-		if (size(arguments) < 2) {
-			@player(, "&cInvalid format: /sendmsg <player> <message ...>")
-		} else {
-			@player(arguments[1], join(arguments, " ", 1,))
-		}
+	var arguments = split(sponge.arguments, " ")
+	if (size(arguments) < 2) {
+		@player(, "&cInvalid format: /sendmsg <player> <message ...>")
+	} else {
+		@player(arguments[1], join(arguments, " ", 1,))
 	}
 }
 
 script("NullCheck") {
 	trigger("command")
+	command("nullcheck")
 
 	// Script starts here
-	if (sponge.command ~ "nullcheck") {
-		@cancel()
-		var nullvar
+	@cancel()
+	var nullvar
 
-		if (nullvar == null) {
-			@player(, "Nullvar is a null value")
-		} else {
-			@player(, "Nullvar is not a null value")
-		}
+	if (nullvar == null) {
+		@player(, "Nullvar is a null value")
+	} else {
+		@player(, "Nullvar is not a null value")
 	}
 }
 
 script("LoopCheck") {
 	trigger("command")
+	command("loopcheck")
 
 	// Script starts here
-	if (sponge.command ~ "loopcheck") {
-		@cancel()
+	@cancel()
 
-		var arguments = split(sponge.arguments, " ")
-		if (arguments[1] == "") {
-			@player(, "&cInvalid format: /loopcheck <for|foreach|while>")
-		} else if (arguments[1] == "for") {
-			for (i, 1, 3) {
-				@player(, i)
-			}
-
-			for (i, 3, 1, -1) {
-				@player(, i)
-			}
-
-			for (i, 1, 3, 1.35) {
-				@player(, i)
-			}
-		} else if (arguments[1] == "foreach") {
-			foreach (item, arguments) {
-				@player(, item)
-			}
-		} else if (arguments[1] == "while") {
-			var x = 1
-			while (x < 10) {
-				@player(, x)
-				set x = x + 1
-			}
-		} else {
-			@player(, "&cUnknown argument: " + arguments[1] + ", expected for, foreach or while")
+	var arguments = split(sponge.arguments, " ")
+	if (arguments[1] == "") {
+		@player(, "&cInvalid format: /loopcheck <for|foreach|while>")
+	} else if (arguments[1] == "for") {
+		for (i, 1, 3) {
+			@player(, i)
 		}
+
+		for (i, 3, 1, -1) {
+			@player(, i)
+		}
+
+		for (i, 1, 3, 1.35) {
+			@player(, i)
+		}
+	} else if (arguments[1] == "foreach") {
+		foreach (item, arguments) {
+			@player(, item)
+		}
+	} else if (arguments[1] == "while") {
+		var x = 1
+		while (x < 10) {
+			@player(, x)
+			set x = x + 1
+		}
+	} else {
+		@player(, "&cUnknown argument: " + arguments[1] + ", expected for, foreach or while")
 	}
 }

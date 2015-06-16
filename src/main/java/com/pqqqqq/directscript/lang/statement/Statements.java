@@ -8,6 +8,7 @@ import com.pqqqqq.directscript.lang.statement.internal.setters.*;
 import com.pqqqqq.directscript.lang.statement.sponge.getters.*;
 import com.pqqqqq.directscript.lang.statement.sponge.setters.BroadcastStatement;
 import com.pqqqqq.directscript.lang.statement.sponge.setters.CancelStatement;
+import com.pqqqqq.directscript.lang.statement.sponge.setters.KickStatement;
 import com.pqqqqq.directscript.lang.statement.sponge.setters.PlayerStatement;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 import com.pqqqqq.directscript.lang.util.RegistryUtil;
@@ -52,11 +53,22 @@ public class Statements {
     public static final Statement<String> STRING = new StringStatement();
     public static final Statement<Double> NUMBER = new NumberStatement();
     public static final Statement<Boolean> BOOLEAN = new BooleanStatement();
+    public static final Statement<String> SUBSTRING = new SubstringStatement();
+    public static final Statement<Boolean> CONTAINS = new ContainsStatement();
+    public static final Statement<Boolean> STARTS_WITH = new StartsWithStatement();
+    public static final Statement<Boolean> ENDS_WITH = new EndsWithStatement();
+    public static final Statement<Integer> FIND = new FindStatement();
+    public static final Statement<String> LOWERCASE = new LowercaseStatement();
+    public static final Statement<String> UPPERCASE = new UppercaseStatement();
+    public static final Statement<String> REPLACE = new ReplaceStatement();
+    public static final Statement<String> CHARACTER = new CharacterStatement();
+    public static final Statement<Integer> ORDINAL = new OrdinalStatement();
 
     // Sponge statements
     public static final Statement PLAYER = new PlayerStatement();
     public static final Statement BROADCAST = new BroadcastStatement();
     public static final Statement CANCEL = new CancelStatement();
+    public static final Statement KICK = new KickStatement();
 
     public static final Statement<String> PLAYER_UUID = new UUIDStatement();
     public static final Statement<String> PLAYER_NAME = new NameStatement();
@@ -97,7 +109,7 @@ public class Statements {
      */
     public static Optional<Statement> getStatement(Line line) {
         for (Statement statement : REGISTRY) {
-            if (isStatementEqual(statement, line)) {
+            if (!statement.getClass().isAnnotationPresent(Statement.Concept.class) && isStatementEqual(statement, line)) { // Concept statements are excluded
                 return Optional.of(statement);
             }
         }
