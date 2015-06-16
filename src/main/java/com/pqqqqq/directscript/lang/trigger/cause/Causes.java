@@ -20,10 +20,11 @@ public class Causes {
 
     // Misc.
     public static final Cause CALL = new Cause("Call");
+    public static final Cause TIMER = new Cause.TimerCause();
 
     // Player causes
     public static final Cause PLAYER_JOIN = new Cause("PlayerJoin");
-    public static final Cause COMMAND = new Cause("Command");
+    public static final Cause COMMAND = new Cause.CommandCause();
 
     private static final List<Cause> REGISTRY;
     static {

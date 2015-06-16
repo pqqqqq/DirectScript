@@ -2,13 +2,13 @@ package com.pqqqqq.directscript.lang.script;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Maps;
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.Sequencer;
 import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Block;
+import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.statement.generic.setters.BreakStatement;
@@ -22,7 +22,9 @@ import org.spongepowered.api.event.Event;
 import org.spongepowered.api.util.command.CommandSource;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -41,7 +43,7 @@ public class ScriptInstance implements Runnable {
     private final Optional<Event> event;
     private final Optional<Player> causedBy;
 
-    private final Map<Line, Statement.Result> resultMap = Maps.newHashMap();
+    private final Set<Context> contextSet = new HashSet<Context>();
     private final Environment environment = new Environment(this);
 
     private Optional<Line> currentLine = Optional.absent();
@@ -192,20 +194,25 @@ public class ScriptInstance implements Runnable {
     }
 
     /**
-     * Gets a {@link Map} of {@link Line} vs {@link Statement.Result} for lines that have already been executed in this {@link ScriptInstance}
-     * @return the map
+     * Gets a {@link Set} of {@link Context}s for lines that have already been executed in this {@link ScriptInstance}
+     * @return the set
      */
-    public Map<Line, Statement.Result> getResultMap() {
-        return resultMap;
+    public Set<Context> getContextSet() {
+        return contextSet;
     }
 
     /**
-     * Gets the {@link Statement.Result} of a specific {@link Line}. This method is analogous to: <code>getResultMap().get(line)</code>
+     * Gets the {@link Statement.Result} of a specific {@link Line}.
      * @param line the line to check
-     * @return the result
+     * @return the result, or null if not run yet
      */
     public Statement.Result getResultOf(Line line) {
-        return resultMap.get(line);
+        for (Context context : getContextSet()) {
+            if (context.getLine().equals(line)) {
+                return context.getResult();
+            }
+        }
+        return null;
     }
 
     /**
@@ -215,7 +222,6 @@ public class ScriptInstance implements Runnable {
     public Environment getEnvironment() {
         return environment;
     }
-
 
     /**
      * Executes a {@link Block} with the {@link ScriptInstance}
@@ -249,7 +255,10 @@ public class ScriptInstance implements Runnable {
                         if (statement instanceof ContinueStatement) {
                             return Result.FAILURE_CONTINUE;
                         }
-                        getResultMap().put(line, line.toContex(this).run()); // Add to result map
+
+                        Context ctx = line.toContex(this);
+                        ctx.run();
+                        getContextSet().add(ctx); // Add to context set
                     }
                 }
             } catch (Throwable e) {

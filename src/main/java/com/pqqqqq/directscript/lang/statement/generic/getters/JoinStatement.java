@@ -32,7 +32,7 @@ public class JoinStatement extends Statement<String> {
         List<Variable> array = ctx.getLiteral(0).getArray();
         String joinString = ctx.getLiteral(1).getString();
         int start = ctx.getLiteral(2, 0).getNumber().intValue() - 1; // Subtract one cuz base 1
-        int end = ctx.getLiteral(3, array.size()).getNumber().intValue(); // Subtract one cuz base 1
+        int end = ctx.getLiteral(3, array.size()).getNumber().intValue() - 1; // Subtract one cuz base 1
 
         String joined = "";
         for (int i = start; i < end && i < array.size(); i++) {

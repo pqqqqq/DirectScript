@@ -65,6 +65,9 @@ public class DirectScript {
         // Register events
         EventManager eventManager = game.getEventManager();
         eventManager.register(this, new TriggerEvents(this));
+
+        // Schedule events
+        game.getSyncScheduler().runRepeatingTaskAfter(this, new InternalTimer(), 5L, 5L);
     }
 
     @Subscribe
@@ -112,5 +115,15 @@ public class DirectScript {
 
     public void reloadScripts() {
         scriptsFiles = Reader.instance().load();
+    }
+
+    /**
+     * The internal timer runnable for timer causes
+     */
+    public class InternalTimer implements Runnable {
+
+        public void run() {
+            Causes.TIMER.activate();
+        }
     }
 }

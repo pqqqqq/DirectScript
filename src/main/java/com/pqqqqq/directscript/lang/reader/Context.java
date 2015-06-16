@@ -17,7 +17,9 @@ import static com.google.common.base.Preconditions.checkState;
 public class Context {
     private final ScriptInstance scriptInstance;
     private final Line line;
-    private Literal[] literals;
+    private final Literal[] literals;
+
+    private Statement.Result result = null;
 
     protected Context(ScriptInstance scriptInstance, Line line) {
         this.scriptInstance = scriptInstance;
@@ -112,11 +114,20 @@ public class Context {
     }
 
     /**
-     * Runs this line. This is analagous to: <code>line.getStatement().run(this)</code>
+     * Runs this line. This is analogous to: <code>line.getStatement().run(this)</code>
      * @return the {@link Statement.Result}
      */
     public Statement.Result run() {
-        return line.getStatement().run(this);
+        return (result = line.getStatement().run(this));
+    }
+
+    /**
+     * Returns the {@link com.pqqqqq.directscript.lang.script.ScriptInstance.Result} of the last run of this context
+     *
+     * @return the result, or null if not run yet
+     */
+    public Statement.Result getResult() {
+        return result;
     }
 
     // Convenience stuff

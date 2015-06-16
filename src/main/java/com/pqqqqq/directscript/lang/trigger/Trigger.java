@@ -2,7 +2,6 @@ package com.pqqqqq.directscript.lang.trigger;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.script.Script;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 
 import java.util.Arrays;
@@ -69,15 +68,6 @@ public class Trigger {
         }
 
         return false;
-    }
-
-    /**
-     * Triggers and runs a given {@link ScriptInstance} by its {@link ScriptInstance.Builder}
-     *
-     * @param builder the builder
-     */
-    public void trigger(ScriptInstance.Builder builder) {
-        builder.copy().script(script).build().execute(); // Each trigger needs a separate builder instance
     }
 
     /**

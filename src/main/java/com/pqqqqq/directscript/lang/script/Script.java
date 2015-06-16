@@ -29,6 +29,7 @@ public class Script extends Block {
 
     private final ScriptsFile scriptsFile;
     private final String name;
+    private final CauseData causeData = new CauseData();
 
     private Optional<Trigger> trigger;
 
@@ -94,5 +95,81 @@ public class Script extends Block {
      */
     public void setTrigger(Optional<Trigger> trigger) {
         this.trigger = trigger;
+    }
+
+    /**
+     * Gets this {@link Script}'s {@link CauseData}
+     *
+     * @return the cause data
+     */
+    public CauseData getCauseData() {
+        return causeData;
+    }
+
+    /**
+     * Represents this {@link Script}'s cause data
+     */
+    public class CauseData {
+        // Timer cause
+        private Long timerDelay = null;
+        private Long lastTimerRun = null;
+
+        // Command cause
+        private String[] commandAliases = null;
+
+        CauseData() {
+        }
+
+        /**
+         * Gets the timer delay for {@link com.pqqqqq.directscript.lang.trigger.cause.Cause.TimerCause}
+         *
+         * @return the timer delay, or null if none
+         */
+        public Long getTimerDelay() {
+            return timerDelay;
+        }
+
+        /**
+         * Sets the timer delay for {@link com.pqqqqq.directscript.lang.trigger.cause.Cause.TimerCause}
+         *
+         * @param timerDelay the new timer delay
+         */
+        public void setTimerDelay(Long timerDelay) {
+            this.timerDelay = timerDelay;
+        }
+
+        /**
+         * Gets the last time this {@link Script} was run as a timer
+         *
+         * @return the last run as per {@link System#currentTimeMillis()}
+         */
+        public Long getLastTimerRun() {
+            return lastTimerRun;
+        }
+
+        /**
+         * Sets the last time this {@link Script} was run as a timer to the current time ({@link System#currentTimeMillis()})
+         */
+        public void setLastTimerRun() {
+            this.lastTimerRun = System.currentTimeMillis();
+        }
+
+        /**
+         * Gets the array of command aliases
+         *
+         * @return the command aliases, or null if none
+         */
+        public String[] getCommandAliases() {
+            return commandAliases;
+        }
+
+        /**
+         * Sets the array of command aliases
+         *
+         * @param commandAliases the new command aliases
+         */
+        public void setCommandAliases(String[] commandAliases) {
+            this.commandAliases = commandAliases;
+        }
     }
 }
