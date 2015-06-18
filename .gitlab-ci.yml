@@ -1,9 +1,11 @@
 before_script:
   - java -version
 
-test:
+deploy:
   script:
-    - mvn test
+    - mvn package
+    - ~/deploy.sh
+  type: deploy
   tags:
     - java
     - sponge
