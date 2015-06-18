@@ -1,6 +1,6 @@
 package com.pqqqqq.directscript.lang.statement.internal.setters;
 
-import com.pqqqqq.directscript.lang.data.env.Variable;
+import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
@@ -33,9 +33,9 @@ public class CommandStatement extends Statement {
     @Override
     public Result run(Context ctx) {
         List<String> aliases = new ArrayList<String>();
-        List<Variable> array = ctx.getLiteral(0).getArray();
+        List<LiteralHolder> array = ctx.getLiteral(0).getArray();
 
-        for (Variable alias : array) {
+        for (LiteralHolder alias : array) {
             aliases.add(alias.getData().getString());
         }
 

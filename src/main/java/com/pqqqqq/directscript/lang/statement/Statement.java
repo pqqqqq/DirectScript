@@ -113,12 +113,12 @@ public abstract class Statement<T> {
     }
 
     /**
-     * Gets whether a given {@link Line} is applicable to this statement. This is analogous to: <code>getMatchPattern().matcher(line.getLine()).matches()</code>
+     * Gets whether a given line is applicable to this statement. This is analogous to: <code>getMatchPattern().matcher(line).matches()</code>
      * @param line
      * @return
      */
-    public final boolean matches(Line line) {
-        return matchPattern.matcher(line.getLine()).matches();
+    public final boolean matches(String line) {
+        return matchPattern.matcher(line).matches();
     }
 
     // Abstract methods
@@ -195,7 +195,7 @@ public abstract class Statement<T> {
     }
 
     /**
-     * Denotes a class that represents a concept {@link Statement} that should work given the API, but is not yet implemented. These statements will be skipped by: {@link Statements#getStatement(Line)}
+     * Denotes a class that represents a concept {@link Statement} that should work given the API, but is not yet implemented. These statements will be skipped by: {@link Statements#getStatement(String)}
      */
     @Retention(value = RetentionPolicy.RUNTIME)
     @Target(value = ElementType.TYPE)

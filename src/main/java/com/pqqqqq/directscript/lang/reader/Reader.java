@@ -156,7 +156,7 @@ public class Reader {
                             startLine.generateInternalBlock(currentScript);
                         }
 
-                        if (lineInst.getStatement().getSuffix().equals("{") || lineInst.getTrimmedLine().endsWith("{")) { // Necessary for else and else if statements
+                        if (lineInst.getStatement().getSuffix().equals("{") || lineInst.getLine().endsWith("{")) { // Necessary for else and else if statements
                             bracesLineList.add(0, lineInst);
                         }
                     }

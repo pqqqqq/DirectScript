@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.statement.sponge.setters;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.data.env.Variable;
+import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.sponge.SpongeStatement;
 import org.spongepowered.api.entity.player.Player;
@@ -43,7 +43,7 @@ public class TeleportStatement extends SpongeStatement {
             return Result.failure();
         }
 
-        List<Variable> coordinates = ctx.getLiteral(2).getArray();
+        List<LiteralHolder> coordinates = ctx.getLiteral(2).getArray();
         if (coordinates.size() < 3) { // We need 3 coordinates, it's a 3D game brah
             return Result.failure();
         }

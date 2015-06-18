@@ -24,6 +24,7 @@ public class Causes {
 
     // Player causes
     public static final Cause PLAYER_JOIN = new Cause("PlayerJoin");
+    public static final Cause PLAYER_QUIT = new Cause("PlayerQuit");
     public static final Cause COMMAND = new Cause.CommandCause();
 
     private static final List<Cause> REGISTRY;
@@ -47,8 +48,9 @@ public class Causes {
      * @return the cause
      */
     public static Optional<Cause> getCause(String key) {
+        key = key.trim().replace("_", "").replace(" ", "");
         for (Cause cause : REGISTRY) {
-            if (key.trim().replace("_", "").replace(" ", "").equalsIgnoreCase(cause.getName().trim().replace("_", "").replace(" ", ""))) {
+            if (key.equalsIgnoreCase(cause.getName())) {
                 return Optional.of(cause);
             }
         }

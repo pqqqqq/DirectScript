@@ -2,7 +2,7 @@ package com.pqqqqq.directscript.lang.statement.sponge.setters;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.data.env.Variable;
+import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.statement.sponge.SpongeStatement;
@@ -37,7 +37,7 @@ public class RotateStatement extends SpongeStatement {
             return Result.failure();
         }
 
-        List<Variable> rotationArray = ctx.getLiteral(1).getArray();
+        List<LiteralHolder> rotationArray = ctx.getLiteral(1).getArray();
         if (rotationArray.size() < 2) { // Even though rotation is 3D, no one really ever uses roll
             return Result.failure();
         }

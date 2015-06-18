@@ -26,13 +26,13 @@ public class StringParser {
     }
 
     /**
-     * Parses a split of the specified string at the given split points, excluding quotes, round and square brackets
+     * Parses a split of the specified string at the given delimiters, excluding quotes, round and square brackets
      *
      * @param string the string to split
-     * @param splits the split strings
+     * @param delimiter the delimiter strings
      * @return the split string array
      */
-    public String[] parseSplit(String string, String... splits) {
+    public String[] parseSplit(String string, String... delimiter) {
         List<String> list = new ArrayList<String>();
 
         boolean quotes = false;
@@ -60,7 +60,7 @@ public class StringParser {
 
             builder += c;
             if (!quotes && roundBrackets == 0 && squareBrackets == 0) {
-                for (String split : splits) {
+                for (String split : delimiter) {
                     if (builder.endsWith(split)) {
                         list.add(builder.substring(0, builder.length() - split.length()));
                         builder = "";
@@ -80,11 +80,11 @@ public class StringParser {
      * Parses the next {@link com.pqqqqq.directscript.lang.util.StringParser.SplitSequence} in a string by a prioritized split group
      *
      * @param string      the string to parse
-     * @param splitGroups a two-dimensional string array, where each String[] in the String[][] is prioritized by its ordinal
+     * @param delimiterGroups a two-dimensional delimiter string array, where each String[] in the String[][] is prioritized by its ordinal
      * @return the next split sequence, or null if none
      */
-    public SplitSequence parseNextSequence(String string, String[]... splitGroups) {
-        for (String[] splitGroup : splitGroups) {
+    public SplitSequence parseNextSequence(String string, String[]... delimiterGroups) {
+        for (String[] splitGroup : delimiterGroups) {
             boolean quotes = false;
             int roundBrackets = 0, squareBrackets = 0;
             String builder = "";
@@ -259,22 +259,22 @@ public class StringParser {
     }
 
     /**
-     * Represents an immutable split sequence, a {@link Triple} String of the before(L) and after(R) segments, as well as the split itself(M)
+     * Represents an immutable split sequence, a {@link Triple} String of the before(L) and after(R) segments, as well as the delimiter(M)
      */
     public static class SplitSequence extends Triple<String, String, String> {
         private final String beforeSegment;
-        private final String split;
+        private final String delimiter;
         private final String afterSegment;
 
         /**
          * Creates a new split sequence
          * @param beforeSegment the before segment
-         * @param split the split
+         * @param delimiter the delimiter
          * @param afterSegment the after segment
          */
-        public SplitSequence(String beforeSegment, String split, String afterSegment) {
+        public SplitSequence(String beforeSegment, String delimiter, String afterSegment) {
             this.beforeSegment = beforeSegment;
-            this.split = split;
+            this.delimiter = delimiter;
             this.afterSegment = afterSegment;
         }
 
@@ -285,7 +285,7 @@ public class StringParser {
 
         @Override
         public String getMiddle() {
-            return split;
+            return delimiter;
         }
 
         @Override
@@ -305,8 +305,8 @@ public class StringParser {
          * Gets the split. This is analogous to {@link #getMiddle()}
          * @return the split
          */
-        public String getSplit() {
-            return split;
+        public String getDelimiter() {
+            return delimiter;
         }
 
         /**

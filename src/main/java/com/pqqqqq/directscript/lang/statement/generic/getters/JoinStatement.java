@@ -1,6 +1,6 @@
 package com.pqqqqq.directscript.lang.statement.generic.getters;
 
-import com.pqqqqq.directscript.lang.data.env.Variable;
+import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
@@ -29,13 +29,13 @@ public class JoinStatement extends Statement<String> {
 
     @Override
     public Result<String> run(Context ctx) {
-        List<Variable> array = ctx.getLiteral(0).getArray();
+        List<LiteralHolder> array = ctx.getLiteral(0).getArray();
         String joinString = ctx.getLiteral(1).getString();
         int start = ctx.getLiteral(2, 0).getNumber().intValue() - 1; // Subtract one cuz base 1
         int end = ctx.getLiteral(3, array.size()).getNumber().intValue() - 1; // Subtract one cuz base 1
 
         String joined = "";
-        for (int i = start; i < end && i < array.size(); i++) {
+        for (int i = start; i <= end && i < array.size(); i++) {
             joined += array.get(i).getData().getString() + joinString;
         }
 

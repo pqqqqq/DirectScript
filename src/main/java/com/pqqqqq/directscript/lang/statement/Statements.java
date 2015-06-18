@@ -9,6 +9,7 @@ import com.pqqqqq.directscript.lang.statement.sponge.getters.*;
 import com.pqqqqq.directscript.lang.statement.sponge.setters.*;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 import com.pqqqqq.directscript.lang.util.RegistryUtil;
+import com.pqqqqq.directscript.lang.util.Utilities;
 
 import java.util.List;
 
@@ -73,7 +74,7 @@ public class Statements {
     public static final Statement<String> PLAYER_NAME = new NameStatement();
     public static final Statement<Boolean> PERMISSION = new PermissionStatement();
     public static final Statement<Boolean> ONLINE = new OnlineStatement();
-    public static final Statement<Double[]> PLAYERLOC = new PlayerLocStatement();
+    public static final Statement<Double[]> PLAYER_LOC = new PlayerLocStatement();
 
     private static final List<Statement> REGISTRY;
     static {
@@ -90,25 +91,15 @@ public class Statements {
     }
 
     /**
-     * Gets if the given {@link Statement} is applicable to the {@link Line}
-     *
-     * @param statement the statement
-     * @param lineInst  the line
-     * @return
-     */
-    public static boolean isStatementEqual(Statement statement, Line lineInst) {
-        return statement.matches(lineInst);
-    }
-
-    /**
-     * Gets an {@link Optional} {@link Statement} for the {@link Line}, such that {@link #isStatementEqual(Statement, Line)} is true
+     * Gets an {@link Optional} {@link Statement} for the {@link Line}, such that {@link Statement#matches(String)} is true
      *
      * @param line the line
      * @return the statement
      */
-    public static Optional<Statement> getStatement(Line line) {
+    public static Optional<Statement> getStatement(String line) {
+        line = Utilities.fullLineTrim(line);
         for (Statement statement : REGISTRY) {
-            if (!statement.getClass().isAnnotationPresent(Statement.Concept.class) && isStatementEqual(statement, line)) { // Concept statements are excluded
+            if (!statement.getClass().isAnnotationPresent(Statement.Concept.class) && statement.matches(line)) { // Concept statements are excluded
                 return Optional.of(statement);
             }
         }

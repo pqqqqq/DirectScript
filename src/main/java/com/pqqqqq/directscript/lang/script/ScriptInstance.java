@@ -4,7 +4,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.Sequencer;
 import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Block;
@@ -39,7 +38,6 @@ public class ScriptInstance implements Runnable {
     private final Script script;
     private final Cause cause;
     private final Predicate<Line> linePredicate;
-    private final Sequencer sequencer;
     private final Optional<Event> event;
     private final Optional<Player> causedBy;
 
@@ -56,7 +54,6 @@ public class ScriptInstance implements Runnable {
         this.script = script;
         this.cause = cause;
         this.linePredicate = linePredicate;
-        this.sequencer = Sequencer.instance(this);
         this.event = Optional.fromNullable(event);
         this.causedBy = Optional.fromNullable(causedBy);
         getEnvironment().getVariables().putAll(variableMap);
@@ -116,15 +113,6 @@ public class ScriptInstance implements Runnable {
      */
     public Predicate<Line> getLinePredicate() {
         return linePredicate;
-    }
-
-    /**
-     * Gets the specific {@link Sequencer} for this {@link ScriptInstance}
-     *
-     * @return the sequencer
-     */
-    public Sequencer getSequencer() {
-        return sequencer;
     }
 
     /**

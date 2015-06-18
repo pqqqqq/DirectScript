@@ -8,6 +8,7 @@ import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Subscribe;
 import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
+import org.spongepowered.api.event.entity.player.PlayerQuitEvent;
 import org.spongepowered.api.event.message.CommandEvent;
 import org.spongepowered.api.util.command.CommandSource;
 
@@ -24,6 +25,12 @@ public class TriggerEvents {
     @Subscribe
     public void join(PlayerJoinEvent event) {
         Causes.PLAYER_JOIN.activate(ScriptInstance.builder()
+                .causedBy(event.getEntity()));
+    }
+
+    @Subscribe
+    public void quit(PlayerQuitEvent event) {
+        Causes.PLAYER_QUIT.activate(ScriptInstance.builder()
                 .causedBy(event.getEntity()));
     }
 

@@ -1,11 +1,14 @@
 package com.pqqqqq.directscript.lang.data;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.data.env.Variable;
-import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
-import com.pqqqqq.directscript.lang.statement.Statement;
+import com.pqqqqq.directscript.lang.data.container.*;
+import com.pqqqqq.directscript.lang.data.container.expression.ArithmeticContainer;
+import com.pqqqqq.directscript.lang.data.container.expression.ConditionalExpressionContainer;
+import com.pqqqqq.directscript.lang.statement.Statements;
 import com.pqqqqq.directscript.lang.util.StringParser;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -15,32 +18,30 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * may also parse a combination of literals. They are parsed to {@link Literal}s
  */
 public class Sequencer {
-    private static final String[][] LITERAL_SPLIT_GROUPS = {{" + ", " - "}, {"*", "/"}, {"^", "`"}}; // The +/- group is first since we want these split first, not last
-    private static final String[][] CONDITION_SPLIT_GROUPS = {{"==", "!=", "~", "!~", "<=", ">="}, {"<", ">"}}; // Each in the same split group because equal priority. < and > in separate because <= and >= check first
-    private final ScriptInstance scriptInstance;
+    private static final String[][] LITERAL_DELIMITER_GROUPS = {{" + ", " - "}, {"*", "/"}, {"^", "`"}}; // The +/- group is first since we want these split first, not last
+    private static final String[][] CONDITION_DELIMITER_GROUPS = {{"==", "!=", "~", "!~", "<=", ">="}, {"<", ">"}}; // Each in the same split group because equal priority. < and > in separate because <= and >= check first
+    private static final Sequencer INSTANCE = new Sequencer();
     private final Condition conditionInstance = new Condition();
 
-    private Sequencer(ScriptInstance scriptInstance) {
-        this.scriptInstance = scriptInstance;
+    private Sequencer() {
     }
 
     /**
-     * Gets a {@link Sequencer} instance for the specific {@link ScriptInstance}
+     * Gets the {@link Sequencer} instance
      *
-     * @param scriptInstance the script instance
-     * @return a new sequencer instance
+     * @return the sequencer instance
      */
-    public static Sequencer instance(ScriptInstance scriptInstance) {
-        return new Sequencer(scriptInstance);
+    public static Sequencer instance() {
+        return INSTANCE;
     }
 
     /**
-     * Parses a sequence into a {@link Literal}
+     * Parses a sequence into a {@link DataContainer}
      *
      * @param sequence the sequence to parse
-     * @return the new literal
+     * @return the new data container
      */
-    public Literal parse(String sequence) {
+    public DataContainer parse(String sequence) {
         checkNotNull(sequence, "Sequence cannot be null");
 
         sequence = sequence.trim();
@@ -56,155 +57,95 @@ public class Sequencer {
             negateTrimSequence = negateTrimSequence.substring(1);
         }
 
-        /* Brackets, inline ifs and conditions in general must not be split into operators, since they can have operators within their conditions */
+        /* Brackets, ternary operators and conditions in general must not be split into operators, since they can have operators within their conditions */
         // Pre-parse anything in brackets. Use negateTrimmedSequence
         if (negateTrimSequence.startsWith("(") && negateTrimSequence.endsWith(")")) {
             return negateIfNecessary(parse(negateTrimSequence.substring(1, negateTrimSequence.length() - 1)), negative);
         }
 
-        // Check if it's an inline if. Don't use negateTrimmedSequence
+        // Check if it's a ternary operator. Don't use negateTrimmedSequence
         int questionMark = StringParser.instance().indexOf(sequence, "?");
         int colon = StringParser.instance().indexOf(sequence, ":");
         if (questionMark > -1 && colon > -1) {
-            String operandCondition = sequence.substring(0, questionMark).trim();
-            String trueSegment = sequence.substring(questionMark + 1, colon).trim();
-            String falseSegment = sequence.substring(colon + 1).trim();
+            DataContainer conditionContainer = parse(sequence.substring(0, questionMark).trim());
+            DataContainer trueContainer = parse(sequence.substring(questionMark + 1, colon).trim());
+            DataContainer falseContainer = parse(sequence.substring(colon + 1).trim());
 
-            return parse(operandCondition).getBoolean() ? parse(trueSegment) : parse(falseSegment); // Use an inline if for the inline if... inception
+            return new TernaryOperatorContainer(conditionContainer, trueContainer, falseContainer);
         }
 
         // Check if it's a condition. Don't use negateTrimmedSequence
-        Optional<Literal<Boolean>> conditionLiteral = conditionInstance.parse(sequence);
+        Optional<DataContainer<Boolean>> conditionLiteral = conditionInstance.parse(sequence);
         if (conditionLiteral.isPresent()) {
             return conditionLiteral.get();
         }
 
-        StringParser.SplitSequence triple = StringParser.instance().parseNextSequence(sequence, LITERAL_SPLIT_GROUPS); // Split into ordered triple segments
-        if (triple == null || triple.getSplit() == null) { // Check if there's no split string
+        StringParser.SplitSequence triple = StringParser.instance().parseNextSequence(sequence, LITERAL_DELIMITER_GROUPS); // Split into ordered triple segments
+        if (triple == null || triple.getDelimiter() == null) { // Check if there's no split string
             // Check if it's a statement. Don't use negateTrimmedSequence
-            Optional<Line> curLine = scriptInstance.getCurrentLine();
-            if (curLine.isPresent()) {
-                Line line = new Line(curLine.get().getAbsoluteNumber(), curLine.get().getScriptNumber(), sequence.trim(), false);
-                if (line.getStatement() != null) {
-                    Statement.Result<?> statementResult = line.toContex(scriptInstance).run();
-                    if (statementResult.getLiteralResult().isPresent()) {
-                        return statementResult.getLiteralResult().get();
-                    }
+            if (Statements.getStatement(sequence).isPresent()) {
+                return new StatementContainer(sequence);
+            }
+
+            // Check if it's an array
+            if (negateTrimSequence.startsWith("[") && negateTrimSequence.endsWith("]")) {
+                List<DataContainer> array = new ArrayList<DataContainer>();
+
+                int index = 0;
+                for (String arrayValue : StringParser.instance().parseSplit(negateTrimSequence.substring(1, negateTrimSequence.length() - 1), ",")) {
+                    array.add(parse(arrayValue));
                 }
+                return new ListContainer(array);
             }
 
             // Check plain data. Use negativeTrimSequence
-            Optional<Literal> literal = Literal.getLiteral(scriptInstance, negateTrimSequence);
+            Optional<Literal> literal = Literal.getLiteral(negateTrimSequence);
             if (literal.isPresent()) {
                 return negateIfNecessary(literal.get(), negative);
             }
 
-            // Check variable. Use negativeTrimSequence
-            Optional<Variable> variable = scriptInstance.getEnvironment().getVariable(negateTrimSequence);
-            if (variable.isPresent()) {
-                return negateIfNecessary(variable.get().getData(), negative);
-            }
-
-            throw new IllegalStateException("No coherent segment could be created from: '" + sequence + "'"); // If all else fails, throw an exception
+            // Worst comes to worst, assume its a variable container (use negativeTrimSequence)
+            return negateIfNecessary(new VariableContainer(negateTrimSequence), negative);
         }
 
-        Literal before = parse(triple.getBeforeSegment());
-        Literal after = parse(triple.getAfterSegment());
-        String split = triple.getSplit();
-
-        if (split.equals(" + ")) { // Addition
-            return before.add(after);
-        }
-        if (split.equals(" - ")) { // Subtraction
-            return before.sub(after);
-        }
-        if (split.equals("*")) { // Multiplication
-            return before.mult(after);
-        }
-        if (split.equals("/")) { // Division
-            return before.div(after);
-        }
-        if (split.equals("^")) { // Exponent
-            return before.pow(after);
-        }
-        if (split.equals("`")) { // Root
-            return before.root(after);
-        }
-
-        throw new IllegalStateException("Unknown operator " + split + " in " + sequence);
+        return new ArithmeticContainer(parse(triple.getBeforeSegment()), parse(triple.getAfterSegment()), ArithmeticContainer.ArithmeticOperator.fromOperator(triple.getDelimiter()));
     }
 
-    private Literal negateIfNecessary(Literal literal, boolean negate) {
-        return negate ? literal.negative() : literal;
+    private DataContainer negateIfNecessary(DataContainer dataContainer, boolean negate) {
+        return negate ? new NegateContainer(dataContainer) : dataContainer;
     }
 
     class Condition {
         private Condition() {
         }
 
-        Optional<Literal<Boolean>> parse(String sequence) {
+        Optional<DataContainer<Boolean>> parse(String sequence) {
             String[] splitOr = StringParser.instance().parseSplit(sequence, " or "); // 'Or' takes precedence over 'and'
+            List<List<ConditionalExpressionContainer>> mainExpressionList = new ArrayList<List<ConditionalExpressionContainer>>();
 
             for (String orCondition : splitOr) {
                 String[] splitAnd = StringParser.instance().parseSplit(orCondition, " and ");
-                int andSuccessCounter = 0;
+                List<ConditionalExpressionContainer> andExpressionList = new ArrayList<ConditionalExpressionContainer>();
 
                 for (String condition : splitAnd) {
-                    StringParser.SplitSequence triple = StringParser.instance().parseNextSequence(condition, CONDITION_SPLIT_GROUPS);
+                    StringParser.SplitSequence triple = StringParser.instance().parseNextSequence(condition, CONDITION_DELIMITER_GROUPS);
 
-                    if (triple == null || triple.getSplit() == null) {
+                    if (triple == null || triple.getDelimiter() == null) {
                         return Optional.absent(); // Need exactly a left side and a right side
                     }
 
                     // Get literals for these values
-                    Literal leftSideLiteral = Sequencer.this.parse(triple.getBeforeSegment());
-                    Literal rightSideLiteral = Sequencer.this.parse(triple.getAfterSegment());
-                    String comparator = triple.getSplit();
+                    DataContainer leftSideLiteral = Sequencer.this.parse(triple.getBeforeSegment());
+                    DataContainer rightSideLiteral = Sequencer.this.parse(triple.getAfterSegment());
+                    String comparator = triple.getDelimiter();
 
-                    // Do check
-                    if (comparator.equals("==")) { // Equals
-                        if (leftSideLiteral.getValue().equals(rightSideLiteral.getValue())) {
-                            andSuccessCounter++;
-                        }
-                    } else if (comparator.equals("!=")) { // Not equals
-                        if (!leftSideLiteral.getValue().equals(rightSideLiteral.getValue())) {
-                            andSuccessCounter++;
-                        }
-                    } else if (comparator.equals("~")) { // Similar
-                        if (leftSideLiteral.getString().equalsIgnoreCase(rightSideLiteral.getString())) {
-                            andSuccessCounter++;
-                        }
-                    } else if (comparator.equals("!~")) { // Not similar
-                        if (!leftSideLiteral.getString().equalsIgnoreCase(rightSideLiteral.getString())) {
-                            andSuccessCounter++;
-                        }
-                    } else if (comparator.equals("<")) { // Less than
-                        if (leftSideLiteral.getNumber() < rightSideLiteral.getNumber()) {
-                            andSuccessCounter++;
-                        }
-                    } else if (comparator.equals(">")) { // More than
-                        if (leftSideLiteral.getNumber() > rightSideLiteral.getNumber()) {
-                            andSuccessCounter++;
-                        }
-                    } else if (comparator.equals("<=")) { // Less than or equal to
-                        if (leftSideLiteral.getNumber() <= rightSideLiteral.getNumber()) {
-                            andSuccessCounter++;
-                        }
-                    } else if (comparator.equals(">=")) { // More than or equal to
-                        if (leftSideLiteral.getNumber() >= rightSideLiteral.getNumber()) {
-                            andSuccessCounter++;
-                        }
-                    } else { // Unknown
-                        return Optional.absent();
-                    }
+                    andExpressionList.add(new ConditionalExpressionContainer(leftSideLiteral, rightSideLiteral, ConditionalExpressionContainer.ComparativeOperator.fromOperator(comparator)));
                 }
 
-                if (andSuccessCounter == splitAnd.length) { // Successful 'and' sequence, the condition is true!
-                    return Optional.of(Literal.trueLiteral());
-                }
+                mainExpressionList.add(andExpressionList);
             }
 
-            return Optional.of(Literal.falseLiteral());
+            return Optional.<DataContainer<Boolean>>of(new ConditionContainer(mainExpressionList));
         }
     }
 }

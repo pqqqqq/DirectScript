@@ -3,14 +3,12 @@ package com.pqqqqq.directscript.lang.reader;
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
-import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.world.World;
-
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-12.
@@ -19,34 +17,25 @@ import static com.google.common.base.Preconditions.checkState;
 public class Context {
     private final ScriptInstance scriptInstance;
     private final Line line;
+
+    private final String[] stringArguments;
+    private final DataContainer[] containers;
     private final Literal[] literals;
 
     private Statement.Result result = null;
 
-    protected Context(ScriptInstance scriptInstance, Line line) {
+    Context(ScriptInstance scriptInstance, Line line, String[] stringArguments, DataContainer[] containers) {
         this.scriptInstance = scriptInstance;
         this.line = line;
 
-        Statement.Argument[] args = line.getStatement().getArguments();
-        this.literals = new Literal[args.length];
+        this.stringArguments = stringArguments;
+        this.containers = containers;
+        this.literals = new Literal[containers.length];
 
-        int curIndex = 0;
-        for (Statement.Argument argument : args) {
-            if (line.getArgCount() <= curIndex) { // If it goes over, just put empty literals
-                this.literals[curIndex++] = Literal.empty();
-                continue;
+        for (int i = 0; i < this.literals.length; i++) {
+            if (containers[i] != null) {
+                this.literals[i] = containers[i].resolve(scriptInstance);
             }
-
-            String strarg = argument.isRest() ? StringUtils.join(line.getArguments(), line.getStatement().getSplitString(), curIndex, line.getArguments().length) : line.getArg(curIndex);
-            Literal litarg = argument.doParse() ? scriptInstance.getSequencer().parse(strarg) : Literal.getLiteralBlindly(strarg); // Use doParse boolean
-            checkState(argument.isOptional() || !litarg.isEmpty(), "Argument " + curIndex + "(" + argument.getName() + ") is not optional."); // Use isOptional boolean
-
-            if (argument.isModifier() && !litarg.getString().equals(argument.getName())) { // Use isModifier boolean
-                continue; // Basically skip this argument but keep the string
-            }
-
-            this.literals[curIndex] = litarg;
-            curIndex++;
         }
     }
 
@@ -75,6 +64,44 @@ public class Context {
      */
     public Line getLine() {
         return line;
+    }
+
+    /**
+     * Gets the string argument array
+     *
+     * @return the string arguments
+     */
+    public String[] getStringArguments() {
+        return stringArguments;
+    }
+
+    /**
+     * Gets the string argument at the given index
+     *
+     * @param index the index
+     * @return the string argument
+     */
+    public String getStringArgument(int index) {
+        return stringArguments[index];
+    }
+
+    /**
+     * Gets the {@link DataContainer} argument array
+     *
+     * @return the data container argument array
+     */
+    public DataContainer[] getContainers() {
+        return containers;
+    }
+
+    /**
+     * Gets the {@link DataContainer} at the given index
+     *
+     * @param index the index
+     * @return the data argument
+     */
+    public DataContainer getContainer(int index) {
+        return containers[index];
     }
 
     /**
@@ -116,12 +143,12 @@ public class Context {
     }
 
     /**
-     * Runs this line.
+     * Runs this {@link Context}
      * @return the {@link Statement.Result}
      */
     public Statement.Result run() {
         result = line.getStatement().run(this);
-        if (scriptInstance.isRuntime() && !result.isSuccess()) { // We only want this at runtime
+        if (scriptInstance.isRuntime() && result != null && !result.isSuccess()) { // We only want this at runtime
             DirectScript.instance().getErrorHandler().log(String.format("Statement in script '%s' -> '%s' at line #%d (script line #%d) failed. Continuing execution.", getScript().getScriptsFile().getStringRepresentation(), getScript().getName(), line.getAbsoluteNumber(), line.getScriptNumber()));
             DirectScript.instance().getErrorHandler().flush();
         }

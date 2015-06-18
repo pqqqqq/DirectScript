@@ -1,6 +1,8 @@
 package com.pqqqqq.directscript.lang.data.env;
 
 import com.google.common.base.Optional;
+import com.pqqqqq.directscript.lang.data.LiteralHolder;
+import com.pqqqqq.directscript.lang.data.Sequencer;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.util.StringParser;
 
@@ -57,23 +59,27 @@ public class Environment implements Iterable<Variable> {
      * @return the variable
      */
     public Optional<Variable> getVariable(String name) {
+        return Optional.fromNullable(getVariables().get(name.trim()));
+    }
+
+    public Optional<LiteralHolder> getLiteralHolder(String name) {
         int openBracket = name.indexOf('[');
         String noBracketName = name.substring(0, (openBracket == -1 ? name.length() : openBracket));
 
         return Optional.fromNullable(getArrayValue(name.trim(), getVariables().get(noBracketName.trim())));
     }
 
-    private Variable getArrayValue(String name, Variable variable) {
-        if (variable == null) {
+    private LiteralHolder getArrayValue(String name, LiteralHolder literalHolder) {
+        if (literalHolder == null) {
             return null;
         }
 
         String bracket = StringParser.instance().getOuterBracket(name, '[', ']');
         if (bracket != null) {
-            int index = scriptInstance.getSequencer().parse(bracket.substring(1, bracket.length() - 1)).getNumber().intValue() - 1; // Minus one cause it starts at 1
-            return getArrayValue(name.replace(bracket, ""), variable.getData().getArrayValue(index));
+            int index = Sequencer.instance().parse(bracket.substring(1, bracket.length() - 1)).resolve(scriptInstance).getNumber().intValue() - 1; // Minus one cause it starts at 1
+            return getArrayValue(name.replace(bracket, ""), literalHolder.getData().getArrayValue(index));
         }
-        return variable;
+        return literalHolder;
     }
 
     public Iterator<Variable> iterator() {

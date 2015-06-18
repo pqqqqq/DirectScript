@@ -3,9 +3,8 @@ package com.pqqqqq.directscript.lang.data;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
-import com.pqqqqq.directscript.lang.data.env.Variable;
+import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
-import com.pqqqqq.directscript.lang.util.StringParser;
 import com.pqqqqq.directscript.lang.util.Utilities;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.spongepowered.api.entity.player.Player;
@@ -21,8 +20,9 @@ import static com.google.common.base.Preconditions.checkState;
 /**
  * Created by Kevin on 2015-06-02.
  * A literal is an immutable value that is not dependent on any environment; a constant
+ * @param <T> the literal type
  */
-public class Literal<T> {
+public class Literal<T> implements DataContainer<T> {
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.###");
 
     private static final Literal EMPTY = new Literal();
@@ -31,11 +31,11 @@ public class Literal<T> {
 
     private final Optional<T> value;
 
-    private Literal() {
+    protected Literal() {
         this(null);
     }
 
-    private Literal(T value) {
+    protected Literal(T value) {
         this.value = Optional.fromNullable(value);
     }
 
@@ -78,16 +78,20 @@ public class Literal<T> {
             return Literal.empty();
         }
 
+        if (value instanceof Boolean) {
+            return (Boolean) value ? TRUE : FALSE; // No need to create more immutable instances
+        }
+
         if (value instanceof Integer || value instanceof Long || value instanceof Float) {
             return new Literal<Double>(Double.parseDouble(value.toString()));
         }
 
         if (value.getClass().isArray()) { // Special for arrays
-            List<Variable> array = new ArrayList<Variable>();
+            List<LiteralHolder> array = new ArrayList<LiteralHolder>();
             for (Object obj : (Object[]) value) {
-                array.add(new Variable(null, Literal.getLiteralBlindly(obj)));
+                array.add(new LiteralHolder(Literal.getLiteralBlindly(obj)));
             }
-            return new Literal<List<Variable>>(array);
+            return new Literal<List<LiteralHolder>>(array);
         }
 
         return new Literal<T>(value);
@@ -96,24 +100,12 @@ public class Literal<T> {
     /**
      * Creates an {@link Optional} {@link Literal} by parsing it through the {@link Sequencer}
      *
-     * @param scriptInstance the {@link ScriptInstance} for the sequencer
      * @param literal        the string to parse
      * @return the new literal, or {@link Optional#absent()} if the literal cannot be parsed
      */
-    public static Optional<Literal> getLiteral(ScriptInstance scriptInstance, String literal) {
+    public static Optional<Literal> getLiteral(String literal) {
         if (literal == null || literal.isEmpty() || literal.equals("null")) { // Null or empty values return an empty parse
             return Optional.of(empty());
-        }
-
-        // If there's [], it's an array
-        if (literal.startsWith("[") && literal.endsWith("]")) {
-            List<Variable> array = new ArrayList<Variable>(); // Max size of list is 1000
-
-            int index = 0;
-            for (String arrayValue : StringParser.instance().parseSplit(literal.substring(1, literal.length() - 1), ",")) {
-                array.add(new Variable(null, scriptInstance.getSequencer().parse(arrayValue)));
-            }
-            return Optional.<Literal>of(new Literal<List<Variable>>(array));
         }
 
         // If there's quotes, it's a string
@@ -145,7 +137,7 @@ public class Literal<T> {
      * @return true if empty
      */
     public boolean isEmpty() {
-        return !value.isPresent();
+        return !getValue().isPresent();
     }
 
     /**
@@ -161,8 +153,8 @@ public class Literal<T> {
      * @return true if a String
      */
     public boolean isString() {
-        checkState(value.isPresent(), "This parse must be present to check this");
-        return value.get() instanceof String;
+        checkState(getValue().isPresent(), "This parse must be present to check this");
+        return getValue().get() instanceof String;
     }
 
     /**
@@ -170,8 +162,8 @@ public class Literal<T> {
      * @return true if a Boolean
      */
     public boolean isBoolean() {
-        checkState(value.isPresent(), "This parse must be present to check this");
-        return value.get() instanceof Boolean;
+        checkState(getValue().isPresent(), "This parse must be present to check this");
+        return getValue().get() instanceof Boolean;
     }
 
     /**
@@ -179,8 +171,8 @@ public class Literal<T> {
      * @return true if a Number
      */
     public boolean isNumber() {
-        checkState(value.isPresent(), "This parse must be present to check this");
-        return value.get() instanceof Double;
+        checkState(getValue().isPresent(), "This parse must be present to check this");
+        return getValue().get() instanceof Double;
     }
 
     /**
@@ -188,8 +180,8 @@ public class Literal<T> {
      * @return true if an Array
      */
     public boolean isArray() {
-        checkState(value.isPresent(), "This parse must be present to check this");
-        return value.get() instanceof List;
+        checkState(getValue().isPresent(), "This parse must be present to check this");
+        return getValue().get() instanceof List;
     }
 
     /**
@@ -197,8 +189,8 @@ public class Literal<T> {
      * @return the String value
      */
     public String getString() {
-        checkState(value.isPresent(), "This parse must be present to do this");
-        return isString() ? (String) value.get() : parseString().getString();
+        checkState(getValue().isPresent(), "This parse must be present to do this");
+        return isString() ? (String) getValue().get() : parseString().getString();
     }
 
     /**
@@ -206,8 +198,8 @@ public class Literal<T> {
      * @return the Boolean value
      */
     public Boolean getBoolean() {
-        checkState(value.isPresent(), "This parse must be present to do this");
-        return isBoolean() ? (Boolean) value.get() : parseBoolean().getBoolean();
+        checkState(getValue().isPresent(), "This parse must be present to do this");
+        return isBoolean() ? (Boolean) getValue().get() : parseBoolean().getBoolean();
     }
 
     /**
@@ -215,31 +207,31 @@ public class Literal<T> {
      * @return the number value
      */
     public Double getNumber() {
-        checkState(value.isPresent(), "This parse must be present to do this");
-        return isNumber() ? (Double) value.get() : parseNumber().getNumber();
+        checkState(getValue().isPresent(), "This parse must be present to do this");
+        return isNumber() ? (Double) getValue().get() : parseNumber().getNumber();
     }
 
     /**
-     * Gets the array ({@link Variable} {@link List}) value of this {@link Literal}
+     * Gets the array ({@link LiteralHolder} {@link List}) value of this {@link Literal}
      * @return the array value
      */
-    public List<Variable> getArray() {
-        checkState(value.isPresent(), "This parse must be present to do this");
-        return isArray() ? (List<Variable>) value.get() : parseArray().getArray();
+    public List<LiteralHolder> getArray() {
+        checkState(getValue().isPresent(), "This parse must be present to do this");
+        return isArray() ? (List<LiteralHolder>) getValue().get() : parseArray().getArray();
     }
 
     /**
-     * Gets the specific {@link Variable} array data at the index
+     * Gets the specific {@link LiteralHolder} array data at the index
      * @param index the index for the array
      * @return the variable at this index
      */
-    public Variable getArrayValue(int index) {
-        checkState(value.isPresent(), "This parse must be present to do this");
+    public LiteralHolder getArrayValue(int index) {
+        checkState(getValue().isPresent(), "This parse must be present to do this");
         checkState(isArray(), "This parse is not an array");
 
-        List<Variable> variableList = getArray();
-        Utilities.buildToIndex(variableList, index, Variable.empty());
-        return variableList.get(index);
+        List<LiteralHolder> literalHolders = getArray();
+        Utilities.buildToIndex(literalHolders, index, new LiteralHolder());
+        return literalHolders.get(index);
     }
 
     // Some common additional getters (sponge)
@@ -344,6 +336,10 @@ public class Literal<T> {
         return this;
     }
 
+    public Literal<T> resolve(ScriptInstance scriptInstance) { // Override for DataContainer
+        return this;
+    }
+
     // Object overrides
 
     @Override
@@ -353,17 +349,17 @@ public class Literal<T> {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(value);
+        return Objects.hashCode(getValue());
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Literal && value.equals(((Literal) obj).getValue());
+        return obj instanceof Literal && getValue().equals(((Literal) obj).getValue());
     }
 
     // Parsing stuff for conversions
     private Literal<String> parseString() {
-        if (!value.isPresent()) {
+        if (!getValue().isPresent()) {
             return Literal.empty();
         }
 
@@ -375,33 +371,32 @@ public class Literal<T> {
         // Format arrays
         if (isArray()) {
             String string = "[";
-            List<Variable> array = getArray();
-
-            for (Variable variable : array) {
-                string += variable.getData().getString() + ", ";
+            List<LiteralHolder> array = getArray();
+            for (LiteralHolder literalHolder : array) {
+                string += literalHolder.getData().getString() + ", ";
             }
             return new Literal<String>((array.isEmpty() ? string : string.substring(0, string.length() - 2)) + "]");
         }
 
-        return new Literal<String>(value.get().toString());
+        return new Literal<String>(getValue().get().toString());
     }
 
     private Literal<Boolean> parseBoolean() {
-        checkState(value.isPresent(), "This parse must be present to do this");
+        checkState(getValue().isPresent(), "This parse must be present to do this");
         checkState(isString(), "The value must be a string to use this method");
 
-        return new Literal<Boolean>(Boolean.parseBoolean((String) value.get()));
+        return new Literal<Boolean>(Boolean.parseBoolean((String) getValue().get()));
     }
 
     private Literal<Double> parseNumber() {
-        checkState(value.isPresent(), "This parse must be present to do this");
+        checkState(getValue().isPresent(), "This parse must be present to do this");
         checkState(isString(), "The value must be a string to use this method");
 
-        return new Literal<Double>(Double.parseDouble((String) value.get()));
+        return new Literal<Double>(Double.parseDouble((String) getValue().get()));
     }
 
-    private Literal<List<Variable>> parseArray() {
-        checkState(value.isPresent(), "This parse must be present to do this");
-        return new Literal<List<Variable>>(new ArrayList<Variable>(Arrays.asList(new Variable[]{new Variable(null, this)}))); // Create a singleton of the data
+    private Literal<List<LiteralHolder>> parseArray() {
+        checkState(getValue().isPresent(), "This parse must be present to do this");
+        return new Literal<List<LiteralHolder>>(new ArrayList<LiteralHolder>(Arrays.asList(new LiteralHolder[]{new LiteralHolder(this)}))); // Create a singleton of the data
     }
 }

@@ -3,6 +3,7 @@ package com.pqqqqq.directscript.lang.statement.generic.setters;
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.script.Script;
@@ -43,7 +44,7 @@ public class CallStatement extends Statement {
         Script script = scriptOptional.get();
         checkState(script.getTrigger().get().hasCause(Causes.CALL), "This script cannot be called");
 
-        List<Variable> arguments = ctx.getLiteral(1).getArray();
+        List<LiteralHolder> arguments = ctx.getLiteral(1).getArray();
 
         ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).causedBy(ctx.getScriptInstance().getCausedBy().orNull()).build();
         scriptInstanceNew.getEnvironment().getVariables().put("generic.arguments", new Variable("generic.arguments", Literal.getLiteralBlindly(arguments)));

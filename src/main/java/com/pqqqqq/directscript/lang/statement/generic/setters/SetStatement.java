@@ -2,6 +2,7 @@ package com.pqqqqq.directscript.lang.statement.generic.setters;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
@@ -43,10 +44,10 @@ public class SetStatement extends Statement {
         String varName = ctx.getLiteral(0).getString();
         Literal value = ctx.getLiteral(2);
 
-        Optional<Variable> variableOptional = ctx.getScriptInstance().getEnvironment().getVariable(varName);
-        checkState(variableOptional.isPresent(), "Unknown variable: " + varName);
+        Optional<LiteralHolder> literalHolderOptional = ctx.getScriptInstance().getEnvironment().getLiteralHolder(varName);
+        checkState(literalHolderOptional.isPresent(), "Unknown variable: " + varName);
 
-        variableOptional.get().setData(value);
+        literalHolderOptional.get().setData(value);
         return Result.success();
     }
 }

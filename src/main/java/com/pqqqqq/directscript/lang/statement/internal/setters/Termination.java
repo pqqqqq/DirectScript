@@ -59,6 +59,6 @@ public class Termination extends Statement {
             }
         }
 
-        return Result.failure();
+        return Result.success();
     }
 }

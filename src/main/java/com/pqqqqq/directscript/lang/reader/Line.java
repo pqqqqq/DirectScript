@@ -1,11 +1,15 @@
 package com.pqqqqq.directscript.lang.reader;
 
 import com.google.common.base.Objects;
+import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.data.Sequencer;
+import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.statement.Statements;
 import com.pqqqqq.directscript.lang.util.StringParser;
 import com.pqqqqq.directscript.lang.util.Utilities;
+import org.apache.commons.lang3.StringUtils;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -17,55 +21,24 @@ public class Line {
     private final int absoluteNumber;
     private final int scriptNumber;
     private final String line;
-    private final String trimmedLine;
     private final Statement statement;
-    private final String[] arguments;
 
     private Line openingBrace = null;
     private Line closingBrace = null;
     private Block internalBlock = null;
 
     /**
-     * Creates a new line with the corresponding absolute and script number, and the string representation of the line, that throws errors
+     * Creates a new line with the corresponding absolute and script number, the string representation of the line
      *
      * @param absoluteNumber the absolute line number (of the file)
      * @param scriptNumber   the script line number
      * @param line           the line string
      */
     public Line(int absoluteNumber, int scriptNumber, String line) {
-        this(absoluteNumber, scriptNumber, line, true);
-    }
-
-    /**
-     * Creates a new line with the corresponding absolute and script number, the string representation of the line and whether it throws errors
-     *
-     * @param absoluteNumber the absolute line number (of the file)
-     * @param scriptNumber   the script line number
-     * @param line           the line string
-     * @param throwError     whether to throw errors
-     */
-    public Line(int absoluteNumber, int scriptNumber, String line, boolean throwError) {
         this.absoluteNumber = absoluteNumber;
         this.scriptNumber = scriptNumber;
         this.line = Utilities.fullLineTrim(line);
-
-        this.statement = Statements.getStatement(this).orNull();
-        checkState(!throwError || this.statement != null, "Unknown line statement: " + this.line);
-
-        if (this.statement != null) {
-            if (this.statement.doesUseBrackets()) {
-                this.trimmedLine = this.line.substring(this.line.indexOf('(') + 1, this.line.lastIndexOf(')')); // Trim to what's inside brackets
-            } else {
-                String trimmedLine = this.line.substring(this.line.indexOf(' ') + 1).trim(); // Trim prefix
-                trimmedLine = trimmedLine.substring(0, trimmedLine.length() - this.statement.getSuffix().length()).trim(); // Trim suffix
-                this.trimmedLine = trimmedLine;
-            }
-
-            this.arguments = StringParser.instance().parseSplit(this.trimmedLine, this.statement.getSplitString());
-        } else {
-            this.trimmedLine = null;
-            this.arguments = null;
-        }
+        this.statement = Statements.getStatement(this.line).orNull();
     }
 
     /**
@@ -96,15 +69,6 @@ public class Line {
     }
 
     /**
-     * Gets the trimmed line string, without the prefix, identifier and suffix
-     *
-     * @return the trimmed line
-     */
-    public String getTrimmedLine() {
-        return trimmedLine;
-    }
-
-    /**
      * Gets the corresponding {@link Statement} attached to this line
      * @return the statement
      */
@@ -113,28 +77,11 @@ public class Line {
     }
 
     /**
-     * Gets an array of arguments split by {@link Statement#getSplitString()}
-     * @return the string array
+     * Gets if this {@link Line} is runnable, that is if {@link #getStatement()} is not null
+     * @return true if runnable
      */
-    public String[] getArguments() {
-        return arguments;
-    }
-
-    /**
-     * Gets the number of arguments
-     * @return the size of the argument array
-     */
-    public int getArgCount() {
-        return arguments.length;
-    }
-
-    /**
-     * Gets the string argument at the given index
-     * @param index the index to check
-     * @return the string argument at the index
-     */
-    public String getArg(int index) {
-        return arguments[index];
+    public boolean isRunnable() {
+        return statement != null;
     }
 
     /**
@@ -185,7 +132,40 @@ public class Line {
      * @return the context
      */
     public Context toContex(ScriptInstance scriptInstance) {
-        return new Context(scriptInstance, this);
+        checkState(isRunnable(), "Unknown line statement: " + this.line);
+
+        String trimmedLine;
+        if (this.statement.doesUseBrackets()) {
+            trimmedLine = this.line.substring(this.line.indexOf('(') + 1, this.line.lastIndexOf(')')); // Trim to what's inside brackets
+        } else {
+            trimmedLine = this.line.substring(this.line.indexOf(' ') + 1).trim(); // Trim prefix
+            trimmedLine = trimmedLine.substring(0, trimmedLine.length() - this.statement.getSuffix().length()).trim(); // Trim suffix
+        }
+
+        String[] strargs = StringParser.instance().parseSplit(trimmedLine, this.statement.getSplitString());
+
+        Statement.Argument[] arguments = this.statement.getArguments();
+        DataContainer[] containers = new DataContainer[arguments.length];
+        int curIndex = 0;
+
+        for (Statement.Argument argument : arguments) {
+            if (strargs.length <= curIndex) { // If it goes over, just put empty literals
+                containers[curIndex++] = Literal.empty();
+                continue;
+            }
+
+            String strarg = argument.isRest() ? StringUtils.join(strargs, this.statement.getSplitString(), curIndex, strargs.length) : strargs[curIndex];
+            DataContainer litarg = argument.doParse() ? Sequencer.instance().parse(strarg) : Literal.getLiteralBlindly(strarg); // Use doParse boolean
+            checkState(argument.isOptional() || !(litarg instanceof Literal) || !((Literal) litarg).isEmpty(), "Argument " + curIndex + "(" + argument.getName() + ") is not optional."); // Use isOptional boolean
+
+            if (argument.isModifier() && (!(litarg instanceof Literal) || !((Literal) litarg).getString().equals(argument.getName()))) { // Use isModifier boolean
+                continue; // Basically skip this argument but keep the string
+            }
+
+            containers[curIndex++] = litarg;
+        }
+
+        return new Context(scriptInstance, this, strargs, containers);
     }
 
     @Override
@@ -194,7 +174,6 @@ public class Line {
                 .add("absoluteLine", this.absoluteNumber)
                 .add("scriptLine", this.scriptNumber)
                 .add("line", this.line)
-                .add("trimmedLine", this.trimmedLine)
                 .add("statement", this.statement.getClass().getName())
                 .toString();
     }

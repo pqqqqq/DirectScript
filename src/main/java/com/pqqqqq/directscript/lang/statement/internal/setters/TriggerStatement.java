@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.statement.internal.setters;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.data.env.Variable;
+import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
@@ -38,9 +38,9 @@ public class TriggerStatement extends Statement<Trigger> {
     @Override
     public Result<Trigger> run(Context ctx) {
         Trigger.Builder triggerBuilder = Trigger.builder().script(ctx.getScriptInstance().getScript());
-        List<Variable> triggers = ctx.getLiteral(0).getArray();
+        List<LiteralHolder> triggers = ctx.getLiteral(0).getArray();
 
-        for (Variable trigger : triggers) {
+        for (LiteralHolder trigger : triggers) {
             String causeString = trigger.getData().getString();
             Optional<Cause> cause = Causes.getCause(causeString);
 

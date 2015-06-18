@@ -2,7 +2,7 @@ package com.pqqqqq.directscript.lang.data.env;
 
 import com.google.common.base.Objects;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.util.ICopyable;
+import com.pqqqqq.directscript.lang.data.LiteralHolder;
 
 import java.util.regex.Pattern;
 
@@ -13,12 +13,11 @@ import static com.google.common.base.Preconditions.checkState;
  * Created by Kevin on 2015-06-02.
  * Represents a memory section that contains a {@link Literal} and is read by a specific name
  */
-public class Variable implements ICopyable<Variable> {
+public class Variable extends LiteralHolder {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z]([A-Za-z0-9]|\\.)*$");
 
     private final String name;
     private final boolean isFinal;
-    private Literal data;
 
     /**
      * Creates a new variable with the corresponding name that has a value of {@link Literal#empty()} and is not final
@@ -26,7 +25,9 @@ public class Variable implements ICopyable<Variable> {
      * @param name the name
      */
     public Variable(String name) {
-        this(name, Literal.empty());
+        super();
+        this.name = name;
+        this.isFinal = false;
     }
 
     /**
@@ -36,7 +37,9 @@ public class Variable implements ICopyable<Variable> {
      * @param data the data
      */
     public Variable(String name, Literal data) {
-        this(name, data, false);
+        super(data);
+        this.name = name;
+        this.isFinal = false;
     }
 
     /**
@@ -47,8 +50,8 @@ public class Variable implements ICopyable<Variable> {
      * @param isFinal whether this variable is final
      */
     public Variable(String name, Literal data, boolean isFinal) {
+        super(data);
         this.name = name;
-        forceSetData(data);
         this.isFinal = isFinal;
     }
 
@@ -79,19 +82,7 @@ public class Variable implements ICopyable<Variable> {
         return name;
     }
 
-    /**
-     * Gets the {@link Literal} data for this variable
-     * @return the data
-     */
-    public Literal getData() {
-        return data;
-    }
-
-    /**
-     * Sets the {@link Literal} data for this variaboe
-     * @param data the data
-     * @see #isFinal()
-     */
+    @Override
     public void setData(Literal data) {
         checkState(!isFinal, "You cannot change the value of a finalized vaiable");
         forceSetData(data);
@@ -99,7 +90,7 @@ public class Variable implements ICopyable<Variable> {
 
     private void forceSetData(Literal data) {
         checkNotNull(data, "Data itself cannot be null. Use Literal#empty for null data");
-        this.data = data;
+        super.setData(data);
     }
 
     /**
@@ -115,20 +106,20 @@ public class Variable implements ICopyable<Variable> {
      * @return the copied variable
      */
     public Variable copy() {
-        return new Variable(name, data, isFinal);
+        return new Variable(name, super.copy().getData(), isFinal);
     }
 
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
                 .add("name", name)
-                .add("data", data)
+                .add("data", getData())
                 .add("isFinal", isFinal).toString();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, data, isFinal);
+        return Objects.hashCode(name, getData(), isFinal);
     }
 
     @Override

@@ -56,8 +56,9 @@ public class ElseStatement extends Termination {
             if (!bool) {
                 scriptInstance.setSkipLines(false); // Turn off skipping lines for this
                 String trimBeginning = line.getLine().substring(6);
-                Line truncatedLine = new Line(line.getAbsoluteNumber(), line.getAbsoluteNumber(), trimBeginning, false);
-                if (truncatedLine.getStatement() != null) {
+                Line truncatedLine = new Line(line.getAbsoluteNumber(), line.getScriptNumber(), trimBeginning.trim());
+
+                if (truncatedLine.isRunnable()) {
                     return truncatedLine.toContex(scriptInstance).run();
                 }
             } else {
