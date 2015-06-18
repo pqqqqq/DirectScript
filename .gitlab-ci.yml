@@ -1,0 +1,11 @@
+before_script:
+  - java -version
+
+test:
+  script:
+    - mvn test
+  tags:
+    - java
+    - sponge
+  only:
+    - master
