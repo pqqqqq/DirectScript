@@ -10,7 +10,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-17.
- * Represents a {@link Statement} {@link DataContainer} which resolves the line's {@link Literal} value at runtime
+ * Represents a {@link Statement} {@link DataContainer} which resolves a statement's {@link Literal} value at runtime
  */
 public class StatementContainer implements DataContainer {
     private final String statement;
@@ -35,7 +35,7 @@ public class StatementContainer implements DataContainer {
 
     public Literal resolve(ScriptInstance scriptInstance) {
         Optional<Line> currentLine = scriptInstance.getCurrentLine();
-        checkState(currentLine.isPresent(), "No current line could be found");
+        checkState(currentLine.isPresent(), "The current line could be found");
 
         Line line = new Line(currentLine.get().getAbsoluteNumber(), currentLine.get().getScriptNumber(), getStatement());
         Statement.Result result = line.toContex(scriptInstance).run();

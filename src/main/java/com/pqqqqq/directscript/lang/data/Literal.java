@@ -31,11 +31,11 @@ public class Literal<T> implements DataContainer<T> {
 
     private final Optional<T> value;
 
-    protected Literal() {
+    private Literal() {
         this(null);
     }
 
-    protected Literal(T value) {
+    private Literal(T value) {
         this.value = Optional.fromNullable(value);
     }
 

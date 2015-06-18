@@ -13,7 +13,7 @@ public abstract class ExpressionContainer<T> implements DataContainer<T> {
     private final ExpressionOperator operator;
 
     /**
-     * Creates a new {@link ExpressionContainer} with the given {@link DataContainer} terms and the delimiter
+     * Creates a new {@link ExpressionContainer} with the given {@link DataContainer} terms and the operator
      *
      * @param firstTerm  the first term in the expression (left)
      * @param secondTerm the second term in the expression (right)

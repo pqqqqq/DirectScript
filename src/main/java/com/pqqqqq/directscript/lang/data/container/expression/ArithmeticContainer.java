@@ -11,7 +11,7 @@ import com.pqqqqq.directscript.lang.script.ScriptInstance;
 public class ArithmeticContainer extends ExpressionContainer {
 
     /**
-     * Creates a new {@link ExpressionContainer} with the given {@link DataContainer} terms and the delimiter
+     * Creates a new {@link ArithmeticContainer} with the given {@link DataContainer} terms and the operator
      *
      * @param firstTerm  the first term in the expression (left)
      * @param secondTerm the second term in the expression (right)
@@ -19,6 +19,17 @@ public class ArithmeticContainer extends ExpressionContainer {
      */
     public ArithmeticContainer(DataContainer firstTerm, DataContainer secondTerm, ArithmeticOperator operator) {
         super(firstTerm, secondTerm, operator);
+    }
+
+    /**
+     * Creates a new {@link ArithmeticContainer} with the given {@link DataContainer} terms and the functional operator string
+     *
+     * @param firstTerm  the first term in the expression (left)
+     * @param secondTerm the second term in the expression (right)
+     * @param operator   the string operator for the expression
+     */
+    public ArithmeticContainer(DataContainer firstTerm, DataContainer secondTerm, String operator) {
+        this(firstTerm, secondTerm, ArithmeticOperator.fromOperator(operator));
     }
 
     @Override

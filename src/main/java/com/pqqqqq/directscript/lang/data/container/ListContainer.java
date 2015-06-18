@@ -15,13 +15,25 @@ import java.util.List;
 public class ListContainer implements DataContainer {
     private final List<DataContainer> list = new ArrayList<DataContainer>();
 
+    /**
+     * Creates an empty {@link ListContainer}
+     */
     public ListContainer() {
     }
 
+    /**
+     * Creates a {@link ListContainer} with the given {@link DataContainer} {@link List}
+     *
+     * @param col the data container list
+     */
     public ListContainer(Collection<? extends DataContainer> col) {
         this.list.addAll(col);
     }
 
+    /**
+     * Gets the {@link DataContainer} {@link List} for this {@link ListContainer}
+     * @return the data container list
+     */
     public List<DataContainer> getList() {
         return list;
     }

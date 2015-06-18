@@ -108,7 +108,7 @@ public class Sequencer {
             return negateIfNecessary(new VariableContainer(negateTrimSequence), negative);
         }
 
-        return new ArithmeticContainer(parse(triple.getBeforeSegment()), parse(triple.getAfterSegment()), ArithmeticContainer.ArithmeticOperator.fromOperator(triple.getDelimiter()));
+        return new ArithmeticContainer(parse(triple.getBeforeSegment()), parse(triple.getAfterSegment()), triple.getDelimiter());
     }
 
     private DataContainer negateIfNecessary(DataContainer dataContainer, boolean negate) {
@@ -139,7 +139,7 @@ public class Sequencer {
                     DataContainer rightSideLiteral = Sequencer.this.parse(triple.getAfterSegment());
                     String comparator = triple.getDelimiter();
 
-                    andExpressionList.add(new ConditionalExpressionContainer(leftSideLiteral, rightSideLiteral, ConditionalExpressionContainer.ComparativeOperator.fromOperator(comparator)));
+                    andExpressionList.add(new ConditionalExpressionContainer(leftSideLiteral, rightSideLiteral, comparator));
                 }
 
                 mainExpressionList.add(andExpressionList);

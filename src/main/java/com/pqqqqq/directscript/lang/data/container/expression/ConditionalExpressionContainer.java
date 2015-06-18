@@ -13,7 +13,7 @@ import com.pqqqqq.directscript.lang.script.ScriptInstance;
 public class ConditionalExpressionContainer extends ExpressionContainer<Boolean> {
 
     /**
-     * Creates a new {@link ExpressionContainer} with the given {@link DataContainer} terms and the delimiter
+     * Creates a new {@link ConditionalExpressionContainer} with the given {@link DataContainer} terms and the operator
      *
      * @param firstTerm  the first term in the expression (left)
      * @param secondTerm the second term in the expression (right)
@@ -21,6 +21,17 @@ public class ConditionalExpressionContainer extends ExpressionContainer<Boolean>
      */
     public ConditionalExpressionContainer(DataContainer firstTerm, DataContainer secondTerm, ComparativeOperator operator) {
         super(firstTerm, secondTerm, operator);
+    }
+
+    /**
+     * Creates a new {@link ConditionalExpressionContainer} with the given {@link DataContainer} terms and the functional operator string
+     *
+     * @param firstTerm  the first term in the expression (left)
+     * @param secondTerm the second term in the expression (right)
+     * @param operator   the string operator for the expression
+     */
+    public ConditionalExpressionContainer(DataContainer firstTerm, DataContainer secondTerm, String operator) {
+        this(firstTerm, secondTerm, ComparativeOperator.fromOperator(operator));
     }
 
     @Override
