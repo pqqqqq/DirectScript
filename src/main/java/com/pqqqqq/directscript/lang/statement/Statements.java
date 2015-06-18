@@ -61,6 +61,10 @@ public class Statements {
     public static final Statement<String> REPLACE = new ReplaceStatement();
     public static final Statement<String> CHARACTER = new CharacterStatement();
     public static final Statement<Integer> ORDINAL = new OrdinalStatement();
+    public static final Statement<Double> INCREMENT = new IncrementStatement();
+    public static final Statement<Double> DECREMENT = new DecrementStatement();
+    public static final Statement<Double> POSTFIX_INCREMENT = new PostfixIncrementStatement();
+    public static final Statement<Double> POSTFIX_DECREMENT = new PostfixDecrementStatement();
 
     // Sponge statements
     public static final Statement PLAYER = new PlayerStatement();

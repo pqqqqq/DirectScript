@@ -3,6 +3,7 @@ package com.pqqqqq.directscript.lang.reader;
 import com.google.common.base.Objects;
 import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.data.Literals;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
@@ -137,11 +138,16 @@ public class Line {
         if (this.statement.doesUseBrackets()) {
             trimmedLine = this.line.substring(this.line.indexOf('(') + 1, this.line.lastIndexOf(')')); // Trim to what's inside brackets
         } else {
-            trimmedLine = this.line.substring(this.line.indexOf(' ') + 1).trim(); // Trim prefix
+            trimmedLine = this.line.substring(this.statement.getPrefix().length()).trim(); // Trim prefix
+
+            if (this.statement.getIdentifiers() != null && this.statement.getIdentifiers().length > 0 && !this.statement.getSplitString().isEmpty()) {
+                trimmedLine = trimmedLine.substring(trimmedLine.indexOf(this.statement.getSplitString()) + 1).trim(); // Trim identifiers
+            }
+
             trimmedLine = trimmedLine.substring(0, trimmedLine.length() - this.statement.getSuffix().length()).trim(); // Trim suffix
         }
 
-        String[] strargs = Lang.instance().stringParser().parseSplit(trimmedLine, this.statement.getSplitString());
+        String[] strargs = this.statement.getSplitString().isEmpty() ? new String[]{trimmedLine} : Lang.instance().stringParser().parseSplit(trimmedLine, this.statement.getSplitString());
 
         Statement.Argument[] arguments = this.statement.getArguments();
         DataContainer[] containers = new DataContainer[arguments.length];
@@ -149,7 +155,7 @@ public class Line {
 
         for (Statement.Argument argument : arguments) {
             if (strargs.length <= curIndex) { // If it goes over, just put empty literals
-                containers[curIndex++] = Literal.empty();
+                containers[curIndex++] = Literals.EMPTY;
                 continue;
             }
 

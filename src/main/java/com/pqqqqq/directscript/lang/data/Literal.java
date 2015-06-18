@@ -25,45 +25,14 @@ import static com.google.common.base.Preconditions.checkState;
 public class Literal<T> implements DataContainer<T> {
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.###");
 
-    private static final Literal EMPTY = new Literal();
-    private static final Literal<Boolean> TRUE = new Literal(true);
-    private static final Literal<Boolean> FALSE = new Literal(false);
-
     private final Optional<T> value;
 
-    private Literal() {
+    Literal() {
         this(null);
     }
 
-    private Literal(T value) {
+    Literal(T value) {
         this.value = Optional.fromNullable(value);
-    }
-
-    /**
-     * An empty {@link Literal}, where the value is absent
-     *
-     * @return the empty literal
-     */
-    public static Literal empty() {
-        return EMPTY;
-    }
-
-    /**
-     * A true {@link Literal}, where the value is true (or 1)
-     *
-     * @return the true literal
-     */
-    public static Literal<Boolean> trueLiteral() {
-        return TRUE;
-    }
-
-    /**
-     * A false {@link Literal}, where the value is false (or 0)
-     *
-     * @return the false literal
-     */
-    public static Literal<Boolean> falseLiteral() {
-        return FALSE;
     }
 
     /**
@@ -75,11 +44,11 @@ public class Literal<T> implements DataContainer<T> {
      */
     public static <T> Literal getLiteralBlindly(T value) {
         if (value == null) {
-            return Literal.empty();
+            return Literals.EMPTY;
         }
 
         if (value instanceof Boolean) {
-            return (Boolean) value ? TRUE : FALSE; // No need to create more immutable instances
+            return (Boolean) value ? Literals.TRUE : Literals.FALSE; // No need to create more immutable instances
         }
 
         if (value instanceof Integer || value instanceof Long || value instanceof Float) {
@@ -105,7 +74,7 @@ public class Literal<T> implements DataContainer<T> {
      */
     public static Optional<Literal> getLiteral(String literal) {
         if (literal == null || literal.isEmpty() || literal.equals("null")) { // Null or empty values return an empty parse
-            return Optional.of(empty());
+            return Optional.of(Literals.EMPTY);
         }
 
         // If there's quotes, it's a string
@@ -115,11 +84,11 @@ public class Literal<T> implements DataContainer<T> {
 
         // Literal booleans are only true or false
         if (literal.equals("true")) {
-            return Optional.<Literal>of(TRUE);
+            return Optional.<Literal>of(Literals.TRUE);
         }
 
         if (literal.equals("false")) {
-            return Optional.<Literal>of(FALSE);
+            return Optional.<Literal>of(Literals.FALSE);
         }
 
         // Everything in literals are basically just numbers, just make them all doubles
@@ -325,7 +294,7 @@ public class Literal<T> implements DataContainer<T> {
     }
 
     /**
-     * Gets a {@link Literal} with the specified new value if this literal is {@link #empty()}, or otherwise this literal
+     * Gets a {@link Literal} with the specified new value if this literal is {@link Literals#EMPTY}, or otherwise this literal
      * @param newvalue the new value
      * @return this literal if not empty, or a literal with newvalue
      */
@@ -360,7 +329,7 @@ public class Literal<T> implements DataContainer<T> {
     // Parsing stuff for conversions
     private Literal<String> parseString() {
         if (!getValue().isPresent()) {
-            return Literal.empty();
+            return Literals.EMPTY;
         }
 
         // Make integers not have the .0

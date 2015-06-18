@@ -1,6 +1,5 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
-import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Block;
@@ -39,7 +38,7 @@ public class ForEachStatement extends Statement {
     @Override
     public Result run(Context ctx) {
         String varName = ctx.getLiteral(0).getString();
-        Variable var = ctx.getScriptInstance().getEnvironment().addVariable(new Variable(varName, Literal.empty()));
+        Variable var = ctx.getScriptInstance().getEnvironment().addVariable(new Variable(varName));
         List<LiteralHolder> array = ctx.getLiteral(1).getArray();
 
         Block internalBlock = ctx.getLine().getInternalBlock();

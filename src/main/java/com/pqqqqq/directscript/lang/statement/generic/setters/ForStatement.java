@@ -38,7 +38,7 @@ public class ForStatement extends Statement {
     @Override
     public Result run(Context ctx) {
         String varName = ctx.getLiteral(0).getString();
-        Variable var = ctx.getScriptInstance().getEnvironment().addVariable(new Variable(varName, Literal.empty()));
+        Variable var = ctx.getScriptInstance().getEnvironment().addVariable(new Variable(varName));
 
         double startValue = ctx.getLiteral(1).getNumber();
         double endValue = ctx.getLiteral(2).getNumber();

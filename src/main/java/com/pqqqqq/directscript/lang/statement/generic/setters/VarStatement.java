@@ -1,6 +1,7 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
 import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.data.Literals;
 import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Context;
@@ -40,7 +41,7 @@ public class VarStatement extends Statement {
     @Override
     public Result run(Context ctx) {
         boolean isFinal = false;
-        Literal value = Literal.empty();
+        Literal value = Literals.EMPTY;
 
         for (int i = 0; i < ctx.getLiteralCount(); i++) {
             String word = ctx.getLiteral(i).getString();

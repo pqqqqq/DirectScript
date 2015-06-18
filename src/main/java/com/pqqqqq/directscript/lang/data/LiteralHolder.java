@@ -10,10 +10,10 @@ public class LiteralHolder<T> implements ICopyable<LiteralHolder<T>> {
     private Literal<T> data;
 
     /**
-     * Creates a new {@link LiteralHolder} instance with {@link Literal#empty()} data
+     * Creates a new {@link LiteralHolder} instance with {@link Literals#EMPTY} data
      */
     public LiteralHolder() {
-        this(Literal.empty());
+        this(Literals.EMPTY);
     }
 
     /**

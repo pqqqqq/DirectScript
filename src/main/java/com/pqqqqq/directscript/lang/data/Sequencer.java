@@ -47,7 +47,7 @@ public class Sequencer {
 
         sequence = sequence.trim();
         if (sequence.isEmpty()) {
-            return Literal.empty();
+            return Literals.EMPTY;
         }
 
         // Check preceding exclamation points (negation)

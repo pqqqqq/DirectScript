@@ -149,6 +149,10 @@ public abstract class Statement<T> {
 
     // Private generator methods
     private String genIdentifierPatternString() {
+        if (getIdentifiers() == null || getIdentifiers().length == 0) {
+            return "";
+        }
+
         String identifierString = "(";
 
         for (String identifier : getIdentifiers()) {
