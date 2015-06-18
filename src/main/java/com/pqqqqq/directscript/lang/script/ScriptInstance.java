@@ -62,7 +62,7 @@ public class ScriptInstance implements Runnable {
     /**
      * Retrieves an instance of a {@link ScriptInstance} {@link com.pqqqqq.directscript.lang.script.ScriptInstance.Builder}
      *
-     * @return
+     * @return a new builder
      */
     public static Builder builder() {
         return new Builder();
@@ -148,7 +148,7 @@ public class ScriptInstance implements Runnable {
     }
 
     /**
-     * Sets whether this {@link ScriptInstance} shoudl skip line execution
+     * Sets whether this {@link ScriptInstance} should skip line execution
      * @param skipLines the new skip value boolean
      */
     public void setSkipLines(boolean skipLines) {
