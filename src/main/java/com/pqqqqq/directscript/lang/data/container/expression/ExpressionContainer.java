@@ -6,6 +6,8 @@ import com.pqqqqq.directscript.lang.data.container.DataContainer;
 /**
  * Created by Kevin on 2015-06-17.
  * An abstract {@link DataContainer} which does something to two separate data containers based on the operator they are separated by
+ *
+ * @param <T> the type parameter for the expression literal
  */
 public abstract class ExpressionContainer<T> implements DataContainer<T> {
     private final DataContainer firstTerm;

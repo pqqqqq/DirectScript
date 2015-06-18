@@ -2,7 +2,7 @@ package com.pqqqqq.directscript.lang.script;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.pqqqqq.directscript.DirectScript;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.data.env.Variable;
@@ -259,9 +259,9 @@ public class ScriptInstance implements Runnable {
                     }
                 }
             } catch (Throwable e) {
-                DirectScript.instance().getErrorHandler().log(String.format("Error in script '%s' -> '%s' at line #%d (script line #%d): ", getScript().getScriptsFile().getStringRepresentation(), getScript().getName(), line.getAbsoluteNumber(), line.getScriptNumber()));
-                DirectScript.instance().getErrorHandler().log(e);
-                DirectScript.instance().getErrorHandler().flush();
+                Lang.instance().errorHandler().log(String.format("Error in script '%s' -> '%s' at line #%d (script line #%d): ", getScript().getScriptsFile().getStringRepresentation(), getScript().getName(), line.getAbsoluteNumber(), line.getScriptNumber()));
+                Lang.instance().errorHandler().log(e);
+                Lang.instance().errorHandler().flush();
                 return Result.FAILURE_ERROR; // Stop running of script
             }
         }

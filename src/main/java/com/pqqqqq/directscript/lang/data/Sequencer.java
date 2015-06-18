@@ -1,6 +1,7 @@
 package com.pqqqqq.directscript.lang.data;
 
 import com.google.common.base.Optional;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.container.*;
 import com.pqqqqq.directscript.lang.data.container.expression.ArithmeticContainer;
 import com.pqqqqq.directscript.lang.data.container.expression.ConditionalExpressionContainer;
@@ -64,8 +65,8 @@ public class Sequencer {
         }
 
         // Check if it's a ternary operator. Don't use negateTrimmedSequence
-        int questionMark = StringParser.instance().indexOf(sequence, "?");
-        int colon = StringParser.instance().indexOf(sequence, ":");
+        int questionMark = Lang.instance().stringParser().indexOf(sequence, "?");
+        int colon = Lang.instance().stringParser().indexOf(sequence, ":");
         if (questionMark > -1 && colon > -1) {
             DataContainer conditionContainer = parse(sequence.substring(0, questionMark).trim());
             DataContainer trueContainer = parse(sequence.substring(questionMark + 1, colon).trim());
@@ -80,7 +81,7 @@ public class Sequencer {
             return conditionLiteral.get();
         }
 
-        StringParser.SplitSequence triple = StringParser.instance().parseNextSequence(sequence, LITERAL_DELIMITER_GROUPS); // Split into ordered triple segments
+        StringParser.SplitSequence triple = Lang.instance().stringParser().parseNextSequence(sequence, LITERAL_DELIMITER_GROUPS); // Split into ordered triple segments
         if (triple == null || triple.getDelimiter() == null) { // Check if there's no split string
             // Check if it's a statement. Don't use negateTrimmedSequence
             if (Statements.getStatement(sequence).isPresent()) {
@@ -92,7 +93,7 @@ public class Sequencer {
                 List<DataContainer> array = new ArrayList<DataContainer>();
 
                 int index = 0;
-                for (String arrayValue : StringParser.instance().parseSplit(negateTrimSequence.substring(1, negateTrimSequence.length() - 1), ",")) {
+                for (String arrayValue : Lang.instance().stringParser().parseSplit(negateTrimSequence.substring(1, negateTrimSequence.length() - 1), ",")) {
                     array.add(parse(arrayValue));
                 }
                 return new ListContainer(array);
@@ -120,15 +121,15 @@ public class Sequencer {
         }
 
         Optional<DataContainer<Boolean>> parse(String sequence) {
-            String[] splitOr = StringParser.instance().parseSplit(sequence, " or "); // 'Or' takes precedence over 'and'
+            String[] splitOr = Lang.instance().stringParser().parseSplit(sequence, " or "); // 'Or' takes precedence over 'and'
             List<List<ConditionalExpressionContainer>> mainExpressionList = new ArrayList<List<ConditionalExpressionContainer>>();
 
             for (String orCondition : splitOr) {
-                String[] splitAnd = StringParser.instance().parseSplit(orCondition, " and ");
+                String[] splitAnd = Lang.instance().stringParser().parseSplit(orCondition, " and ");
                 List<ConditionalExpressionContainer> andExpressionList = new ArrayList<ConditionalExpressionContainer>();
 
                 for (String condition : splitAnd) {
-                    StringParser.SplitSequence triple = StringParser.instance().parseNextSequence(condition, CONDITION_DELIMITER_GROUPS);
+                    StringParser.SplitSequence triple = Lang.instance().stringParser().parseNextSequence(condition, CONDITION_DELIMITER_GROUPS);
 
                     if (triple == null || triple.getDelimiter() == null) {
                         return Optional.absent(); // Need exactly a left side and a right side

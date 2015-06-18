@@ -1,6 +1,6 @@
 package com.pqqqqq.directscript.lang.reader;
 
-import com.pqqqqq.directscript.DirectScript;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.script.ScriptsFile;
@@ -9,8 +9,6 @@ import com.pqqqqq.directscript.lang.statement.internal.setters.ScriptDeclaration
 import com.pqqqqq.directscript.lang.statement.internal.setters.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
-import com.pqqqqq.directscript.lang.util.StringParser;
-import com.pqqqqq.directscript.lang.util.Utilities;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.BufferedReader;
@@ -136,16 +134,16 @@ public class Reader {
                 try {
                     absoluteLine++; // Up the line #s
 
-                    Pair<Boolean, String> comments = StringParser.instance().removeComments(blockComment, line);
+                    Pair<Boolean, String> comments = Lang.instance().stringParser().removeComments(blockComment, line);
                     blockComment = comments.getLeft();
                     line = comments.getRight();
 
-                    String trim = Utilities.fullLineTrim(line);
-                    if (trim.isEmpty()) {
+                    Line lineInst = new Line(absoluteLine, scriptLine, line);
+                    if (lineInst.getLine().isEmpty()) {
                         continue;
                     }
 
-                    Line lineInst = new Line(absoluteLine, scriptLine, line);
+                    checkState(lineInst.isRunnable(), "Unknown statement.");
                     if (currentScript != null) {
                         scriptLine++;
                         if (lineInst.getStatement() instanceof Termination) { // Else is an instance of Termination
@@ -191,9 +189,9 @@ public class Reader {
                         currentScript.getLines().add(lineInst);
                     }
                 } catch (Throwable e1) {
-                    DirectScript.instance().getErrorHandler().log(String.format("Error in compilation of %s at line %d", scriptsFile.getStringRepresentationNoExt() + (currentScript != null ? " -> " + currentScript.getName() : ""), absoluteLine));
-                    DirectScript.instance().getErrorHandler().log(e1);
-                    DirectScript.instance().getErrorHandler().flush();
+                    Lang.instance().errorHandler().log(String.format("Error in compilation of %s at line %d", scriptsFile.getStringRepresentationNoExt() + (currentScript != null ? " -> " + currentScript.getName() : ""), absoluteLine));
+                    Lang.instance().errorHandler().log(e1);
+                    Lang.instance().errorHandler().flush();
                 }
             }
 

@@ -10,24 +10,20 @@ import java.util.Date;
  * The error handler class that writes to a {@link PrintStream} about {@link Throwable} errors
  */
 public class ErrorHandler {
+    private static final ErrorHandler INSTANCE = new ErrorHandler();
     private static final File ERROR_FILE = new File("scripts/errors.log");
     private PrintStream writer;
 
     private ErrorHandler() {
-        try {
-            writer = new PrintStream(ERROR_FILE);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     /**
-     * Gets a new error handler instance
+     * Gets the {@link ErrorHandler} instance
      *
-     * @return a new instance
+     * @return the instance
      */
     public static ErrorHandler instance() {
-        return new ErrorHandler();
+        return INSTANCE;
     }
 
     /**
@@ -37,6 +33,17 @@ public class ErrorHandler {
      */
     public static File getErrorFile() {
         return ERROR_FILE;
+    }
+
+    /**
+     * Attaches this {@link ErrorHandler}'s {@link PrintStream} to the error file, denoted by {@link #getErrorFile()}
+     */
+    public void attach() {
+        try {
+            writer = new PrintStream(ERROR_FILE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**

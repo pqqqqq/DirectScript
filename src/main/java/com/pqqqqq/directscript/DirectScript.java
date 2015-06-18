@@ -1,12 +1,9 @@
 package com.pqqqqq.directscript;
 
-import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import com.pqqqqq.directscript.commands.CommandDirectScript;
 import com.pqqqqq.directscript.events.TriggerEvents;
-import com.pqqqqq.directscript.lang.error.ErrorHandler;
-import com.pqqqqq.directscript.lang.reader.Reader;
-import com.pqqqqq.directscript.lang.script.Script;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.script.ScriptsFile;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import org.slf4j.Logger;
@@ -34,7 +31,7 @@ public class DirectScript {
     private static DirectScript INSTANCE;
 
     private Set<ScriptsFile> scriptsFiles;
-    private ErrorHandler errorHandler;
+    private Lang lang;
 
     @Inject
     private Game game;
@@ -54,9 +51,9 @@ public class DirectScript {
     @Subscribe
     public void init(InitializationEvent event) {
         INSTANCE = this;
-        errorHandler = ErrorHandler.instance();
 
-        reloadScripts(); // Register all scripts
+        lang = Lang.instance();
+        lang.reloadScripts(); // Register all scripts
 
         // Register commands
         CommandService commandService = game.getCommandDispatcher();
@@ -77,7 +74,7 @@ public class DirectScript {
 
     @Subscribe
     public void serverStopping(ServerStoppingEvent event) {
-        errorHandler.close(); // Close error handler stream
+        lang.errorHandler().close(); // Close error handler stream
         Causes.SERVER_STOPPING.activate(); // Trigger server stopping cause
     }
 
@@ -93,28 +90,8 @@ public class DirectScript {
         return scriptsFiles;
     }
 
-    public ErrorHandler getErrorHandler() {
-        return errorHandler;
-    }
-
-    public Optional<Script> getScript(String str) {
-        String[] split = str.split(":");
-
-        if (split.length < 2) {
-            return Optional.absent();
-        }
-
-        for (ScriptsFile scriptsFile : scriptsFiles) {
-            if (scriptsFile.getStringRepresentationNoExt().equals(split[0])) {
-                return scriptsFile.getScript(split[1]);
-            }
-        }
-
-        return Optional.absent();
-    }
-
-    public void reloadScripts() {
-        scriptsFiles = Reader.instance().load();
+    public Lang getLang() {
+        return lang;
     }
 
     /**

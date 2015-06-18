@@ -1,6 +1,6 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
-import com.pqqqqq.directscript.lang.data.Sequencer;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.reader.Block;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
@@ -36,7 +36,7 @@ public class WhileStatement extends Statement {
         Block internalBlock = ctx.getLine().getInternalBlock();
         checkNotNull(internalBlock, "This line has no internal block");
 
-        while (Sequencer.instance().parse(ctx.getStringArgument(0)).resolve(ctx.getScriptInstance()).getBoolean()) { // This needs to be re-parsed every time
+        while (Lang.instance().sequencer().parse(ctx.getStringArgument(0)).resolve(ctx.getScriptInstance()).getBoolean()) { // This needs to be re-parsed every time
             ScriptInstance.Result result = ctx.getScriptInstance().execute(internalBlock);
 
             if (result == ScriptInstance.Result.FAILURE_BREAK) {

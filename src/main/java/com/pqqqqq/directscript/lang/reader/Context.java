@@ -2,6 +2,7 @@ package com.pqqqqq.directscript.lang.reader;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.script.Script;
@@ -149,8 +150,8 @@ public class Context {
     public Statement.Result run() {
         result = line.getStatement().run(this);
         if (scriptInstance.isRuntime() && result != null && !result.isSuccess()) { // We only want this at runtime
-            DirectScript.instance().getErrorHandler().log(String.format("Statement in script '%s' -> '%s' at line #%d (script line #%d) failed. Continuing execution.", getScript().getScriptsFile().getStringRepresentation(), getScript().getName(), line.getAbsoluteNumber(), line.getScriptNumber()));
-            DirectScript.instance().getErrorHandler().flush();
+            Lang.instance().errorHandler().log(String.format("Statement in script '%s' -> '%s' at line #%d (script line #%d) failed. Continuing execution.", getScript().getScriptsFile().getStringRepresentation(), getScript().getName(), line.getAbsoluteNumber(), line.getScriptNumber()));
+            Lang.instance().errorHandler().flush();
         }
 
         return result;

@@ -1,13 +1,12 @@
 package com.pqqqqq.directscript.lang.reader;
 
 import com.google.common.base.Objects;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.Sequencer;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.statement.Statements;
-import com.pqqqqq.directscript.lang.util.StringParser;
 import com.pqqqqq.directscript.lang.util.Utilities;
 import org.apache.commons.lang3.StringUtils;
 
@@ -142,7 +141,7 @@ public class Line {
             trimmedLine = trimmedLine.substring(0, trimmedLine.length() - this.statement.getSuffix().length()).trim(); // Trim suffix
         }
 
-        String[] strargs = StringParser.instance().parseSplit(trimmedLine, this.statement.getSplitString());
+        String[] strargs = Lang.instance().stringParser().parseSplit(trimmedLine, this.statement.getSplitString());
 
         Statement.Argument[] arguments = this.statement.getArguments();
         DataContainer[] containers = new DataContainer[arguments.length];
@@ -155,7 +154,7 @@ public class Line {
             }
 
             String strarg = argument.isRest() ? StringUtils.join(strargs, this.statement.getSplitString(), curIndex, strargs.length) : strargs[curIndex];
-            DataContainer litarg = argument.doParse() ? Sequencer.instance().parse(strarg) : Literal.getLiteralBlindly(strarg); // Use doParse boolean
+            DataContainer litarg = argument.doParse() ? Lang.instance().sequencer().parse(strarg) : Literal.getLiteralBlindly(strarg); // Use doParse boolean
             checkState(argument.isOptional() || !(litarg instanceof Literal) || !((Literal) litarg).isEmpty(), "Argument " + curIndex + "(" + argument.getName() + ") is not optional."); // Use isOptional boolean
 
             if (argument.isModifier() && (!(litarg instanceof Literal) || !((Literal) litarg).getString().equals(argument.getName()))) { // Use isModifier boolean

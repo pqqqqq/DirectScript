@@ -22,12 +22,12 @@ public class CommandDirectScript implements CommandExecutor {
 
     public static CommandSpec build(DirectScript plugin) {
         return CommandSpec.builder().executor(new CommandDirectScript(plugin)).description(Texts.of(TextColors.AQUA, "Main plugin command"))
-                .child(CommandReload.build(plugin), "reload").build();
+                .child(CommandReload.build(plugin), "reload").child(CommandCall.build(plugin), "call", "run").build();
     }
 
     public CommandResult execute(CommandSource commandSource, CommandContext commandContext) throws CommandException {
         commandSource.sendMessage(Texts.of(TextColors.GREEN, DirectScript.NAME, TextColors.WHITE, " V", DirectScript.VERSION, TextColors.GREEN, " created by: ", TextColors.WHITE, DirectScript.AUTHORS));
-        commandSource.sendMessage(Texts.of(TextColors.RED, "/script <reload>"));
+        commandSource.sendMessage(Texts.of(TextColors.RED, "/script <reload|call>"));
         return CommandResult.success();
     }
 }

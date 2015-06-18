@@ -1,10 +1,9 @@
 package com.pqqqqq.directscript.lang.data.env;
 
 import com.google.common.base.Optional;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.LiteralHolder;
-import com.pqqqqq.directscript.lang.data.Sequencer;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
-import com.pqqqqq.directscript.lang.util.StringParser;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -74,9 +73,9 @@ public class Environment implements Iterable<Variable> {
             return null;
         }
 
-        String bracket = StringParser.instance().getOuterBracket(name, '[', ']');
+        String bracket = Lang.instance().stringParser().getOuterBracket(name, '[', ']');
         if (bracket != null) {
-            int index = Sequencer.instance().parse(bracket.substring(1, bracket.length() - 1)).resolve(scriptInstance).getNumber().intValue() - 1; // Minus one cause it starts at 1
+            int index = Lang.instance().sequencer().parse(bracket.substring(1, bracket.length() - 1)).resolve(scriptInstance).getNumber().intValue() - 1; // Minus one cause it starts at 1
             return getArrayValue(name.replace(bracket, ""), literalHolder.getData().getArrayValue(index));
         }
         return literalHolder;

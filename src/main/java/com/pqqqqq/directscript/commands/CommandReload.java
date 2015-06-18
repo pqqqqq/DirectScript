@@ -1,6 +1,7 @@
 package com.pqqqqq.directscript.commands;
 
 import com.pqqqqq.directscript.DirectScript;
+import com.pqqqqq.directscript.lang.Lang;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.command.CommandException;
@@ -25,7 +26,7 @@ public class CommandReload implements CommandExecutor {
     }
 
     public CommandResult execute(CommandSource commandSource, CommandContext commandContext) throws CommandException {
-        plugin.reloadScripts();
+        Lang.instance().reloadScripts();
         commandSource.sendMessage(Texts.of(TextColors.AQUA, "Scripts/config reloaded."));
         return CommandResult.success();
     }

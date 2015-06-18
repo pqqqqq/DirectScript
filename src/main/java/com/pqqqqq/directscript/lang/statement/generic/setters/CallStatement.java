@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.DirectScript;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.data.env.Variable;
@@ -37,7 +37,7 @@ public class CallStatement extends Statement {
     @Override
     public Result run(Context ctx) {
         String scriptName = ctx.getLiteral(0).getString();
-        Optional<Script> scriptOptional = DirectScript.instance().getScript(scriptName);
+        Optional<Script> scriptOptional = Lang.instance().getScript(scriptName);
 
         checkState(scriptOptional.isPresent(), "Unknown script: " + scriptName);
 
@@ -47,7 +47,7 @@ public class CallStatement extends Statement {
         List<LiteralHolder> arguments = ctx.getLiteral(1).getArray();
 
         ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).causedBy(ctx.getScriptInstance().getCausedBy().orNull()).build();
-        scriptInstanceNew.getEnvironment().getVariables().put("generic.arguments", new Variable("generic.arguments", Literal.getLiteralBlindly(arguments)));
+        scriptInstanceNew.getEnvironment().addVariable(new Variable("generic.arguments", Literal.getLiteralBlindly(arguments)));
         scriptInstanceNew.execute();
 
         Literal returnLiteral = scriptInstanceNew.getReturnValue().orNull();
