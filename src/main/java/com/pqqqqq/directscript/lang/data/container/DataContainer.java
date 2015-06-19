@@ -12,7 +12,7 @@ import com.pqqqqq.directscript.lang.script.ScriptInstance;
 public interface DataContainer<T> {
 
     /**
-     * Resolves the {@link Literal} in this container from a particular {@link ScriptInstance}
+     * Resolves the {@link Literal} from this container in a particular {@link ScriptInstance}
      *
      * @param scriptInstance the script instance to resolve this container in
      * @return the {@link Literal}

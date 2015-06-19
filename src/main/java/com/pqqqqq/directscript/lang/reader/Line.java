@@ -70,6 +70,7 @@ public class Line {
 
     /**
      * Gets the corresponding {@link Statement} attached to this line
+     *
      * @return the statement
      */
     public Statement getStatement() {
@@ -78,6 +79,7 @@ public class Line {
 
     /**
      * Gets if this {@link Line} is runnable, that is if {@link #getStatement()} is not null
+     *
      * @return true if runnable
      */
     public boolean isRunnable() {
@@ -86,6 +88,7 @@ public class Line {
 
     /**
      * Gets the opening brace {@link Line} for this line. In other words, gets the line that associates this line as a closing brace
+     *
      * @return the line
      */
     public Line getOpeningBrace() {
@@ -98,6 +101,7 @@ public class Line {
 
     /**
      * Gets the closing brace {@link Line} for this line. In other words, gets the line that associates this line as an opening brace
+     *
      * @return the line
      */
     public Line getClosingBrace() {
@@ -128,6 +132,7 @@ public class Line {
 
     /**
      * Converts this line into a {@link Context} with the given {@link ScriptInstance}
+     *
      * @param scriptInstance the script instance that's running this line
      * @return the context
      */

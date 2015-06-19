@@ -99,6 +99,7 @@ public class DirectScript {
      */
     public class InternalTimer implements Runnable {
 
+        @Override
         public void run() {
             Causes.TIMER.activate();
         }

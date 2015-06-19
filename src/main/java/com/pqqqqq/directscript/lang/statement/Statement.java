@@ -90,6 +90,7 @@ public abstract class Statement<T> {
 
     /**
      * Gets the prefix pattern string for {@link #getMatchPattern()}. This value is determined on initialization and never changes
+     *
      * @return the prefix pattern string
      */
     public final String getPrefixPatternString() {
@@ -98,6 +99,7 @@ public abstract class Statement<T> {
 
     /**
      * Gets the suffix pattern string for {@link #getMatchPattern()}. This value is determined on initialization and never changes
+     *
      * @return the suffix pattern string
      */
     public final String getSuffixPatternString() {
@@ -106,6 +108,7 @@ public abstract class Statement<T> {
 
     /**
      * Gets the {@link Pattern} that a {@link Line} must match to be heralded as this {@link Statement}. This value is determined on initialization and never changes
+     *
      * @return the pattern
      */
     public final Pattern getMatchPattern() {
@@ -114,6 +117,7 @@ public abstract class Statement<T> {
 
     /**
      * Gets whether a given line is applicable to this statement. This is analogous to: <code>getMatchPattern().matcher(line).matches()</code>
+     *
      * @param line
      * @return
      */
@@ -125,18 +129,21 @@ public abstract class Statement<T> {
 
     /**
      * Gets the identifiers for this statement, one of which is required to precede the prefix
+     *
      * @return the identifier strings
      */
     public abstract String[] getIdentifiers();
 
     /**
      * Gets the {@link Argument} array for this statement
+     *
      * @return the arguments
      */
     public abstract Argument[] getArguments();
 
     /**
      * Runs this {@link Statement} by the given {@link Context}
+     *
      * @param ctx the context
      * @return the {@link Result} of the execution
      */
@@ -179,6 +186,7 @@ public abstract class Statement<T> {
 
     /**
      * An enumeration of execution times, to be used by {@link Line} {@link com.google.common.base.Predicate}s when executing a {@link com.pqqqqq.directscript.lang.script.ScriptInstance}
+     *
      * @see Statement#getExecutionTime()
      */
     public enum ExecutionTime {
@@ -272,6 +280,7 @@ public abstract class Statement<T> {
 
         /**
          * Gets if this argument uses the rest of the line as its argument
+         *
          * @return true if it uses the rest of the line
          */
         public boolean isRest() {
@@ -371,6 +380,7 @@ public abstract class Statement<T> {
 
             /**
              * Sets the rest value of the argument
+             *
              * @param rest the new rest value
              * @return this builder, for fluency
              * @see Argument#isRest()

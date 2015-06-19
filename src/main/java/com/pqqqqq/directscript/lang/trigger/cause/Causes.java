@@ -28,6 +28,7 @@ public class Causes {
     public static final Cause COMMAND = new Cause.CommandCause();
 
     private static final List<Cause> REGISTRY;
+
     static {
         REGISTRY = RegistryUtil.getAllOf(Cause.class, Causes.class);
     }

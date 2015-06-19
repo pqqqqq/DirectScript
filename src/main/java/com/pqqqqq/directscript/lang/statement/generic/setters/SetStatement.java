@@ -1,13 +1,12 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
-import com.google.common.base.Optional;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.LiteralHolder;
+import com.pqqqqq.directscript.lang.data.container.HolderContainer;
 import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
-
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-08.
@@ -41,13 +40,10 @@ public class SetStatement extends Statement {
 
     @Override
     public Result run(Context ctx) {
-        String varName = ctx.getLiteral(0).getString();
+        LiteralHolder literalHolder = ((HolderContainer) Lang.instance().sequencer().parse(ctx.getLiteral(0).getString())).resolveHolder(ctx.getScriptInstance());
         Literal value = ctx.getLiteral(2);
 
-        Optional<LiteralHolder> literalHolderOptional = ctx.getScriptInstance().getEnvironment().getLiteralHolder(varName);
-        checkState(literalHolderOptional.isPresent(), "Unknown variable: " + varName);
-
-        literalHolderOptional.get().setData(value);
+        literalHolder.setData(value);
         return Result.success();
     }
 }

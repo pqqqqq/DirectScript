@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkState;
 /**
  * Created by Kevin on 2015-06-02.
  * A literal is an immutable value that is not dependent on any environment; a constant
+ *
  * @param <T> the literal type
  */
 public class Literal<T> implements DataContainer<T> {
@@ -69,7 +70,7 @@ public class Literal<T> implements DataContainer<T> {
     /**
      * Creates an {@link Optional} {@link Literal} by parsing it through the {@link Sequencer}
      *
-     * @param literal        the string to parse
+     * @param literal the string to parse
      * @return the new literal, or {@link Optional#absent()} if the literal cannot be parsed
      */
     public static Optional<Literal> getLiteral(String literal) {
@@ -111,6 +112,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Gets the {@link Optional} generic value for this {@link Literal}
+     *
      * @return the value
      */
     public Optional<T> getValue() {
@@ -119,6 +121,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Gets whether this {@link Literal}'s value is an instance of a String
+     *
      * @return true if a String
      */
     public boolean isString() {
@@ -128,6 +131,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Gets whether this {@link Literal}'s value is an instance of a Boolean
+     *
      * @return true if a Boolean
      */
     public boolean isBoolean() {
@@ -137,6 +141,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Gets whether this {@link Literal}'s value is an instance of a Number
+     *
      * @return true if a Number
      */
     public boolean isNumber() {
@@ -146,6 +151,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Gets whether this {@link Literal}'s value is an instance of an Array
+     *
      * @return true if an Array
      */
     public boolean isArray() {
@@ -155,6 +161,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Gets the String value of this {@link Literal}
+     *
      * @return the String value
      */
     public String getString() {
@@ -164,6 +171,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Gets the Boolean value of this {@link Literal}
+     *
      * @return the Boolean value
      */
     public Boolean getBoolean() {
@@ -173,6 +181,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Gets the number (Double) value of this {@link Literal}
+     *
      * @return the number value
      */
     public Double getNumber() {
@@ -182,6 +191,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Gets the array ({@link LiteralHolder} {@link List}) value of this {@link Literal}
+     *
      * @return the array value
      */
     public List<LiteralHolder> getArray() {
@@ -191,13 +201,15 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Gets the specific {@link LiteralHolder} array data at the index
-     * @param index the index for the array
+     *
+     * @param index the index for the array (base 1)
      * @return the variable at this index
      */
     public LiteralHolder getArrayValue(int index) {
         checkState(getValue().isPresent(), "This parse must be present to do this");
         checkState(isArray(), "This parse is not an array");
 
+        index--; // Base 1
         List<LiteralHolder> literalHolders = getArray();
         Utilities.buildToIndex(literalHolders, index, new LiteralHolder());
         return literalHolders.get(index);
@@ -207,6 +219,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Gets an {@link Optional} {@link Player} by checking both the names and UUIDS of players in the server
+     *
      * @return the player
      */
     public Optional<Player> getPlayer() {
@@ -216,16 +229,17 @@ public class Literal<T> implements DataContainer<T> {
                 return playerOptional;
             }
 
-             return DirectScript.instance().getGame().getServer().getPlayer(UUID.fromString(getString())); // Check uuid now
-         } catch (IllegalArgumentException e) {
+            return DirectScript.instance().getGame().getServer().getPlayer(UUID.fromString(getString())); // Check uuid now
+        } catch (IllegalArgumentException e) {
             return Optional.absent();
-         }
+        }
     }
 
     // Arithmetic
 
     /**
      * Adds a {@link Literal} to this one, either by string (concatenation) or numerically
+     *
      * @param other the other literal
      * @return the sum literal
      */
@@ -239,6 +253,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Subtracts a {@link Literal} from this one numerically
+     *
      * @param other the other literal
      * @return the difference literal
      */
@@ -248,6 +263,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Multiplies a {@link Literal} by this one numerically
+     *
      * @param other the other literal
      * @return the product literal
      */
@@ -257,6 +273,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Divides a {@link Literal} by this one numerically
+     *
      * @param other the other literal
      * @return the quotient literal
      */
@@ -286,6 +303,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Negates this {@link Literal} by switching the boolean value (true -> false, false -> true)
+     *
      * @return the negative boolean literal
      */
     public Literal<Boolean> negative() {
@@ -295,6 +313,7 @@ public class Literal<T> implements DataContainer<T> {
 
     /**
      * Gets a {@link Literal} with the specified new value if this literal is {@link Literals#EMPTY}, or otherwise this literal
+     *
      * @param newvalue the new value
      * @return this literal if not empty, or a literal with newvalue
      */
@@ -305,6 +324,7 @@ public class Literal<T> implements DataContainer<T> {
         return this;
     }
 
+    @Override
     public Literal<T> resolve(ScriptInstance scriptInstance) { // Override for DataContainer
         return this;
     }
@@ -339,12 +359,12 @@ public class Literal<T> implements DataContainer<T> {
 
         // Format arrays
         if (isArray()) {
-            String string = "[";
+            String string = "{";
             List<LiteralHolder> array = getArray();
             for (LiteralHolder literalHolder : array) {
                 string += literalHolder.getData().getString() + ", ";
             }
-            return new Literal<String>((array.isEmpty() ? string : string.substring(0, string.length() - 2)) + "]");
+            return new Literal<String>((array.isEmpty() ? string : string.substring(0, string.length() - 2)) + "}");
         }
 
         return new Literal<String>(getValue().get().toString());

@@ -36,6 +36,7 @@ public class Block implements Iterable<Line> {
         return lines;
     }
 
+    @Override
     public Iterator<Line> iterator() {
         return lines.iterator();
     }

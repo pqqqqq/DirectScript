@@ -95,6 +95,7 @@ public class Variable extends LiteralHolder {
 
     /**
      * Gets whether this variable's {@link Literal} data is final, or cannot be changed
+     *
      * @return true if constant
      */
     public boolean isFinal() {
@@ -103,8 +104,10 @@ public class Variable extends LiteralHolder {
 
     /**
      * Copies this variable into a new instance
+     *
      * @return the copied variable
      */
+    @Override
     public Variable copy() {
         return new Variable(name, super.copy().getData(), isFinal);
     }

@@ -1,9 +1,6 @@
 package com.pqqqqq.directscript.lang.data.env;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.Lang;
-import com.pqqqqq.directscript.lang.data.LiteralHolder;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,19 +10,27 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-02.
- * Represents an environment that holds {@link Variable}s
+ * Represents an abstract environment that holds {@link Variable}s
  */
-public class Environment implements Iterable<Variable> {
-    private final ScriptInstance scriptInstance;
+public abstract class Environment implements Iterable<Variable> {
+    private final Environment parent;
     private final Map<String, Variable> variableMap = new HashMap<String, Variable>();
 
+    protected Environment() {
+        this(null);
+    }
+
+    protected Environment(Environment parent) {
+        this.parent = parent;
+    }
+
     /**
-     * Creates a new Environment for this {@link ScriptInstance}
+     * Gets this {@link Environment}'s parent environment
      *
-     * @param scriptInstance the script instance
+     * @return the parent
      */
-    public Environment(ScriptInstance scriptInstance) {
-        this.scriptInstance = scriptInstance;
+    public Environment getParent() {
+        return parent;
     }
 
     /**
@@ -52,35 +57,22 @@ public class Environment implements Iterable<Variable> {
     }
 
     /**
-     * Gets a {@link Optional} {@link Variable} by its corresponding name
+     * Gets a {@link Optional} {@link Variable} by its corresponding name, or checks its parent
      *
      * @param name the name of the variable
      * @return the variable
      */
     public Optional<Variable> getVariable(String name) {
-        return Optional.fromNullable(getVariables().get(name.trim()));
-    }
+        Optional<Variable> variableOptional = Optional.fromNullable(getVariables().get(name.trim()));
 
-    public Optional<LiteralHolder> getLiteralHolder(String name) {
-        int openBracket = name.indexOf('[');
-        String noBracketName = name.substring(0, (openBracket == -1 ? name.length() : openBracket));
-
-        return Optional.fromNullable(getArrayValue(name.trim(), getVariables().get(noBracketName.trim())));
-    }
-
-    private LiteralHolder getArrayValue(String name, LiteralHolder literalHolder) {
-        if (literalHolder == null) {
-            return null;
+        if (getParent() != null && !variableOptional.isPresent()) {
+            variableOptional = getParent().getVariable(name);
         }
 
-        String bracket = Lang.instance().stringParser().getOuterBracket(name, '[', ']');
-        if (bracket != null) {
-            int index = Lang.instance().sequencer().parse(bracket.substring(1, bracket.length() - 1)).resolve(scriptInstance).getNumber().intValue() - 1; // Minus one cause it starts at 1
-            return getArrayValue(name.replace(bracket, ""), literalHolder.getData().getArrayValue(index));
-        }
-        return literalHolder;
+        return variableOptional;
     }
 
+    @Override
     public Iterator<Variable> iterator() {
         return this.variableMap.values().iterator();
     }

@@ -1,13 +1,12 @@
 package com.pqqqqq.directscript.lang.statement.generic.getters;
 
-import com.google.common.base.Optional;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.data.Literals;
+import com.pqqqqq.directscript.lang.data.container.HolderContainer;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
-
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-18.
@@ -44,13 +43,10 @@ public class DecrementStatement extends Statement<Double> {
 
     @Override
     public Result<Double> run(Context ctx) {
-        String varName = ctx.getLiteral(0).getString();
+        LiteralHolder literalHolder = ((HolderContainer) Lang.instance().sequencer().parse(ctx.getLiteral(0).getString())).resolveHolder(ctx.getScriptInstance());
+        Literal decr = literalHolder.getData().sub(Literals.ONE);
+        literalHolder.setData(decr);
 
-        Optional<LiteralHolder> literalHolderOptional = ctx.getScriptInstance().getEnvironment().getLiteralHolder(varName);
-        checkState(literalHolderOptional.isPresent(), "Unknown variable: " + varName);
-
-        Literal decr = literalHolderOptional.get().getData().sub(Literals.ONE);
-        literalHolderOptional.get().setData(decr);
         return Result.<Double>builder().success().result(decr.getNumber()).literal(decr).build();
     }
 }

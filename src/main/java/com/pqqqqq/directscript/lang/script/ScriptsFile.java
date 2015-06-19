@@ -1,6 +1,7 @@
 package com.pqqqqq.directscript.lang.script;
 
 import com.google.common.base.Optional;
+import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.util.Utilities;
 
 import java.io.File;
@@ -9,9 +10,9 @@ import java.util.Set;
 
 /**
  * Created by Kevin on 2015-06-02.
- * Represents a wrapper for a {@link File} that contains {@link Script}s
+ * Represents a {@link Environment} wrapper for a {@link File} that contains {@link Script}s
  */
-public class ScriptsFile {
+public class ScriptsFile extends Environment {
     private final File root;
     private final File file;
     private final Set<Script> scripts = new HashSet<Script>();
@@ -81,6 +82,7 @@ public class ScriptsFile {
 
     /**
      * Gets a string representation of this {@link ScriptsFile}, from the root {@link File} to the actual file, where files are separated by a '/', but excluding the extension of the actual file
+     *
      * @return a string representation
      */
     public String getStringRepresentationNoExt() {

@@ -15,7 +15,6 @@ public class Literals {
      */
     public static final Literal<Boolean> TRUE = new Literal(true);
 
-
     /**
      * A false {@link Literal}, where the value is false (or 0)
      */

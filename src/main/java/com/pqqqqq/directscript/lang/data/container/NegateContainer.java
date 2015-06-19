@@ -28,6 +28,7 @@ public class NegateContainer implements DataContainer<Boolean> {
         return container;
     }
 
+    @Override
     public Literal<Boolean> resolve(ScriptInstance scriptInstance) {
         return getContainer().resolve(scriptInstance).negative();
     }

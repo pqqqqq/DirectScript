@@ -81,6 +81,7 @@ public class Statements {
     public static final Statement<Double[]> PLAYER_LOC = new PlayerLocStatement();
 
     private static final List<Statement> REGISTRY;
+
     static {
         REGISTRY = RegistryUtil.getAllOf(Statement.class, Statements.class);
     }

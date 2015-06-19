@@ -50,7 +50,7 @@ public class Sequencer {
             return Literals.EMPTY;
         }
 
-        // Check preceding exclamation points (negation)
+        // Check leading exclamation points (negation)
         String negateTrimSequence = sequence;
         boolean negative = false;
         while (negateTrimSequence.startsWith("!")) {
@@ -88,24 +88,32 @@ public class Sequencer {
                 return new StatementContainer(sequence);
             }
 
+            // Check trailing array index values. Use negateTrimSequence
+            if (negateTrimSequence.endsWith("]")) {
+                int index = Lang.instance().stringParser().lastIndexOf(negateTrimSequence, "[");
+                if (index > -1) {
+                    return negateIfNecessary(new ArrayIndexContainer(parse(negateTrimSequence.substring(0, index)), parse(negateTrimSequence.substring(index + 1, negateTrimSequence.length() - 1))), negative);
+                }
+            }
+
             // Check if it's an array
-            if (negateTrimSequence.startsWith("[") && negateTrimSequence.endsWith("]")) {
+            if (negateTrimSequence.startsWith("{") && negateTrimSequence.endsWith("}")) {
                 List<DataContainer> array = new ArrayList<DataContainer>();
 
                 int index = 0;
                 for (String arrayValue : Lang.instance().stringParser().parseSplit(negateTrimSequence.substring(1, negateTrimSequence.length() - 1), ",")) {
                     array.add(parse(arrayValue));
                 }
-                return new ListContainer(array);
+                return new ArrayContainer(array);
             }
 
-            // Check plain data. Use negativeTrimSequence
+            // Check plain data. Use negateTrimSequence
             Optional<Literal> literal = Literal.getLiteral(negateTrimSequence);
             if (literal.isPresent()) {
                 return negateIfNecessary(literal.get(), negative);
             }
 
-            // Worst comes to worst, assume its a variable container (use negativeTrimSequence)
+            // Worst comes to worst, assume its a variable container (use negateTrimSequence)
             return negateIfNecessary(new VariableContainer(negateTrimSequence), negative);
         }
 

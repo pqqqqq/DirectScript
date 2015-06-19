@@ -30,9 +30,9 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-02.
- * Represents a running instance of a {@link Script} that can be executed
+ * Represents a running instance of a {@link Environment} {@link Script} that can be executed
  */
-public class ScriptInstance implements Runnable {
+public class ScriptInstance extends Environment implements Runnable {
     private static final Builder COMPILE = builder().cause(Causes.COMPILE).predicate(Script.compileTimePredicate());
 
     private final Script script;
@@ -42,7 +42,6 @@ public class ScriptInstance implements Runnable {
     private final Optional<Player> causedBy;
 
     private final Set<Context> contextSet = new HashSet<Context>();
-    private final Environment environment = new Environment(this);
 
     private Optional<Line> currentLine = Optional.absent();
     private Optional<Literal> returnValue = Optional.absent();
@@ -51,12 +50,13 @@ public class ScriptInstance implements Runnable {
     private Line skipToLine = null;
 
     ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Map<String, Variable> variableMap, Event event, Player causedBy) {
+        super(script.getScriptsFile()); // The parent is the file
         this.script = script;
         this.cause = cause;
         this.linePredicate = linePredicate;
         this.event = Optional.fromNullable(event);
         this.causedBy = Optional.fromNullable(causedBy);
-        getEnvironment().getVariables().putAll(variableMap);
+        getVariables().putAll(variableMap);
     }
 
     /**
@@ -117,6 +117,7 @@ public class ScriptInstance implements Runnable {
 
     /**
      * Gets the {@link Optional} {@link Event} that triggered this {@link ScriptInstance}
+     *
      * @return the event
      */
     public Optional<Event> getEvent() {
@@ -125,6 +126,7 @@ public class ScriptInstance implements Runnable {
 
     /**
      * Gets the {@link Optional} {@link Player} who caused the triggering of this {@link ScriptInstance}
+     *
      * @return the player
      */
     public Optional<Player> getCausedBy() {
@@ -133,6 +135,7 @@ public class ScriptInstance implements Runnable {
 
     /**
      * Gets the {@link Optional} current {@link Line} in execution
+     *
      * @return the current line
      */
     public Optional<Line> getCurrentLine() {
@@ -141,6 +144,7 @@ public class ScriptInstance implements Runnable {
 
     /**
      * Gets whether this {@link ScriptInstance} is current skipping line execution
+     *
      * @return true if skipping execution
      */
     public boolean doSkipLines() {
@@ -149,6 +153,7 @@ public class ScriptInstance implements Runnable {
 
     /**
      * Sets whether this {@link ScriptInstance} should skip line execution
+     *
      * @param skipLines the new skip value boolean
      */
     public void setSkipLines(boolean skipLines) {
@@ -176,6 +181,7 @@ public class ScriptInstance implements Runnable {
 
     /**
      * Gets the {@link Optional} {@link Literal} for the return value of this {@link ScriptInstance}
+     *
      * @return the literal return value
      */
     public Optional<Literal> getReturnValue() {
@@ -184,6 +190,7 @@ public class ScriptInstance implements Runnable {
 
     /**
      * Sets the {@link Literal} return value for this {@link ScriptInstance}
+     *
      * @param returnValue the new return value
      */
     public void setReturnValue(Optional<Literal> returnValue) {
@@ -192,6 +199,7 @@ public class ScriptInstance implements Runnable {
 
     /**
      * Gets a {@link Set} of {@link Context}s for lines that have already been executed in this {@link ScriptInstance}
+     *
      * @return the set
      */
     public Set<Context> getContextSet() {
@@ -200,6 +208,7 @@ public class ScriptInstance implements Runnable {
 
     /**
      * Gets the {@link Statement.Result} of a specific {@link Line}.
+     *
      * @param line the line to check
      * @return the result, or null if not run yet
      */
@@ -213,15 +222,8 @@ public class ScriptInstance implements Runnable {
     }
 
     /**
-     * Gets this {@link ScriptInstance}'s {@link Environment}
-     * @return the environment
-     */
-    public Environment getEnvironment() {
-        return environment;
-    }
-
-    /**
      * Executes a {@link Block} with the {@link ScriptInstance}
+     *
      * @param block the block
      */
     public Result execute(Block block) {
@@ -275,6 +277,7 @@ public class ScriptInstance implements Runnable {
         return execute(getScript()); // Runs the script's block
     }
 
+    @Override
     public void run() {
         execute(); // Override for Runnable, just perform the execute() method
     }
@@ -320,6 +323,7 @@ public class ScriptInstance implements Runnable {
 
         /**
          * Sets the {@link Script} for this {@link ScriptInstance} builder
+         *
          * @param script the script
          * @return this builder, for fluency
          * @see ScriptInstance#getScript()
@@ -331,6 +335,7 @@ public class ScriptInstance implements Runnable {
 
         /**
          * Sets the {@link Cause} for this {@link ScriptInstance} builder
+         *
          * @param cause the cause
          * @return this builder, for fluency
          * @see ScriptInstance#getCause()
@@ -342,6 +347,7 @@ public class ScriptInstance implements Runnable {
 
         /**
          * Sets the {@link Line} {@link Predicate} for this {@link ScriptInstance} builder
+         *
          * @param linePredicate the line predicate
          * @return this builder, for fluency
          * @see ScriptInstance#getLinePredicate()
@@ -353,6 +359,7 @@ public class ScriptInstance implements Runnable {
 
         /**
          * Sets the {@link Variable} {@link Map} ({@link String} vs Variable) for this {@link ScriptInstance} builder
+         *
          * @param variableMap the variable map
          * @return this builder, for fluency
          */
@@ -363,6 +370,7 @@ public class ScriptInstance implements Runnable {
 
         /**
          * Sets the {@link Variable} {@link Map} ({@link String} vs Variable) for this {@link ScriptInstance} builder
+         *
          * @param variables the variable array
          * @return this builder, for fluency
          */
@@ -377,6 +385,7 @@ public class ScriptInstance implements Runnable {
 
         /**
          * Applies {@link Variable}s associated with the given {@link CommandSource}
+         *
          * @param source the command source
          * @return this builder, for fluency
          */
@@ -410,14 +419,17 @@ public class ScriptInstance implements Runnable {
 
         /**
          * Copies the builder in its current state
+         *
          * @return the copied builder
          */
+        @Override
         public Builder copy() {
             return new Builder().script(script).cause(cause).predicate(linePredicate).variables(variableMap).event(event).causedBy(causedBy);
         }
 
         /**
          * Builds the {@link ScriptInstance}
+         *
          * @return the new script instance
          */
         public ScriptInstance build() {

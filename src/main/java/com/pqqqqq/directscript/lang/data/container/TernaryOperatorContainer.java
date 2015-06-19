@@ -52,6 +52,7 @@ public class TernaryOperatorContainer implements DataContainer {
         return falseContainer;
     }
 
+    @Override
     public Literal resolve(ScriptInstance scriptInstance) {
         Literal condition = getConditionContainer().resolve(scriptInstance);
         return condition.getBoolean() ? getTrueContainer().resolve(scriptInstance) : getFalseContainer().resolve(scriptInstance); // Use a ternary operator for the ternary operator... inception

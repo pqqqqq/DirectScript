@@ -10,9 +10,9 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-17.
- * Represents a {@link Variable} {@link DataContainer} which resolves the {@link Literal} value of a variable at runtime
+ * Represents a {@link Variable} {@link HolderContainer} which resolves the {@link Literal} value of a variable at runtime
  */
-public class VariableContainer implements DataContainer {
+public class VariableContainer implements HolderContainer {
     private final String variableName;
 
     /**
@@ -33,10 +33,16 @@ public class VariableContainer implements DataContainer {
         return variableName;
     }
 
+    @Override
     public Literal resolve(ScriptInstance scriptInstance) {
-        Optional<LiteralHolder> literalHolder = scriptInstance.getEnvironment().getLiteralHolder(getVariableName());
-        checkState(literalHolder.isPresent(), "Could not resolve symbol: " + variableName);
+        return resolveHolder(scriptInstance).getData();
+    }
 
-        return literalHolder.get().getData();
+    @Override
+    public LiteralHolder resolveHolder(ScriptInstance scriptInstance) {
+        Optional<Variable> variableOptional = scriptInstance.getVariable(getVariableName());
+        checkState(variableOptional.isPresent(), "Could not resolve symbol: " + variableName);
+
+        return variableOptional.get();
     }
 }

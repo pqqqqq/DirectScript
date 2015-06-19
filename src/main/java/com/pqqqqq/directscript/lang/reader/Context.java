@@ -137,6 +137,7 @@ public class Context {
 
     /**
      * Gets the number of argument {@link Literal}s
+     *
      * @return the size of the literal array
      */
     public int getLiteralCount() {
@@ -145,6 +146,7 @@ public class Context {
 
     /**
      * Runs this {@link Context}
+     *
      * @return the {@link Statement.Result}
      */
     public Statement.Result run() {
@@ -169,7 +171,8 @@ public class Context {
     // Convenience stuff
 
     /**
-     * Gets an {@link Optional} {@link Player} at the index that, if {@link Literal#empty()}, uses the {@link ScriptInstance#getCausedBy()} player instead
+     * Gets an {@link Optional} {@link Player} at the index that, if {@link com.pqqqqq.directscript.lang.data.Literals#EMPTY}, uses the {@link ScriptInstance#getCausedBy()} player instead
+     *
      * @param index the index
      * @return the player
      */
@@ -180,7 +183,7 @@ public class Context {
     }
 
     /**
-     * Gets an {@link Optional} {@link World} at the index that, if {@link Literal#empty()}, uses the {@link ScriptInstance#getCausedBy()} player's world instead
+     * Gets an {@link Optional} {@link World} at the index that, if {@link com.pqqqqq.directscript.lang.data.Literals#EMPTY}, uses the {@link ScriptInstance#getCausedBy()} player's world instead
      *
      * @param index the index
      * @return the world

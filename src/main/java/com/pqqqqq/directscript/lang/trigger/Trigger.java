@@ -106,6 +106,7 @@ public class Trigger {
 
         /**
          * Builds the new {@link Trigger} instance, and notifies all of its {@link Cause}s
+         *
          * @return the new trigger
          */
         public Trigger build() {

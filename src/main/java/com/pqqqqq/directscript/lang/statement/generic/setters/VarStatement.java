@@ -54,7 +54,7 @@ public class VarStatement extends Statement {
                     value = ctx.getLiteral(i + 2);
                 }
 
-                ctx.getScriptInstance().getEnvironment().addVariable(new Variable(word, value, isFinal));
+                ctx.getScriptInstance().addVariable(new Variable(word, value, isFinal));
                 return Result.success();
             }
         }

@@ -39,6 +39,7 @@ public class ConditionalExpressionContainer extends ExpressionContainer<Boolean>
         return (ComparativeOperator) super.getOperator();
     }
 
+    @Override
     public Literal<Boolean> resolve(ScriptInstance scriptInstance) {
         Literal firstTerm = getFirstTerm().resolve(scriptInstance);
         Literal secondTerm = getSecondTerm().resolve(scriptInstance);
@@ -146,6 +147,7 @@ public class ConditionalExpressionContainer extends ExpressionContainer<Boolean>
             return operator;
         }
 
+        @Override
         public boolean apply(String input) {
             return getOperator() != null && getOperator().equals(input.trim());
         }

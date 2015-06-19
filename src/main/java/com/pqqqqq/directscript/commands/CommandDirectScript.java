@@ -25,6 +25,7 @@ public class CommandDirectScript implements CommandExecutor {
                 .child(CommandReload.build(plugin), "reload").child(CommandCall.build(plugin), "call", "run").build();
     }
 
+    @Override
     public CommandResult execute(CommandSource commandSource, CommandContext commandContext) throws CommandException {
         commandSource.sendMessage(Texts.of(TextColors.GREEN, DirectScript.NAME, TextColors.WHITE, " V", DirectScript.VERSION, TextColors.GREEN, " created by: ", TextColors.WHITE, DirectScript.AUTHORS));
         commandSource.sendMessage(Texts.of(TextColors.RED, "/script <reload|call>"));

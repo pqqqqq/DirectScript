@@ -14,6 +14,7 @@ import com.pqqqqq.directscript.lang.trigger.Trigger;
 public class Script extends Block {
     private static final Predicate<Line> COMPILETIME_PREDICATE = new Predicate<Line>() {
 
+        @Override
         public boolean apply(Line input) {
             Statement statement = input.getStatement();
             return statement.getExecutionTime() == Statement.ExecutionTime.COMPILE || statement.getExecutionTime() == Statement.ExecutionTime.ALWAYS;
@@ -21,6 +22,7 @@ public class Script extends Block {
     };
     private static final Predicate<Line> RUNTIME_PREDICATE = new Predicate<Line>() {
 
+        @Override
         public boolean apply(Line input) {
             Statement statement = input.getStatement();
             return statement.getExecutionTime() != Statement.ExecutionTime.COMPILE;
@@ -83,6 +85,7 @@ public class Script extends Block {
 
     /**
      * Returns the {@link Trigger} that is responsible for activating this Script
+     *
      * @return the trigger
      */
     public Optional<Trigger> getTrigger() {
@@ -91,6 +94,7 @@ public class Script extends Block {
 
     /**
      * Sets a new trigger responsible for activating this Script
+     *
      * @param trigger the new trigger
      */
     public void setTrigger(Optional<Trigger> trigger) {

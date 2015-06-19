@@ -33,6 +33,7 @@ public class CommandCall implements CommandExecutor {
                 .arguments(GenericArguments.string(Texts.of("ScriptName")), GenericArguments.optional(GenericArguments.remainingJoinedStrings(Texts.of("Arguments")))).build();
     }
 
+    @Override
     public CommandResult execute(CommandSource commandSource, CommandContext commandContext) throws CommandException {
         String scriptName = commandContext.<String>getOne("ScriptName").get();
         Optional<String> argumentsOptional = commandContext.getOne("Arguments");
@@ -45,7 +46,7 @@ public class CommandCall implements CommandExecutor {
             Script script = scriptOptional.get();
 
             ScriptInstance scriptInstance = ScriptInstance.builder().script(script).cause(Causes.CALL).build(); // TODO: Caused by the sender is they're a player?
-            scriptInstance.getEnvironment().addVariable(new Variable("generic.arguments", Literal.getLiteralBlindly(arguments.split(" "))));
+            scriptInstance.addVariable(new Variable("generic.arguments", Literal.getLiteralBlindly(arguments.split(" "))));
             scriptInstance.execute();
 
             commandSource.sendMessage(Texts.of(TextColors.GREEN, "Script ran successfully."));

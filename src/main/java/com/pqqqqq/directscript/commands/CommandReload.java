@@ -25,6 +25,7 @@ public class CommandReload implements CommandExecutor {
         return CommandSpec.builder().executor(new CommandReload(plugin)).description(Texts.of(TextColors.AQUA, "Reloads the config and scripts.")).permission("directscript.reload").build();
     }
 
+    @Override
     public CommandResult execute(CommandSource commandSource, CommandContext commandContext) throws CommandException {
         Lang.instance().reloadScripts();
         commandSource.sendMessage(Texts.of(TextColors.AQUA, "Scripts/config reloaded."));

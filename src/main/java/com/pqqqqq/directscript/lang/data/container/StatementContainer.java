@@ -33,6 +33,7 @@ public class StatementContainer implements DataContainer {
         return statement;
     }
 
+    @Override
     public Literal resolve(ScriptInstance scriptInstance) {
         Optional<Line> currentLine = scriptInstance.getCurrentLine();
         checkState(currentLine.isPresent(), "The current line could be found");

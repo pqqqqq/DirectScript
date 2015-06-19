@@ -38,12 +38,12 @@ public class ForStatement extends Statement {
     @Override
     public Result run(Context ctx) {
         String varName = ctx.getLiteral(0).getString();
-        Variable var = ctx.getScriptInstance().getEnvironment().addVariable(new Variable(varName));
+        Variable var = ctx.getScriptInstance().addVariable(new Variable(varName));
 
         double startValue = ctx.getLiteral(1).getNumber();
         double endValue = ctx.getLiteral(2).getNumber();
         double increment = ctx.getLiteral(3, 1).getNumber();
-        
+
         Block internalBlock = ctx.getLine().getInternalBlock();
         checkNotNull(internalBlock, "This line has no internal block");
 
@@ -60,7 +60,7 @@ public class ForStatement extends Statement {
             }
         }
 
-        ctx.getScriptInstance().getEnvironment().getVariables().remove(varName); // Remove the variable after the loops
+        ctx.getScriptInstance().getVariables().remove(varName); // Remove the variable after the loops
         ctx.getScriptInstance().setSkipToLine(ctx.getLine().getClosingBrace()); // Skip lines since we've already run the code block
         return Result.success();
     }

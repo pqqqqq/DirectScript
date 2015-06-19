@@ -37,6 +37,7 @@ public class ArithmeticContainer extends ExpressionContainer {
         return (ArithmeticOperator) super.getOperator();
     }
 
+    @Override
     public Literal resolve(ScriptInstance scriptInstance) {
         Literal firstLiteral = getFirstTerm().resolve(scriptInstance);
         Literal secondLiteral = getSecondTerm().resolve(scriptInstance);
@@ -130,6 +131,7 @@ public class ArithmeticContainer extends ExpressionContainer {
             return operator;
         }
 
+        @Override
         public boolean apply(String input) {
             return getOperator() != null && getOperator().equals(input.trim());
         }

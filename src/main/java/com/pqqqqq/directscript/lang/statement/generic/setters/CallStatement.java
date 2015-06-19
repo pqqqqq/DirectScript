@@ -47,7 +47,7 @@ public class CallStatement extends Statement {
         List<LiteralHolder> arguments = ctx.getLiteral(1).getArray();
 
         ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).causedBy(ctx.getScriptInstance().getCausedBy().orNull()).build();
-        scriptInstanceNew.getEnvironment().addVariable(new Variable("generic.arguments", Literal.getLiteralBlindly(arguments)));
+        scriptInstanceNew.addVariable(new Variable("generic.arguments", Literal.getLiteralBlindly(arguments)));
         scriptInstanceNew.execute();
 
         Literal returnLiteral = scriptInstanceNew.getReturnValue().orNull();

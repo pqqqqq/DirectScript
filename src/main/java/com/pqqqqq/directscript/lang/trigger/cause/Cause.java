@@ -125,7 +125,7 @@ public class Cause {
                 return false;
             }
 
-            Optional<Variable> commandExec = scriptInstance.getEnvironment().getVariable("sponge.command");
+            Optional<Variable> commandExec = scriptInstance.getVariable("sponge.command");
             if (commandExec.isPresent()) {
                 String comp = commandExec.get().getData().getString();
                 for (String alias : aliases) {

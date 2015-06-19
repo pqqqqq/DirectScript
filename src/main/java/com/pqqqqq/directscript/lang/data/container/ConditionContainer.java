@@ -49,6 +49,7 @@ public class ConditionContainer implements DataContainer<Boolean> {
         return conditionExpressions;
     }
 
+    @Override
     public Literal<Boolean> resolve(ScriptInstance scriptInstance) {
         andArray:
         for (ConditionalExpressionContainer[] andArray : getConditionExpressions()) {
