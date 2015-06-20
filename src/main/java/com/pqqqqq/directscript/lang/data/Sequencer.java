@@ -50,21 +50,12 @@ public class Sequencer {
             return Literals.EMPTY;
         }
 
-        // Check leading exclamation points (negation)
-        String negateTrimSequence = sequence;
-        boolean negative = false;
-        while (negateTrimSequence.startsWith("!")) {
-            negative = !negative;
-            negateTrimSequence = negateTrimSequence.substring(1);
+        // Get rid of brackets if they're still there
+        if (sequence.startsWith("(") && sequence.endsWith(")")) {
+            sequence = sequence.substring(1, sequence.length() - 1);
         }
 
-        /* Brackets, ternary operators and conditions in general must not be split into operators, since they can have operators within their conditions */
-        // Pre-parse anything in brackets. Use negateTrimmedSequence
-        if (negateTrimSequence.startsWith("(") && negateTrimSequence.endsWith(")")) {
-            return negateIfNecessary(parse(negateTrimSequence.substring(1, negateTrimSequence.length() - 1)), negative);
-        }
-
-        // Check if it's a ternary operator. Don't use negateTrimmedSequence
+        // Check if it's a ternary operator
         int questionMark = Lang.instance().stringParser().indexOf(sequence, "?");
         int colon = Lang.instance().stringParser().indexOf(sequence, ":");
         if (questionMark > -1 && colon > -1) {
@@ -75,7 +66,7 @@ public class Sequencer {
             return new TernaryOperatorContainer(conditionContainer, trueContainer, falseContainer);
         }
 
-        // Check if it's a condition. Don't use negateTrimmedSequence
+        // Check if it's a condition
         Optional<DataContainer<Boolean>> conditionLiteral = conditionInstance.parse(sequence);
         if (conditionLiteral.isPresent()) {
             return conditionLiteral.get();
@@ -83,45 +74,45 @@ public class Sequencer {
 
         StringParser.SplitSequence triple = Lang.instance().stringParser().parseNextSequence(sequence, LITERAL_DELIMITER_GROUPS); // Split into ordered triple segments
         if (triple == null || triple.getDelimiter() == null) { // Check if there's no split string
-            // Check if it's a statement. Don't use negateTrimmedSequence
+            // Check if it's a statement
             if (Statements.getStatement(sequence).isPresent()) {
                 return new StatementContainer(sequence);
             }
 
-            // Check trailing array index values. Use negateTrimSequence
-            if (negateTrimSequence.endsWith("]")) {
-                int index = Lang.instance().stringParser().lastIndexOf(negateTrimSequence, "[");
+            // Check leading exclamation points (negation)
+            if (sequence.startsWith("!")) {
+                return new NegateContainer(parse(sequence.substring(1)));
+            }
+
+            // Check trailing array index values
+            if (sequence.endsWith("]")) {
+                int index = Lang.instance().stringParser().lastIndexOf(sequence, "[");
                 if (index > -1) {
-                    return negateIfNecessary(new ArrayIndexContainer(parse(negateTrimSequence.substring(0, index)), parse(negateTrimSequence.substring(index + 1, negateTrimSequence.length() - 1))), negative);
+                    return new ArrayIndexContainer(parse(sequence.substring(0, index)), parse(sequence.substring(index + 1, sequence.length() - 1)));
                 }
             }
 
             // Check if it's an array
-            if (negateTrimSequence.startsWith("{") && negateTrimSequence.endsWith("}")) {
+            if (sequence.startsWith("{") && sequence.endsWith("}")) {
                 List<DataContainer> array = new ArrayList<DataContainer>();
 
                 int index = 0;
-                for (String arrayValue : Lang.instance().stringParser().parseSplit(negateTrimSequence.substring(1, negateTrimSequence.length() - 1), ",")) {
+                for (String arrayValue : Lang.instance().stringParser().parseSplit(sequence.substring(1, sequence.length() - 1), ",")) {
                     array.add(parse(arrayValue));
                 }
                 return new ArrayContainer(array);
             }
 
-            // Check plain data. Use negateTrimSequence
-            Optional<Literal> literal = Literal.getLiteral(negateTrimSequence);
+            // Check plain data
+            Optional<Literal> literal = Literal.getLiteral(sequence);
             if (literal.isPresent()) {
-                return negateIfNecessary(literal.get(), negative);
+                return literal.get();
             }
 
-            // Worst comes to worst, assume its a variable container (use negateTrimSequence)
-            return negateIfNecessary(new VariableContainer(negateTrimSequence), negative);
+            return new VariableContainer(sequence); // Worst comes to worst, assume its a variable container
         }
 
         return new ArithmeticContainer(parse(triple.getBeforeSegment()), parse(triple.getAfterSegment()), triple.getDelimiter());
-    }
-
-    private DataContainer negateIfNecessary(DataContainer dataContainer, boolean negate) {
-        return negate ? new NegateContainer(dataContainer) : dataContainer;
     }
 
     class Condition {
