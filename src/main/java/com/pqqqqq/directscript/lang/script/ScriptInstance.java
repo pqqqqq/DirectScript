@@ -50,7 +50,7 @@ public class ScriptInstance extends Environment implements Runnable {
     private Line skipToLine = null;
 
     ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Map<String, Variable> variableMap, Event event, Player causedBy) {
-        super(script.getScriptsFile()); // The parent is the file
+        super((script == null ? null : script.getScriptsFile())); // The parent is the file
         this.script = script;
         this.cause = cause;
         this.linePredicate = linePredicate;
