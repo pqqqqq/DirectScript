@@ -45,6 +45,6 @@ public class LiteralHolder<T> implements ICopyable<LiteralHolder<T>> {
 
     @Override
     public LiteralHolder<T> copy() {
-        return new LiteralHolder<T>(getData());
+        return new LiteralHolder<T>(getData().copy());
     }
 }

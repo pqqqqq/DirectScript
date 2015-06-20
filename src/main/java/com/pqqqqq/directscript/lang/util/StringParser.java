@@ -92,6 +92,7 @@ public class StringParser {
             boolean quotes = false;
             int roundBrackets = 0, squareBrackets = 0, curlyBrackets = 0;
             String builder = "";
+            SplitSequence current = null;
 
             for (int count = 0; count < string.length(); count++) {
                 char c = string.charAt(count);
@@ -123,55 +124,15 @@ public class StringParser {
                             String before = string.substring(0, count - split.length() + 1);
                             String after = string.substring(count + 1);
 
-                            return new SplitSequence(before, split, after);
+                            current = new SplitSequence(before, split, after);
                         }
                     }
                 }
             }
-        }
 
-        return null;
-    }
-
-    /**
-     * Gets the outer bracket of a string as specified by the starting and closing character, excluding quotes
-     *
-     * @param string    the string
-     * @param startChar the opening character, eg '('
-     * @param endChar   the closing character, eg ')'
-     * @return the outer bracket (including the starting and ending characters)
-     */
-    public String getOuterBracket(String string, char startChar, char endChar) {
-        boolean quotes = false;
-        String builder = "";
-        int brackets = -1, counter = 0;
-
-        for (int count = 0; count < string.length(); count++) {
-            char c = string.charAt(count);
-
-            if (c == '"') {
-                if (!builder.endsWith("\\") || builder.endsWith("\\\\")) {
-                    quotes = !quotes;
-                }
-            } else if (!quotes) {
-                if (c == startChar) {
-                    if (brackets < 0) {
-                        brackets = count;
-                    }
-                    counter++;
-                } else if (c == endChar) {
-                    if (brackets < 0) {
-                        throw new IllegalArgumentException("Unknown stray ending bracket");
-                    }
-
-                    counter--;
-                    if (counter == 0) {
-                        return builder.substring(brackets, count) + endChar;
-                    }
-                }
+            if (current != null) {
+                return current;
             }
-
-            builder += c;
         }
 
         return null;

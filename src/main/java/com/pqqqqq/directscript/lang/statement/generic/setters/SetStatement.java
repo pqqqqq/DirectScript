@@ -43,7 +43,7 @@ public class SetStatement extends Statement {
         LiteralHolder literalHolder = ((HolderContainer) Lang.instance().sequencer().parse(ctx.getLiteral(0).getString())).resolveHolder(ctx.getScriptInstance());
         Literal value = ctx.getLiteral(2);
 
-        literalHolder.setData(value);
+        literalHolder.setData(value.copy()); // We want a copied version
         return Result.success();
     }
 }

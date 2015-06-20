@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.util.ICopyable;
 import com.pqqqqq.directscript.lang.util.Utilities;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.spongepowered.api.entity.player.Player;
@@ -23,7 +24,7 @@ import static com.google.common.base.Preconditions.checkState;
  *
  * @param <T> the literal type
  */
-public class Literal<T> implements DataContainer<T> {
+public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.###");
 
     private final Optional<T> value;
@@ -329,6 +330,20 @@ public class Literal<T> implements DataContainer<T> {
         return this;
     }
 
+    @Override
+    public Literal<T> copy() {
+        if (!isEmpty() && isArray()) {
+            List<LiteralHolder> newarray = new ArrayList<LiteralHolder>();
+            for (LiteralHolder literalHolder : getArray()) {
+                newarray.add(literalHolder.copy());
+            }
+
+            return Literal.getLiteralBlindly(newarray);
+        }
+
+        return this;
+    }
+
     // Object overrides
 
     @Override
@@ -361,9 +376,11 @@ public class Literal<T> implements DataContainer<T> {
         if (isArray()) {
             String string = "{";
             List<LiteralHolder> array = getArray();
+
             for (LiteralHolder literalHolder : array) {
                 string += literalHolder.getData().getString() + ", ";
             }
+
             return new Literal<String>((array.isEmpty() ? string : string.substring(0, string.length() - 2)) + "}");
         }
 

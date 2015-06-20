@@ -32,6 +32,7 @@ public class VarStatement extends Statement {
     public Argument[] getArguments() {
         return new Argument[]{
                 Argument.builder().name("final").optional().parse().modifier().build(),
+                Argument.builder().name("local").optional().parse().modifier().build(),
                 Argument.builder().name("VariableName").parse().build(),
                 Argument.builder().name("=").optional().parse().modifier().build(),
                 Argument.builder().name("Value").optional().rest().build()
@@ -42,6 +43,7 @@ public class VarStatement extends Statement {
     public Result run(Context ctx) {
         boolean isFinal = false;
         Literal value = Literals.EMPTY;
+        Environment environment = ctx.getScriptInstance();
 
         for (int i = 0; i < ctx.getLiteralCount(); i++) {
             String word = ctx.getLiteral(i).getString();
@@ -49,12 +51,14 @@ public class VarStatement extends Statement {
             // Check modifiers first (eg final)
             if (word.equals("final")) {
                 isFinal = true;
+            } else if (word.equals("local")) { // TODO: Variable visibility masking fixes?
+                environment = ctx.getScript().getScriptsFile();
             } else {
                 if (ctx.getLiteralCount() > (i + 2)) {
-                    value = ctx.getLiteral(i + 2);
+                    value = ctx.getLiteral(i + 2).copy(); // We want a copied version
                 }
 
-                ctx.getScriptInstance().addVariable(new Variable(word, value, isFinal));
+                environment.addVariable(new Variable(word, value.copy(), isFinal));
                 return Result.success();
             }
         }
