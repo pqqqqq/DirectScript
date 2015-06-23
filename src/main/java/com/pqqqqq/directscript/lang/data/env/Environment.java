@@ -49,7 +49,8 @@ public abstract class Environment implements Iterable<Variable> {
      * @return the variable
      */
     public Variable addVariable(Variable variable) {
-        checkState(Variable.namePattern().matcher(variable.getName()).matches(), "This variable name has illegal characters (only alphanumeric/period and must start with alphabetic).");
+        checkState(Variable.namePattern().matcher(variable.getName()).matches(), "This variable name (" + variable.getName() + ") has illegal characters (only alphanumeric/period and must start with alphabetic).");
+        checkState(!Variable.illegalNames().matcher(variable.getName()).matches(), variable.getName() + " is an illegal name.");
         checkState(!getVariables().containsKey(variable.getName()), "A variable with this name already exists");
 
         getVariables().put(variable.getName(), variable);

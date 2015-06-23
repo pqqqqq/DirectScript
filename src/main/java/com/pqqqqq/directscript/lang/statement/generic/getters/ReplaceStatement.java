@@ -9,25 +9,18 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class ReplaceStatement extends Statement<String> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"replace"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("String").build(),
-                Argument.builder().name("FindString").build(),
-                Argument.builder().name("Replace").build()
-        };
+    public ReplaceStatement() {
+        super(Syntax.builder()
+                .identifiers("replace")
+                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("FindString"), ",", Argument.from("Replacement")))
+                .build());
     }
 
     @Override
     public Result<String> run(Context ctx) {
-        String string = ctx.getLiteral(0).getString();
-        String find = ctx.getLiteral(1).getString();
-        String replace = ctx.getLiteral(2).getString();
+        String string = ctx.getLiteral("String").getString();
+        String find = ctx.getLiteral("FindString").getString();
+        String replace = ctx.getLiteral("Replacement").getString();
         String result = string.replace(find, replace);
 
         return Result.<String>builder().success().result(result).literal(result).build();

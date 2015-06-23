@@ -9,26 +9,17 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class IfStatement extends Statement<Boolean> {
 
-    @Override
-    public String getSuffix() {
-        return "{";
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"if"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("Condition").build()
-        };
+    public IfStatement() {
+        super(Syntax.builder()
+                .identifiers("if")
+                .suffix("{")
+                .arguments(Arguments.of(Argument.from("Condition")))
+                .build());
     }
 
     @Override
     public Result<Boolean> run(Context ctx) {
-        boolean result = ctx.getLiteral(0).getBoolean();
+        boolean result = ctx.getLiteral("Condition").getBoolean();
         if (!result) {
             ctx.getScriptInstance().setSkipLines(true);
         }

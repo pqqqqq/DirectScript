@@ -9,21 +9,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class UppercaseStatement extends Statement<String> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"uppercase"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("String").build()
-        };
+    public UppercaseStatement() {
+        super(Syntax.builder()
+                .identifiers("uppercase")
+                .arguments(Arguments.of(Argument.from("String")))
+                .build());
     }
 
     @Override
     public Result<String> run(Context ctx) {
-        String upper = ctx.getLiteral(0).getString().toUpperCase();
+        String upper = ctx.getLiteral("String").getString().toUpperCase();
         return Result.<String>builder().result(upper).literal(upper).build();
     }
 }

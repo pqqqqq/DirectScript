@@ -5,6 +5,7 @@ import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.container.*;
 import com.pqqqqq.directscript.lang.data.container.expression.ArithmeticContainer;
 import com.pqqqqq.directscript.lang.data.container.expression.ConditionalExpressionContainer;
+import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.Statements;
 import com.pqqqqq.directscript.lang.util.StringParser;
 
@@ -37,12 +38,13 @@ public class Sequencer {
     }
 
     /**
-     * Parses a sequence into a {@link DataContainer}
+     * Parses a {@link Line}'s sequence into a {@link DataContainer}
      *
+     * @param line the sequence's line
      * @param sequence the sequence to parse
      * @return the new data container
      */
-    public DataContainer parse(String sequence) {
+    public DataContainer parse(Line line, String sequence) {
         checkNotNull(sequence, "Sequence cannot be null");
 
         sequence = sequence.trim();
@@ -59,15 +61,15 @@ public class Sequencer {
         int questionMark = Lang.instance().stringParser().indexOf(sequence, "?");
         int colon = Lang.instance().stringParser().indexOf(sequence, ":");
         if (questionMark > -1 && colon > -1) {
-            DataContainer conditionContainer = parse(sequence.substring(0, questionMark).trim());
-            DataContainer trueContainer = parse(sequence.substring(questionMark + 1, colon).trim());
-            DataContainer falseContainer = parse(sequence.substring(colon + 1).trim());
+            DataContainer conditionContainer = parse(line, sequence.substring(0, questionMark).trim());
+            DataContainer trueContainer = parse(line, sequence.substring(questionMark + 1, colon).trim());
+            DataContainer falseContainer = parse(line, sequence.substring(colon + 1).trim());
 
             return new TernaryOperatorContainer(conditionContainer, trueContainer, falseContainer);
         }
 
         // Check if it's a condition
-        Optional<DataContainer<Boolean>> conditionLiteral = conditionInstance.parse(sequence);
+        Optional<DataContainer<Boolean>> conditionLiteral = conditionInstance.parse(line, sequence);
         if (conditionLiteral.isPresent()) {
             return conditionLiteral.get();
         }
@@ -76,30 +78,29 @@ public class Sequencer {
         if (triple == null || triple.getDelimiter() == null) { // Check if there's no split string
             // Check if it's a statement
             if (Statements.getStatement(sequence).isPresent()) {
-                return new StatementContainer(sequence);
+                return new StatementContainer(new Line(line.getAbsoluteNumber(), line.getScriptNumber(), sequence));
             }
 
             // Check leading exclamation points (negation)
             if (sequence.startsWith("!")) {
-                return new NegateContainer(parse(sequence.substring(1)));
+                return new NegateContainer(parse(line, sequence.substring(1)));
             }
 
             // Check trailing array index values
             if (sequence.endsWith("]")) {
                 int index = Lang.instance().stringParser().lastIndexOf(sequence, "[");
                 if (index > -1) {
-                    return new ArrayIndexContainer(parse(sequence.substring(0, index)), parse(sequence.substring(index + 1, sequence.length() - 1)));
+                    return new ArrayIndexContainer(parse(line, sequence.substring(0, index)), parse(line, sequence.substring(index + 1, sequence.length() - 1)));
                 }
             }
 
             // Check if it's an array
             if (sequence.startsWith("{") && sequence.endsWith("}")) {
                 List<DataContainer> array = new ArrayList<DataContainer>();
-
-                int index = 0;
                 for (String arrayValue : Lang.instance().stringParser().parseSplit(sequence.substring(1, sequence.length() - 1), ",")) {
-                    array.add(parse(arrayValue));
+                    array.add(parse(line, arrayValue));
                 }
+
                 return new ArrayContainer(array);
             }
 
@@ -112,14 +113,14 @@ public class Sequencer {
             return new VariableContainer(sequence); // Worst comes to worst, assume its a variable container
         }
 
-        return new ArithmeticContainer(parse(triple.getBeforeSegment()), parse(triple.getAfterSegment()), triple.getDelimiter());
+        return new ArithmeticContainer(parse(line, triple.getBeforeSegment()), parse(line, triple.getAfterSegment()), triple.getDelimiter());
     }
 
     class Condition {
         private Condition() {
         }
 
-        Optional<DataContainer<Boolean>> parse(String sequence) {
+        Optional<DataContainer<Boolean>> parse(Line line, String sequence) {
             String[] splitOr = Lang.instance().stringParser().parseSplit(sequence, " or "); // 'Or' takes precedence over 'and'
             List<List<ConditionalExpressionContainer>> mainExpressionList = new ArrayList<List<ConditionalExpressionContainer>>();
 
@@ -135,8 +136,8 @@ public class Sequencer {
                     }
 
                     // Get literals for these values
-                    DataContainer leftSideLiteral = Sequencer.this.parse(triple.getBeforeSegment());
-                    DataContainer rightSideLiteral = Sequencer.this.parse(triple.getAfterSegment());
+                    DataContainer leftSideLiteral = Sequencer.this.parse(line, triple.getBeforeSegment());
+                    DataContainer rightSideLiteral = Sequencer.this.parse(line, triple.getAfterSegment());
                     String comparator = triple.getDelimiter();
 
                     andExpressionList.add(new ConditionalExpressionContainer(leftSideLiteral, rightSideLiteral, comparator));

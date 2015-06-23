@@ -12,38 +12,23 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * Created by Kevin on 2015-06-08.
  * A statement that sets the value of an existing {@link Variable}
  */
-public class SetStatement extends Statement {
+public class SetStatement extends Statement<Object> {
 
-    @Override
-    public String getSplitString() {
-        return " ";
+    public SetStatement() {
+        super(Syntax.builder()
+                .identifiers("set")
+                .brackets()
+                .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build()))
+                .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build(), "=", Argument.from("Value")))
+                .build());
     }
 
     @Override
-    public boolean doesUseBrackets() {
-        return false;
-    }
+    public Result<Object> run(Context ctx) {
+        LiteralHolder literalHolder = ((HolderContainer) Lang.instance().sequencer().parse(ctx.getLine(), ctx.getLiteral("VariableName").getString())).resolveHolder(ctx.getScriptInstance());
+        Literal value = ctx.getLiteral("Value").copy(); // We want a copied version
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"set"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("VariableName").parse().build(),
-                Argument.builder().name("=").parse().modifier().build(),
-                Argument.builder().name("Value").rest().build()
-        };
-    }
-
-    @Override
-    public Result run(Context ctx) {
-        LiteralHolder literalHolder = ((HolderContainer) Lang.instance().sequencer().parse(ctx.getLiteral(0).getString())).resolveHolder(ctx.getScriptInstance());
-        Literal value = ctx.getLiteral(2);
-
-        literalHolder.setData(value.copy()); // We want a copied version
-        return Result.success();
+        literalHolder.setData(value);
+        return Result.builder().success().result(value.getValue().orNull()).literal(value).build();
     }
 }

@@ -93,7 +93,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
             return Optional.<Literal>of(Literals.FALSE);
         }
 
-        // Everything in literals are basically just numbers, just make them all doubles
+        // All numbers are doubles, just make them all doubles
         Double doubleVal = Utilities.getDouble(literal);
         if (doubleVal != null) {
             return Optional.<Literal>of(new Literal<Double>(doubleVal));

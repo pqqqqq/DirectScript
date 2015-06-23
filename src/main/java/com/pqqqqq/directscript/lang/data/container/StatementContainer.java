@@ -10,39 +10,35 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-17.
- * Represents a {@link Statement} {@link DataContainer} which resolves a statement's {@link Literal} value at runtime
+ * Represents a {@link Line} {@link Statement} {@link DataContainer} which resolves a statement's {@link Literal} value at runtime
  */
 public class StatementContainer implements DataContainer {
-    private final String statement;
+    private final Line statement;
 
     /**
      * Creates a new {@link StatementContainer} instance with the given statement in string form
      *
      * @param statement the statement
      */
-    public StatementContainer(String statement) {
+    public StatementContainer(Line statement) {
         this.statement = statement;
     }
 
     /**
-     * Gets the statement string associated with this {@link StatementContainer}
+     * Gets the {@link Line} statement string associated with this {@link StatementContainer}
      *
      * @return the statement
      */
-    public String getStatement() {
+    public Line getStatement() {
         return statement;
     }
 
     @Override
     public Literal resolve(ScriptInstance scriptInstance) {
-        Optional<Line> currentLine = scriptInstance.getCurrentLine();
-        checkState(currentLine.isPresent(), "The current line could be found");
-
-        Line line = new Line(currentLine.get().getAbsoluteNumber(), currentLine.get().getScriptNumber(), getStatement());
-        Statement.Result result = line.toContex(scriptInstance).run();
+        Statement.Result result = getStatement().toContex(scriptInstance).run();
 
         Optional<Literal> literalOptional = result.getLiteralResult();
-        checkState(literalOptional.isPresent(), String.format("%s is a void statement, and did not return a type.", line.getStatement().getClass().getName()));
+        checkState(literalOptional.isPresent(), String.format("%s is a void statement, and did not return a type.", getStatement().getStatement().getClass().getName()));
 
         return literalOptional.get();
     }

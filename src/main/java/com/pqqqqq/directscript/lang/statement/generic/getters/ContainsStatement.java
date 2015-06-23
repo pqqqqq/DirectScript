@@ -9,23 +9,17 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class ContainsStatement extends Statement<Boolean> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"contains"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("String").build(),
-                Argument.builder().name("ContainsString").build()
-        };
+    public ContainsStatement() {
+        super(Syntax.builder()
+                .identifiers("contains")
+                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("ContainsString")))
+                .build());
     }
 
     @Override
     public Result<Boolean> run(Context ctx) {
-        String string = ctx.getLiteral(0).getString();
-        String contains = ctx.getLiteral(1).getString();
+        String string = ctx.getLiteral("String").getString();
+        String contains = ctx.getLiteral("ContainsString").getString();
         boolean check = string.contains(contains);
 
         return Result.<Boolean>builder().success().result(check).literal(check).build();

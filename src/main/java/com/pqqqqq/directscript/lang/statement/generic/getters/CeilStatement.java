@@ -9,21 +9,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class CeilStatement extends Statement<Double> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"ceil"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("Number").build()
-        };
+    public CeilStatement() {
+        super(Syntax.builder()
+                .identifiers("ceil")
+                .arguments(Arguments.of(Argument.from("Number")))
+                .build());
     }
 
     @Override
     public Result<Double> run(Context ctx) {
-        double ceil = Math.ceil(ctx.getLiteral(0).getNumber());
+        double ceil = Math.ceil(ctx.getLiteral("Number").getNumber());
         return Result.<Double>builder().success().result(ceil).literal(ceil).build();
     }
 }

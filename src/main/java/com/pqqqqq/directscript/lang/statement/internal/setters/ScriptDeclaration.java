@@ -9,31 +9,18 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class ScriptDeclaration extends Statement<String> {
 
-    @Override
-    public ExecutionTime getExecutionTime() {
-        return ExecutionTime.COMPILE;
-    }
-
-    @Override
-    public String getSuffix() {
-        return "{";
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"script"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("ScriptName").build()
-        };
+    public ScriptDeclaration() {
+        super(Syntax.builder()
+                .identifiers("script")
+                .suffix("{")
+                .executionTime(ExecutionTime.COMPILE)
+                .arguments(Arguments.of(Argument.from("ScriptName")))
+                .build());
     }
 
     @Override
     public Result<String> run(Context ctx) {
-        String scriptName = ctx.getLiteral(0).getString();
+        String scriptName = ctx.getLiteral("ScriptName").getString();
         return Result.<String>builder().success().result(scriptName).build();
     }
 }

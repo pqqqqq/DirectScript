@@ -9,24 +9,11 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class BreakStatement extends Statement {
 
-    @Override
-    public String getSplitString() {
-        return " ";
-    }
-
-    @Override
-    public boolean doesUseBrackets() {
-        return false;
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"break"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[0];
+    public BreakStatement() {
+        super(Syntax.builder()
+                .identifiers("break")
+                .brackets()
+                .build());
     }
 
     @Override

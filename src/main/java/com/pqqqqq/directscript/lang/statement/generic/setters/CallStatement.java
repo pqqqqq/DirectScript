@@ -21,22 +21,16 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class CallStatement extends Statement {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"call", "run"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("ScriptName").build(),
-                Argument.builder().name("ArgumentArray").build()
-        };
+    public CallStatement() {
+        super(Syntax.builder()
+                .identifiers("call", "run")
+                .arguments(Arguments.of(Argument.from("ScriptName"), ",", Argument.from("ArgumentArray")))
+                .build());
     }
 
     @Override
     public Result run(Context ctx) {
-        String scriptName = ctx.getLiteral(0).getString();
+        String scriptName = ctx.getLiteral("ScriptName").getString();
         Optional<Script> scriptOptional = Lang.instance().getScript(scriptName);
 
         checkState(scriptOptional.isPresent(), "Unknown script: " + scriptName);
@@ -44,7 +38,7 @@ public class CallStatement extends Statement {
         Script script = scriptOptional.get();
         checkState(script.getTrigger().get().hasCause(Causes.CALL), "This script cannot be called");
 
-        List<LiteralHolder> arguments = ctx.getLiteral(1).getArray();
+        List<LiteralHolder> arguments = ctx.getLiteral("ArgumentArray").getArray();
 
         ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).causedBy(ctx.getScriptInstance().getCausedBy().orNull()).build();
         scriptInstanceNew.addVariable(new Variable("generic.arguments", Literal.getLiteralBlindly(arguments)));

@@ -2,7 +2,7 @@ package com.pqqqqq.directscript.lang.statement.sponge.setters;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.reader.Context;
-import com.pqqqqq.directscript.lang.statement.sponge.SpongeStatement;
+import com.pqqqqq.directscript.lang.statement.Statement;
 import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.event.message.CommandEvent;
@@ -12,18 +12,14 @@ import org.spongepowered.api.util.command.CommandResult;
  * Created by Kevin on 2015-06-09.
  * A statement that cancels the event that causes the script's trigger, if possible
  */
-public class CancelStatement extends SpongeStatement {
+public class CancelStatement extends Statement {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"cancel"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("CancelCondition").optional().build()
-        };
+    public CancelStatement() {
+        super(Syntax.builder()
+                .identifiers("cancel")
+                .prefix("@")
+                .arguments(Arguments.empty(), Arguments.of(Argument.from("CancelCondition")))
+                .build());
     }
 
     @Override
@@ -38,7 +34,7 @@ public class CancelStatement extends SpongeStatement {
             return Result.failure();
         }
 
-        ((Cancellable) event).setCancelled(ctx.getLiteral(0, true).getBoolean()); // Default true
+        ((Cancellable) event).setCancelled(ctx.getLiteral("CancelCondition", true).getBoolean()); // Default true
 
         // Specific cancel stuff
         if (event instanceof CommandEvent) {

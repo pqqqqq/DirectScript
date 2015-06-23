@@ -9,23 +9,17 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class StartsWithStatement extends Statement<Boolean> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"startswith"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("String").build(),
-                Argument.builder().name("StartsWithString").build()
-        };
+    public StartsWithStatement() {
+        super(Syntax.builder()
+                .identifiers("startswith")
+                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("StartsWithString")))
+                .build());
     }
 
     @Override
     public Result<Boolean> run(Context ctx) {
-        String string = ctx.getLiteral(0).getString();
-        String contains = ctx.getLiteral(1).getString();
+        String string = ctx.getLiteral("String").getString();
+        String contains = ctx.getLiteral("StartsWithString").getString();
         boolean check = string.startsWith(contains);
 
         return Result.<Boolean>builder().success().result(check).literal(check).build();

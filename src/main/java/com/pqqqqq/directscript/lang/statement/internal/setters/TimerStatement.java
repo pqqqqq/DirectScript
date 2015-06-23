@@ -9,26 +9,17 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class TimerStatement extends Statement {
 
-    @Override
-    public ExecutionTime getExecutionTime() {
-        return ExecutionTime.COMPILE;
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"timer"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("TimerDelay").build()
-        };
+    public TimerStatement() {
+        super(Syntax.builder()
+                .identifiers("timer")
+                .executionTime(ExecutionTime.COMPILE)
+                .arguments(Arguments.of(Argument.from("TimerDelay")))
+                .build());
     }
 
     @Override
     public Result run(Context ctx) {
-        ctx.getScript().getCauseData().setTimerDelay(ctx.getLiteral(0).getNumber().longValue());
+        ctx.getScript().getCauseData().setTimerDelay(ctx.getLiteral("TimerDelay").getNumber().longValue());
         return Result.success();
     }
 }

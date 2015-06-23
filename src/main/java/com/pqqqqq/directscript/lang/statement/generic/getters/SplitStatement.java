@@ -9,22 +9,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class SplitStatement extends Statement<String[]> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"split"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("String").build(),
-                Argument.builder().name("SplitString").build()
-        };
+    public SplitStatement() {
+        super(Syntax.builder()
+                .identifiers("split")
+                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("SplitString")))
+                .build());
     }
 
     @Override
     public Result<String[]> run(Context ctx) {
-        String[] split = ctx.getLiteral(0).getString().split(ctx.getLiteral(1).getString());
+        String[] split = ctx.getLiteral("String").getString().split(ctx.getLiteral("SplitString").getString());
         return Result.<String[]>builder().success().result(split).literal(split).build();
     }
 }

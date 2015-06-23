@@ -9,23 +9,17 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class RepeatStatement extends Statement<Object[]> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"repeat"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("RepeatLiteral").build(),
-                Argument.builder().name("RepeatTimes").build()
-        };
+    public RepeatStatement() {
+        super(Syntax.builder()
+                .identifiers("repeat")
+                .arguments(Arguments.of(Argument.from("Literal"), ",", Argument.from("Amount")))
+                .build());
     }
 
     @Override
     public Result<Object[]> run(Context ctx) {
-        Object repeatObj = ctx.getLiteral(0).getValue().get();
-        int repeatTimes = ctx.getLiteral(1).getNumber().intValue();
+        Object repeatObj = ctx.getLiteral("Literal").getValue().get();
+        int repeatTimes = ctx.getLiteral("Amount").getNumber().intValue();
 
         Object[] array = new Object[repeatTimes];
         for (int i = 0; i < array.length; i++) {

@@ -9,21 +9,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class FloorStatement extends Statement<Double> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"floor"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("Number").build()
-        };
+    public FloorStatement() {
+        super(Syntax.builder()
+                .identifiers("floor")
+                .arguments(Arguments.of(Argument.from("Number")))
+                .build());
     }
 
     @Override
     public Result<Double> run(Context ctx) {
-        double floor = Math.floor(ctx.getLiteral(0).getNumber());
+        double floor = Math.floor(ctx.getLiteral("Number").getNumber());
         return Result.<Double>builder().success().result(floor).literal(floor).build();
     }
 }

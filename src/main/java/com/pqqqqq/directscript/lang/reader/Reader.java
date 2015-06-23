@@ -5,6 +5,7 @@ import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.script.ScriptsFile;
 import com.pqqqqq.directscript.lang.statement.Statement;
+import com.pqqqqq.directscript.lang.statement.generic.setters.ElseStatement;
 import com.pqqqqq.directscript.lang.statement.internal.setters.ScriptDeclaration;
 import com.pqqqqq.directscript.lang.statement.internal.setters.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
@@ -146,7 +147,7 @@ public class Reader {
                     checkState(lineInst.isRunnable(), "Unknown statement.");
                     if (currentScript != null) {
                         scriptLine++;
-                        if (lineInst.getStatement() instanceof Termination) { // Else is an instance of Termination
+                        if (lineInst.getStatement() instanceof Termination || lineInst.getStatement() instanceof ElseStatement) {
                             Line startLine = bracesLineList.remove(0); // This is the opening brace line
 
                             startLine.setClosingBrace(lineInst); // Set the closing brace as the current line
@@ -154,7 +155,7 @@ public class Reader {
                             startLine.generateInternalBlock(currentScript);
                         }
 
-                        if (lineInst.getStatement().getSuffix().equals("{") || lineInst.getLine().endsWith("{")) { // Necessary for else and else if statements
+                        if (lineInst.getStatement().getSyntax().getSuffix().equals("{") || lineInst.getLine().endsWith("{")) { // Necessary for else and else if statements
                             bracesLineList.add(0, lineInst);
                         }
                     }

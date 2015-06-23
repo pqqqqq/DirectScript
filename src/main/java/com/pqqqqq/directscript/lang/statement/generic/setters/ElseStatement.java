@@ -4,7 +4,7 @@ import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
-import com.pqqqqq.directscript.lang.statement.internal.setters.Termination;
+import com.pqqqqq.directscript.lang.statement.Statement;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -13,26 +13,14 @@ import static com.google.common.base.Preconditions.checkState;
  * Created by Kevin on 2015-06-08.
  * A statement that only executes if the 'if' statements above are all false
  */
-public class ElseStatement extends Termination {
+public class ElseStatement extends Statement {
 
-    @Override
-    public ExecutionTime getExecutionTime() {
-        return ExecutionTime.RUNTIME;
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"} else"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[0];
-    }
-
-    @Override
-    public String getSuffix() {
-        return "{";
+    public ElseStatement() {
+        super(Syntax.builder()
+                .identifiers("} else")
+                .suffix("{")
+                .brackets()
+                .build());
     }
 
     @Override

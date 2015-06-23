@@ -15,12 +15,13 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class Variable extends LiteralHolder {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z]([A-Za-z0-9]|\\.)*$");
+    private static final Pattern ILLEGAL_NAMES = Pattern.compile("/^(local|final|in|and|or)$/");
 
     private final String name;
     private final boolean isFinal;
 
     /**
-     * Creates a new variable with the corresponding name that has a value of {@link Literal#empty()} and is not final
+     * Creates a new variable with the corresponding name that has a value of {@link com.pqqqqq.directscript.lang.data.Literals#EMPTY} and is not final
      *
      * @param name the name
      */
@@ -71,6 +72,14 @@ public class Variable extends LiteralHolder {
      */
     public static Pattern namePattern() {
         return NAME_PATTERN;
+    }
+
+    /**
+     * Gets the {@link Pattern} for illegal {@link Variable} names
+     * @return the pattern
+     */
+    public static Pattern illegalNames() {
+        return ILLEGAL_NAMES;
     }
 
     /**

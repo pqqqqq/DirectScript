@@ -11,21 +11,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class ReturnStatement extends Statement {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"return", "exit"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("ReturnValue").optional().build()
-        };
+    public ReturnStatement() {
+        super(Syntax.builder()
+                .identifiers("return", "exit")
+                .arguments(Arguments.empty(), Arguments.of(Argument.from("ReturnValue")))
+                .build());
     }
 
     @Override
     public Result run(Context ctx) {
-        Literal returnValue = ctx.getLiteral(0);
+        Literal returnValue = ctx.getLiteral("ReturnValue");
         ctx.getScriptInstance().setReturnValue(Optional.of(returnValue));
         return Result.success();
     }

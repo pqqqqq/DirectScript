@@ -9,21 +9,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class SizeStatement extends Statement<Integer> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"size"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("Array").build()
-        };
+    public SizeStatement() {
+        super(Syntax.builder()
+                .identifiers("size")
+                .arguments(Arguments.of(Argument.from("Array")))
+                .build());
     }
 
     @Override
     public Result<Integer> run(Context ctx) {
-        int size = ctx.getLiteral(0).getArray().size();
+        int size = ctx.getLiteral("Array").getArray().size();
         return Result.<Integer>builder().success().result(size).literal(size).build();
     }
 }

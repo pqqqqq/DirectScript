@@ -12,27 +12,21 @@ import java.util.List;
  */
 public class JoinStatement extends Statement<String> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"join", "implode"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("JoinArray").build(),
-                Argument.builder().name("JoinString").build(),
-                Argument.builder().name("Start").optional().build(),
-                Argument.builder().name("End").optional().build()
-        };
+    public JoinStatement() {
+        super(Syntax.builder()
+                .identifiers("join", "implode")
+                .arguments(Arguments.of(Argument.from("JoinArray"), ",", Argument.from("JoinString")))
+                .arguments(Arguments.of(Argument.from("JoinArray"), ",", Argument.from("JoinString"), ",", Argument.from("Start")))
+                .arguments(Arguments.of(Argument.from("JoinArray"), ",", Argument.from("JoinString"), ",", Argument.from("Start"), ",", Argument.from("End")))
+                .build());
     }
 
     @Override
     public Result<String> run(Context ctx) {
-        List<LiteralHolder> array = ctx.getLiteral(0).getArray();
-        String joinString = ctx.getLiteral(1).getString();
-        int start = ctx.getLiteral(2, 0).getNumber().intValue() - 1; // Subtract one cuz base 1
-        int end = ctx.getLiteral(3, array.size()).getNumber().intValue() - 1; // Subtract one cuz base 1
+        List<LiteralHolder> array = ctx.getLiteral("JoinArray").getArray();
+        String joinString = ctx.getLiteral("JoinString").getString();
+        int start = ctx.getLiteral("Start", 1).getNumber().intValue() - 1; // Subtract one cuz base 1
+        int end = ctx.getLiteral("End", array.size()).getNumber().intValue() - 1; // Subtract one cuz base 1
 
         String joined = "";
         for (int i = start; i <= end && i < array.size(); i++) {

@@ -2,32 +2,27 @@ package com.pqqqqq.directscript.lang.statement.sponge.getters;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.reader.Context;
-import com.pqqqqq.directscript.lang.statement.sponge.SpongeStatement;
+import com.pqqqqq.directscript.lang.statement.Statement;
 import org.spongepowered.api.entity.player.Player;
 
 /**
  * Created by Kevin on 2015-06-09.
  * A statement that checks the permission of a player
  */
-public class PermissionStatement extends SpongeStatement<Boolean> {
+public class PermissionStatement extends Statement<Boolean> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"permission"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("Player").optional().build(),
-                Argument.builder().name("Permission").build()
-        };
+    public PermissionStatement() {
+        super(Syntax.builder()
+                .identifiers("permission")
+                .prefix("@")
+                .arguments(Arguments.of(Argument.from("Permission")), Arguments.of(Argument.from("Player"), ",", Argument.from("Permission")))
+                .build());
     }
 
     @Override
     public Result<Boolean> run(Context ctx) {
-        Optional<Player> player = ctx.getPlayerOrCauser(0);
-        String permission = ctx.getLiteral(1).getString();
+        Optional<Player> player = ctx.getPlayerOrCauser("Player");
+        String permission = ctx.getLiteral("Permission").getString();
 
         if (!player.isPresent()) {
             return Result.failure();

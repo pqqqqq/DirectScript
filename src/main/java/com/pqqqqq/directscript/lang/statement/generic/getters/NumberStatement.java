@@ -9,21 +9,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class NumberStatement extends Statement<Double> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"number"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("Literal").build()
-        };
+    public NumberStatement() {
+        super(Syntax.builder()
+                .identifiers("number")
+                .arguments(Arguments.of(Argument.from("Literal")))
+                .build());
     }
 
     @Override
     public Result<Double> run(Context ctx) {
-        Double numberValue = ctx.getLiteral(0).getNumber();
+        Double numberValue = ctx.getLiteral("Literal").getNumber();
         return Result.<Double>builder().success().result(numberValue).literal(numberValue).build();
     }
 }

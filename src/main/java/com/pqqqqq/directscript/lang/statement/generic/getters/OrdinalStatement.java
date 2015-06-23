@@ -9,21 +9,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class OrdinalStatement extends Statement<Integer> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"ordinal", "ord"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("String").build()
-        };
+    public OrdinalStatement() {
+        super(Syntax.builder()
+                .identifiers("ordinal", "ord")
+                .arguments(Arguments.of(Argument.from("String")))
+                .build());
     }
 
     @Override
     public Result<Integer> run(Context ctx) {
-        String string = ctx.getLiteral(0).getString();
+        String string = ctx.getLiteral("String").getString();
         char firstChar = string.charAt(0);
         int ordinal = (int) firstChar;
 

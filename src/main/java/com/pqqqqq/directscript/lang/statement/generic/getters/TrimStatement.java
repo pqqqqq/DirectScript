@@ -9,21 +9,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class TrimStatement extends Statement<String> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"trim"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("String").build()
-        };
+    public TrimStatement() {
+        super(Syntax.builder()
+                .identifiers("trim")
+                .arguments(Arguments.of(Argument.from("String")))
+                .build());
     }
 
     @Override
     public Result<String> run(Context ctx) {
-        String trim = ctx.getLiteral(0).getString().trim();
+        String trim = ctx.getLiteral("String").getString().trim();
         return Result.<String>builder().result(trim).literal(trim).build();
     }
 }

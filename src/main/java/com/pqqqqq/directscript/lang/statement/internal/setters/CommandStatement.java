@@ -13,27 +13,18 @@ import java.util.List;
  */
 public class CommandStatement extends Statement {
 
-    @Override
-    public ExecutionTime getExecutionTime() {
-        return ExecutionTime.COMPILE;
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"command"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("CommandAliases").build()
-        };
+    public CommandStatement() {
+        super(Syntax.builder()
+                .identifiers("command")
+                .executionTime(ExecutionTime.COMPILE)
+                .arguments(Arguments.of(Argument.from("CommandAliases")))
+                .build());
     }
 
     @Override
     public Result run(Context ctx) {
         List<String> aliases = new ArrayList<String>();
-        List<LiteralHolder> array = ctx.getLiteral(0).getArray();
+        List<LiteralHolder> array = ctx.getLiteral("CommandAliases").getArray();
 
         for (LiteralHolder alias : array) {
             aliases.add(alias.getData().getString());

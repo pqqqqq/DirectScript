@@ -15,34 +15,23 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ForStatement extends Statement {
 
-    @Override
-    public String getSuffix() {
-        return "{";
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"for"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("VariableName").parse().build(),
-                Argument.builder().name("StartValue").build(),
-                Argument.builder().name("EndValue").build(),
-                Argument.builder().name("IncrementValue").optional().build()
-        };
+    public ForStatement() {
+        super(Syntax.builder()
+                .identifiers("for")
+                .suffix("{")
+                .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build(), "=", Argument.from("StartValue"), ",", Argument.from("EndValue")))
+                .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build(), "=", Argument.from("StartValue"), ",", Argument.from("EndValue"), ",", Argument.from("IncrementValue")))
+                .build());
     }
 
     @Override
     public Result run(Context ctx) {
-        String varName = ctx.getLiteral(0).getString();
+        String varName = ctx.getLiteral("VariableName").getString();
         Variable var = ctx.getScriptInstance().addVariable(new Variable(varName));
 
-        double startValue = ctx.getLiteral(1).getNumber();
-        double endValue = ctx.getLiteral(2).getNumber();
-        double increment = ctx.getLiteral(3, 1).getNumber();
+        double startValue = ctx.getLiteral("StartValue").getNumber();
+        double endValue = ctx.getLiteral("EndValue").getNumber();
+        double increment = ctx.getLiteral("IncrementValue", 1).getNumber();
 
         Block internalBlock = ctx.getLine().getInternalBlock();
         checkNotNull(internalBlock, "This line has no internal block");

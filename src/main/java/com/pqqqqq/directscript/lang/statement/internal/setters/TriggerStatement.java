@@ -18,27 +18,18 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class TriggerStatement extends Statement<Trigger> {
 
-    @Override
-    public ExecutionTime getExecutionTime() {
-        return ExecutionTime.COMPILE;
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"trigger"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("TriggerArray").build()
-        };
+    public TriggerStatement() {
+        super(Syntax.builder()
+                .identifiers("trigger")
+                .executionTime(ExecutionTime.COMPILE)
+                .arguments(Arguments.of(Argument.from("TriggerArray")))
+                .build());
     }
 
     @Override
     public Result<Trigger> run(Context ctx) {
         Trigger.Builder triggerBuilder = Trigger.builder().script(ctx.getScriptInstance().getScript());
-        List<LiteralHolder> triggers = ctx.getLiteral(0).getArray();
+        List<LiteralHolder> triggers = ctx.getLiteral("TriggerArray").getArray();
 
         for (LiteralHolder trigger : triggers) {
             String causeString = trigger.getData().getString();

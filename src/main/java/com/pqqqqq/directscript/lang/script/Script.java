@@ -16,16 +16,16 @@ public class Script extends Block {
 
         @Override
         public boolean apply(Line input) {
-            Statement statement = input.getStatement();
-            return statement.getExecutionTime() == Statement.ExecutionTime.COMPILE || statement.getExecutionTime() == Statement.ExecutionTime.ALWAYS;
+            Statement.Syntax syntax = input.getStatement().getSyntax();
+            return syntax.getExecutionTime() == Statement.ExecutionTime.COMPILE || syntax.getExecutionTime() == Statement.ExecutionTime.ALWAYS;
         }
     };
     private static final Predicate<Line> RUNTIME_PREDICATE = new Predicate<Line>() {
 
         @Override
         public boolean apply(Line input) {
-            Statement statement = input.getStatement();
-            return statement.getExecutionTime() != Statement.ExecutionTime.COMPILE;
+            Statement.Syntax syntax = input.getStatement().getSyntax();
+            return syntax.getExecutionTime() != Statement.ExecutionTime.COMPILE;
         }
     };
 
@@ -48,7 +48,7 @@ public class Script extends Block {
     }
 
     /**
-     * A {@link Predicate} that applies only to statements with {@link Statement#getExecutionTime()} equal to {@link com.pqqqqq.directscript.lang.statement.Statement.ExecutionTime#COMPILE}
+     * A {@link Predicate} that applies only to statements with {@link com.pqqqqq.directscript.lang.statement.Statement.Syntax#getExecutionTime()} equal to {@link com.pqqqqq.directscript.lang.statement.Statement.ExecutionTime#COMPILE}
      *
      * @return the predicate
      */
@@ -57,7 +57,7 @@ public class Script extends Block {
     }
 
     /**
-     * A {@link Predicate} that applies only to statements with {@link Statement#getExecutionTime()} equal to {@link com.pqqqqq.directscript.lang.statement.Statement.ExecutionTime#RUNTIME}
+     * A {@link Predicate} that applies only to statements with {@link com.pqqqqq.directscript.lang.statement.Statement.Syntax#getExecutionTime()} equal to {@link com.pqqqqq.directscript.lang.statement.Statement.ExecutionTime#RUNTIME}
      *
      * @return the predicate
      */

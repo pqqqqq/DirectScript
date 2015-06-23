@@ -9,21 +9,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class LowercaseStatement extends Statement<String> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"lowercase"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("String").build()
-        };
+    public LowercaseStatement() {
+        super(Syntax.builder()
+                .identifiers("lowercase")
+                .arguments(Arguments.of(Argument.from("String")))
+                .build());
     }
 
     @Override
     public Result<String> run(Context ctx) {
-        String lower = ctx.getLiteral(0).getString().toLowerCase();
+        String lower = ctx.getLiteral("String").getString().toLowerCase();
         return Result.<String>builder().result(lower).literal(lower).build();
     }
 }

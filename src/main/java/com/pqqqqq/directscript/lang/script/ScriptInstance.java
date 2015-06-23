@@ -12,6 +12,7 @@ import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.statement.generic.setters.BreakStatement;
 import com.pqqqqq.directscript.lang.statement.generic.setters.ContinueStatement;
+import com.pqqqqq.directscript.lang.statement.generic.setters.ElseStatement;
 import com.pqqqqq.directscript.lang.statement.internal.setters.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
@@ -38,6 +39,7 @@ public class ScriptInstance extends Environment implements Runnable {
     private final Script script;
     private final Cause cause;
     private final Predicate<Line> linePredicate;
+    private final Map<String, Variable> variableMap;
     private final Optional<Event> event;
     private final Optional<Player> causedBy;
 
@@ -54,9 +56,12 @@ public class ScriptInstance extends Environment implements Runnable {
         this.script = script;
         this.cause = cause;
         this.linePredicate = linePredicate;
+
+        this.variableMap = variableMap;
+        resetVariables();
+
         this.event = Optional.fromNullable(event);
         this.causedBy = Optional.fromNullable(causedBy);
-        getVariables().putAll(variableMap);
     }
 
     /**
@@ -222,6 +227,14 @@ public class ScriptInstance extends Environment implements Runnable {
     }
 
     /**
+     * Resets the {@link Variable}s in this {@link ScriptInstance} {@link Environment} to its defaults
+     */
+    public void resetVariables() {
+        getVariables().clear();
+        getVariables().putAll(this.variableMap);
+    }
+
+    /**
      * Executes a {@link Block} with the {@link ScriptInstance}
      *
      * @param block the block
@@ -245,7 +258,7 @@ public class ScriptInstance extends Environment implements Runnable {
                     this.currentLine = Optional.of(line); // Set current line
 
                     Statement statement = line.getStatement();
-                    if (!doSkipLines() || statement instanceof Termination) {
+                    if (!doSkipLines() || statement instanceof Termination || statement instanceof ElseStatement) {
                         // Break and continue get special treatment
                         if (statement instanceof BreakStatement) {
                             return Result.FAILURE_BREAK;

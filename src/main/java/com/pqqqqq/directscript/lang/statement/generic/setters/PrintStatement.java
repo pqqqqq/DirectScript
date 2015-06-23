@@ -10,21 +10,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class PrintStatement extends Statement {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"print"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("String").build()
-        };
+    public PrintStatement() {
+        super(Syntax.builder()
+                .identifiers("print")
+                .arguments(Arguments.empty(), Arguments.of(Argument.from("String")))
+                .build());
     }
 
     @Override
     public Result run(Context ctx) {
-        DirectScript.instance().getLogger().info(ctx.getLiteral(0).getString());
+        DirectScript.instance().getLogger().info(ctx.getLiteral("String", "").getString());
         return Result.success();
     }
 }

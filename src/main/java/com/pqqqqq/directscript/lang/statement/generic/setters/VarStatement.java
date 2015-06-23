@@ -1,68 +1,51 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.Literals;
 import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Created by Kevin on 2015-06-02.
  * A statement that creates a new {@link Variable} in the {@link Environment}
  */
-public class VarStatement extends Statement {
+public class VarStatement extends Statement<Object> {
 
-    @Override
-    public String getSplitString() {
-        return " ";
+    public VarStatement() {
+        super(Syntax.builder()
+                .identifiers("var")
+                .brackets()
+                .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build()))
+                .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build(), "=", Argument.from("Value")))
+                .build()); // TODO: Fix syntax?
     }
 
     @Override
-    public boolean doesUseBrackets() {
-        return false;
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"var"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("final").optional().parse().modifier().build(),
-                Argument.builder().name("local").optional().parse().modifier().build(),
-                Argument.builder().name("VariableName").parse().build(),
-                Argument.builder().name("=").optional().parse().modifier().build(),
-                Argument.builder().name("Value").optional().rest().build()
-        };
-    }
-
-    @Override
-    public Result run(Context ctx) {
+    public Result<Object> run(Context ctx) {
         boolean isFinal = false;
-        Literal value = Literals.EMPTY;
         Environment environment = ctx.getScriptInstance();
+        String name = null;
 
-        for (int i = 0; i < ctx.getLiteralCount(); i++) {
-            String word = ctx.getLiteral(i).getString();
-
-            // Check modifiers first (eg final)
+        String[] words = Lang.instance().stringParser().parseSplit(ctx.getLiteral("VariableName").getString(), " ");
+        for (String word : words) {
             if (word.equals("final")) {
                 isFinal = true;
             } else if (word.equals("local")) { // TODO: Variable visibility masking fixes?
                 environment = ctx.getScript().getScriptsFile();
             } else {
-                if (ctx.getLiteralCount() > (i + 2)) {
-                    value = ctx.getLiteral(i + 2).copy(); // We want a copied version
-                }
-
-                environment.addVariable(new Variable(word, value.copy(), isFinal));
-                return Result.success();
+                name = word;
+                break;
             }
         }
 
-        throw new IllegalArgumentException("Improper variable declaration: " + ctx.getLine());
+        checkNotNull(name, "Improper variable declaration");
+        Literal value = ctx.getLiteral("Value");
+
+        environment.addVariable(new Variable(name, value, isFinal));
+        return Result.builder().success().result(value.getValue().orNull()).literal(value).build();
     }
 }

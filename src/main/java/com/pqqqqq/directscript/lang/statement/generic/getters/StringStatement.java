@@ -9,21 +9,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class StringStatement extends Statement<String> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"string"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("Literal").build()
-        };
+    public StringStatement() {
+        super(Syntax.builder()
+                .identifiers("string")
+                .arguments(Arguments.of(Argument.from("Literal")))
+                .build());
     }
 
     @Override
     public Result<String> run(Context ctx) {
-        String stringValue = ctx.getLiteral(0).getString();
+        String stringValue = ctx.getLiteral("Literal").getString();
         return Result.<String>builder().success().result(stringValue).literal(stringValue).build();
     }
 }

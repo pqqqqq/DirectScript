@@ -9,21 +9,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class CharacterStatement extends Statement<String> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"character", "chr"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("Ordinal").build()
-        };
+    public CharacterStatement() {
+        super(Syntax.builder()
+                .identifiers("character", "chr")
+                .arguments(Arguments.of(Argument.from("Ordinal")))
+                .build());
     }
 
     @Override
     public Result<String> run(Context ctx) {
-        int ordinal = ctx.getLiteral(0).getNumber().intValue();
+        int ordinal = ctx.getLiteral("Ordinal").getNumber().intValue();
         char character = (char) ordinal;
         String result = Character.toString(character);
 

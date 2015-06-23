@@ -10,21 +10,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class RoundStatement extends Statement<Double> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"round"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("Number").build()
-        };
+    public RoundStatement() {
+        super(Syntax.builder()
+                .identifiers("round")
+                .arguments(Arguments.of(Argument.from("Number")))
+                .build());
     }
 
     @Override
     public Result<Double> run(Context ctx) {
-        double rounded = GenericMath.round(ctx.getLiteral(0).getNumber(), 0);
+        double rounded = GenericMath.round(ctx.getLiteral("Number").getNumber(), 0);
         return Result.<Double>builder().success().result(rounded).literal(rounded).build();
     }
 }

@@ -9,24 +9,11 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class ContinueStatement extends Statement {
 
-    @Override
-    public String getSplitString() {
-        return " ";
-    }
-
-    @Override
-    public boolean doesUseBrackets() {
-        return false;
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"continue"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[0];
+    public ContinueStatement() {
+        super(Syntax.builder()
+                .identifiers("continue")
+                .brackets()
+                .build());
     }
 
     @Override

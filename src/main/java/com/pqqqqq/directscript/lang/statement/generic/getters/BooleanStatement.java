@@ -9,21 +9,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class BooleanStatement extends Statement<Boolean> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"boolean", "bool"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("Literal").build()
-        };
+    public BooleanStatement() {
+        super(Syntax.builder()
+                .identifiers("boolean", "bool")
+                .arguments(Arguments.of(Argument.from("Literal")))
+                .build());
     }
 
     @Override
     public Result<Boolean> run(Context ctx) {
-        Boolean booleanValue = ctx.getLiteral(0).getBoolean();
+        Boolean booleanValue = ctx.getLiteral("Literal").getBoolean();
         return Result.<Boolean>builder().success().result(booleanValue).literal(booleanValue).build();
     }
 }

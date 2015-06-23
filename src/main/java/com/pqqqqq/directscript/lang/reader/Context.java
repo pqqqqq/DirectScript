@@ -4,12 +4,16 @@ import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.data.Literals;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.world.World;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Kevin on 2015-06-12.
@@ -20,23 +24,21 @@ public class Context {
     private final Line line;
 
     private final String[] stringArguments;
-    private final DataContainer[] containers;
-    private final Literal[] literals;
+    private final Map<String, DataContainer> containers;
+    private final Map<String, Literal> literals;
 
     private Statement.Result result = null;
 
-    Context(ScriptInstance scriptInstance, Line line, String[] stringArguments, DataContainer[] containers) {
+    Context(ScriptInstance scriptInstance, Line line, String[] stringArguments, Map<String, DataContainer> containers) {
         this.scriptInstance = scriptInstance;
         this.line = line;
 
         this.stringArguments = stringArguments;
         this.containers = containers;
-        this.literals = new Literal[containers.length];
 
-        for (int i = 0; i < this.literals.length; i++) {
-            if (containers[i] != null) {
-                this.literals[i] = containers[i].resolve(scriptInstance);
-            }
+        this.literals = new HashMap<String, Literal>();
+        for (Map.Entry<String, DataContainer> entry : containers.entrySet()) {
+            this.literals.put(entry.getKey(), (entry.getValue() == null ? Literals.EMPTY : entry.getValue().resolve(scriptInstance)));
         }
     }
 
@@ -87,52 +89,35 @@ public class Context {
     }
 
     /**
-     * Gets the {@link DataContainer} argument array
+     * Gets the {@link DataContainer} with the given name
      *
-     * @return the data container argument array
+     * @param name the name
+     * @return the data argument, or null if none
      */
-    public DataContainer[] getContainers() {
-        return containers;
+    public DataContainer getContainer(String name) {
+        return this.containers.get(name);
     }
 
     /**
-     * Gets the {@link DataContainer} at the given index
+     * Gets the {@link Literal} with the given name
      *
-     * @param index the index
-     * @return the data argument
+     * @param name the name
+     * @return the literal argument, or {@link Literals#EMPTY}
      */
-    public DataContainer getContainer(int index) {
-        return containers[index];
+    public Literal getLiteral(String name) {
+        Literal literal = this.literals.get(name);
+        return literal == null ? Literals.EMPTY : literal;
     }
 
     /**
-     * Gets the {@link Literal} argument array
+     * Gets the {@link Literal} with the given name, or a default value if empty
      *
-     * @return the argument array
+     * @param name the name
+     * @param def the default value
+     * @return the literal argument, or the default value
      */
-    public Literal[] getLiterals() {
-        return literals;
-    }
-
-    /**
-     * Gets the {@link Literal} at the given index
-     *
-     * @param index the index
-     * @return the literal argument
-     */
-    public Literal getLiteral(int index) {
-        return literals[index];
-    }
-
-    /**
-     * Gets the {@link Literal} at the given index, or a literal of a default value. This is analogous to: <code>getLiteral(index).or(def)</code>
-     *
-     * @param index the index of the literal
-     * @param def   the default value
-     * @return the literal
-     */
-    public Literal getLiteral(int index, Object def) {
-        return literals[index].or(def);
+    public Literal getLiteral(String name, Object def) {
+        return getLiteral(name).or(def);
     }
 
     /**
@@ -141,7 +126,7 @@ public class Context {
      * @return the size of the literal array
      */
     public int getLiteralCount() {
-        return literals.length;
+        return literals.size();
     }
 
     /**
@@ -173,23 +158,23 @@ public class Context {
     /**
      * Gets an {@link Optional} {@link Player} at the index that, if {@link com.pqqqqq.directscript.lang.data.Literals#EMPTY}, uses the {@link ScriptInstance#getCausedBy()} player instead
      *
-     * @param index the index
+     * @param name the name
      * @return the player
      */
-    public Optional<Player> getPlayerOrCauser(int index) {
+    public Optional<Player> getPlayerOrCauser(String name) {
         Optional<Player> causedBy = this.scriptInstance.getCausedBy();
-        Literal literal = this.literals[index];
+        Literal literal = getLiteral(name);
         return (literal.isEmpty() ? causedBy : literal.getPlayer());
     }
 
     /**
      * Gets an {@link Optional} {@link World} at the index that, if {@link com.pqqqqq.directscript.lang.data.Literals#EMPTY}, uses the {@link ScriptInstance#getCausedBy()} player's world instead
      *
-     * @param index the index
+     * @param name the name
      * @return the world
      */
-    public Optional<World> getWorldOrCauserWorld(int index) {
-        Literal literal = this.literals[index];
+    public Optional<World> getWorldOrCauserWorld(String name) {
+        Literal literal = getLiteral(name);
 
         if (literal.isEmpty()) {
             Optional<Player> causedBy = this.scriptInstance.getCausedBy();

@@ -3,13 +3,15 @@ package com.pqqqqq.directscript.lang.reader;
 import com.google.common.base.Objects;
 import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.Literals;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.statement.Statements;
 import com.pqqqqq.directscript.lang.util.Utilities;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -26,6 +28,9 @@ public class Line {
     private Line openingBrace = null;
     private Line closingBrace = null;
     private Block internalBlock = null;
+
+    private String[] strargs = null;
+    private Map<String, DataContainer> containers = null;
 
     /**
      * Creates a new line with the corresponding absolute and script number, the string representation of the line
@@ -137,45 +142,81 @@ public class Line {
      * @return the context
      */
     public Context toContex(ScriptInstance scriptInstance) {
-        checkState(isRunnable(), "Unknown line statement: " + this.line);
-
-        String trimmedLine;
-        if (this.statement.doesUseBrackets()) {
-            trimmedLine = this.line.substring(this.line.indexOf('(') + 1, this.line.lastIndexOf(')')); // Trim to what's inside brackets
-        } else {
-            trimmedLine = this.line.substring(this.statement.getPrefix().length()).trim(); // Trim prefix
-
-            if (this.statement.getIdentifiers() != null && this.statement.getIdentifiers().length > 0 && !this.statement.getSplitString().isEmpty()) {
-                trimmedLine = trimmedLine.substring(trimmedLine.indexOf(this.statement.getSplitString()) + 1).trim(); // Trim identifiers
-            }
-
-            trimmedLine = trimmedLine.substring(0, trimmedLine.length() - this.statement.getSuffix().length()).trim(); // Trim suffix
+        if (strargs == null || containers == null) {
+            parse();
         }
 
-        String[] strargs = this.statement.getSplitString().isEmpty() ? new String[]{trimmedLine} : Lang.instance().stringParser().parseSplit(trimmedLine, this.statement.getSplitString());
+        return new Context(scriptInstance, this, strargs, containers);
+    }
 
-        Statement.Argument[] arguments = this.statement.getArguments();
-        DataContainer[] containers = new DataContainer[arguments.length];
-        int curIndex = 0;
+    private void parse() {
+        checkState(isRunnable(), "Unknown line statement: " + this.line);
+        this.strargs = null;
+        this.containers = null;
 
-        for (Statement.Argument argument : arguments) {
-            if (strargs.length <= curIndex) { // If it goes over, just put empty literals
-                containers[curIndex++] = Literals.EMPTY;
-                continue;
+        Statement.Syntax syntax = this.statement.getSyntax();
+
+        String trimmedLine;
+        if (syntax.doesUseBrackets()) {
+            trimmedLine = this.line.substring(this.line.indexOf('(') + 1, this.line.lastIndexOf(')')); // Trim to what's inside brackets
+        } else {
+            trimmedLine = StringUtils.removeStart(this.line, syntax.getPrefix()); // Trim prefix
+
+            if (syntax.getIdentifiers() != null && syntax.getIdentifiers().length > 0) {
+                for (String identifier : syntax.getIdentifiers()) {
+                    if (trimmedLine.startsWith(identifier)) {
+                        trimmedLine = StringUtils.removeStart(trimmedLine, identifier); // Trim identifier
+                        break;
+                    }
+                }
             }
 
-            String strarg = argument.isRest() ? StringUtils.join(strargs, this.statement.getSplitString(), curIndex, strargs.length) : strargs[curIndex];
-            DataContainer litarg = argument.doParse() ? Lang.instance().sequencer().parse(strarg) : Literal.getLiteralBlindly(strarg); // Use doParse boolean
-            checkState(argument.isOptional() || !(litarg instanceof Literal) || !((Literal) litarg).isEmpty(), "Argument " + curIndex + "(" + argument.getName() + ") is not optional."); // Use isOptional boolean
+            trimmedLine = trimmedLine.substring(0, trimmedLine.length() - syntax.getSuffix().length()).trim(); // Trim suffix
+        }
+
+        Statement.Arguments arguments = null;
+        argumentLoop:
+        for (Statement.Arguments args : syntax.getArguments()) {
+            String trimmedLineClone = trimmedLine;
+            String[] strargs = new String[args.getArguments().length];
+            String[] delimiters = args.getDelimiters();
+
+            for (int i = 0; i < delimiters.length; i++) {
+                String delimiter = delimiters[i];
+                int index = Lang.instance().stringParser().indexOf(trimmedLineClone, delimiter);
+
+                if (index == -1) {
+                    continue argumentLoop;
+                } else {
+                    strargs[i] = trimmedLineClone.substring(0, index);
+                    trimmedLineClone = trimmedLineClone.substring(index + delimiter.length());
+                }
+            }
+
+            if (strargs.length > 0) {
+                strargs[strargs.length - 1] = trimmedLineClone;
+            }
+
+            this.strargs = strargs;
+            arguments = args;
+            break;
+        }
+
+        checkState(this.strargs != null && arguments != null, "Invalid argument syntax");
+
+        Statement.Argument[] args = arguments.getArguments();
+        containers = new HashMap<String, DataContainer>();
+
+        for (Statement.Argument argument : args) {
+            String strarg = strargs[containers.size()];
+            DataContainer litarg = argument.doParse() ? Lang.instance().sequencer().parse(this, strarg) : Literal.getLiteralBlindly(strarg); // Use doParse boolean
 
             if (argument.isModifier() && (!(litarg instanceof Literal) || !((Literal) litarg).getString().equals(argument.getName()))) { // Use isModifier boolean
                 continue; // Basically skip this argument but keep the string
             }
 
-            containers[curIndex++] = litarg;
+            containers.put(argument.getName(), litarg);
         }
-
-        return new Context(scriptInstance, this, strargs, containers);
     }
 
     @Override

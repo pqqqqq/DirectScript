@@ -9,23 +9,17 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class FindStatement extends Statement<Integer> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"find", "indexof"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("String").build(),
-                Argument.builder().name("FindString").build()
-        };
+    public FindStatement() {
+        super(Syntax.builder()
+                .identifiers("find", "indexof")
+                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("FindString")))
+                .build());
     }
 
     @Override
     public Result<Integer> run(Context ctx) {
-        String string = ctx.getLiteral(0).getString();
-        String contains = ctx.getLiteral(1).getString();
+        String string = ctx.getLiteral("String").getString();
+        String contains = ctx.getLiteral("FindString").getString();
         int find = string.indexOf(contains);
 
         return Result.<Integer>builder().success().result(find).literal(find).build();

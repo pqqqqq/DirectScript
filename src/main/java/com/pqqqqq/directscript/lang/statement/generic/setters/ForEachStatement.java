@@ -17,29 +17,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ForEachStatement extends Statement {
 
-    @Override
-    public String getSuffix() {
-        return "{";
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"foreach"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("VariableName").parse().build(),
-                Argument.builder().name("IterableArray").build()
-        };
+    public ForEachStatement() {
+        super(Syntax.builder()
+                .identifiers("foreach")
+                .suffix("{")
+                .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build(), " in ", Argument.from("IterableArray")))
+                .build());
     }
 
     @Override
     public Result run(Context ctx) {
-        String varName = ctx.getLiteral(0).getString();
+        String varName = ctx.getLiteral("VariableName").getString();
         Variable var = ctx.getScriptInstance().addVariable(new Variable(varName));
-        List<LiteralHolder> array = ctx.getLiteral(1).getArray();
+        List<LiteralHolder> array = ctx.getLiteral("IterableArray").getArray();
 
         Block internalBlock = ctx.getLine().getInternalBlock();
         checkNotNull(internalBlock, "This line has no internal block");

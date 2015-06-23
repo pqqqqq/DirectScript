@@ -2,7 +2,7 @@ package com.pqqqqq.directscript.lang.statement.sponge.getters;
 
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.reader.Context;
-import com.pqqqqq.directscript.lang.statement.sponge.SpongeStatement;
+import com.pqqqqq.directscript.lang.statement.Statement;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.world.Location;
 
@@ -10,23 +10,19 @@ import org.spongepowered.api.world.Location;
  * Created by Kevin on 2015-06-10.
  * A statement that gets the {@link Location} of a player
  */
-public class PlayerLocStatement extends SpongeStatement<Double[]> {
+public class PlayerLocStatement extends Statement<Double[]> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"playerloc"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("Player").optional().build()
-        };
+    public PlayerLocStatement() {
+        super(Syntax.builder()
+                .identifiers("playerloc")
+                .prefix("@")
+                .arguments(Arguments.empty(), Arguments.of(Argument.from("Player")))
+                .build());
     }
 
     @Override
     public Result<Double[]> run(Context ctx) {
-        Optional<Player> playerOptional = ctx.getPlayerOrCauser(0);
+        Optional<Player> playerOptional = ctx.getPlayerOrCauser("Player");
         if (!playerOptional.isPresent()) {
             return Result.failure();
         }

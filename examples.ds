@@ -7,9 +7,9 @@ script("MessagePlayer") {
 
 	var arguments = split(sponge.arguments, " ")
 	if (size(arguments) < 2) {
-		@player(, "&cInvalid format: /sendmsg <player> <message ...>")
+		@player("&cInvalid format: /sendmsg <player> <message ...>")
 	} else {
-		@player(arguments[1], join(arguments, " ", 1,))
+		@player(arguments[1], join(arguments, " ", 2))
 	}
 }
 
@@ -19,12 +19,12 @@ script("NullCheck") {
 
 	// Script starts here
 	@cancel()
-	var nullvar
 
+	var nullvar
 	if (nullvar == null) {
-		@player(, "Nullvar is a null value")
+		@player("Nullvar is a null value")
 	} else {
-		@player(, "Nullvar is not a null value")
+		@player("Nullvar is not a null value")
 	}
 }
 
@@ -37,30 +37,30 @@ script("LoopCheck") {
 
 	var arguments = split(sponge.arguments, " ")
 	if (arguments[1] == "") {
-		@player(, "&cInvalid format: /loopcheck <for|foreach|while>")
+		@player("&cInvalid format: /loopcheck <for|foreach|while>")
 	} else if (arguments[1] == "for") {
-		for (i, 1, 3) {
-			@player(, i)
+		for (i=1,3) {
+			@player(i)
 		}
 
-		for (i, 3, 1, -1) {
-			@player(, i)
+		for (i=3,1,-1) {
+			@player(i)
 		}
 
-		for (i, 1, 3, 1.35) {
-			@player(, i)
+		for (i=1,3,1.35) {
+			@player(i)
 		}
 	} else if (arguments[1] == "foreach") {
-		foreach (item, arguments) {
-			@player(, item)
+		foreach (item in arguments) {
+			@player(item)
 		}
 	} else if (arguments[1] == "while") {
 		var x = 1
 		while (x < 10) {
-			@player(, x)
+			@player(x)
 			set x = x + 1
 		}
 	} else {
-		@player(, "&cUnknown argument: " + arguments[1] + ", expected for, foreach or while")
+		@player("&cUnknown argument: " + arguments[1] + ", expected for, foreach or while")
 	}
 }

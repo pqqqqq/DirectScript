@@ -29,8 +29,8 @@ public class Statements {
 
     // Generic statements
     public static final Statement PRINT = new PrintStatement();
-    public static final Statement VAR_DECLARATION = new VarStatement();
-    public static final Statement SET = new SetStatement();
+    public static final Statement<Object> VAR_DECLARATION = new VarStatement();
+    public static final Statement<Object> SET = new SetStatement();
     public static final Statement CALL = new CallStatement();
     public static final Statement<Boolean> IF = new IfStatement();
     public static final Statement WHILE = new WhileStatement();
@@ -96,7 +96,7 @@ public class Statements {
     }
 
     /**
-     * Gets an {@link Optional} {@link Statement} for the {@link Line}, such that {@link Statement#matches(String)} is true
+     * Gets an {@link Optional} {@link Statement} for the {@link Line}, such that {@link com.pqqqqq.directscript.lang.statement.Statement.Syntax#matches(String)} is true
      *
      * @param line the line
      * @return the statement
@@ -104,7 +104,7 @@ public class Statements {
     public static Optional<Statement> getStatement(String line) {
         line = Utilities.fullLineTrim(line);
         for (Statement statement : REGISTRY) {
-            if (!statement.getClass().isAnnotationPresent(Statement.Concept.class) && statement.matches(line)) { // Concept statements are excluded
+            if (!statement.getClass().isAnnotationPresent(Statement.Concept.class) && statement.getSyntax().matches(line)) { // Concept statements are excluded
                 return Optional.of(statement);
             }
         }

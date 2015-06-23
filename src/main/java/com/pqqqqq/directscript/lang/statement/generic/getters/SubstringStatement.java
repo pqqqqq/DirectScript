@@ -9,25 +9,19 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class SubstringStatement extends Statement<String> {
 
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"substring"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("String").build(),
-                Argument.builder().name("Start").build(),
-                Argument.builder().name("End").optional().build()
-        };
+    public SubstringStatement() {
+        super(Syntax.builder()
+                .identifiers("substring")
+                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("Start")))
+                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("Start"), ",", Argument.from("End")))
+                .build());
     }
 
     @Override
     public Result<String> run(Context ctx) {
-        String string = ctx.getLiteral(0).getString();
-        int start = ctx.getLiteral(1).getNumber().intValue();
-        int end = ctx.getLiteral(2, string.length()).getNumber().intValue();
+        String string = ctx.getLiteral("String").getString();
+        int start = ctx.getLiteral("Start").getNumber().intValue();
+        int end = ctx.getLiteral("End", string.length()).getNumber().intValue();
         String sub = string.substring(start, end);
 
         return Result.<String>builder().success().result(sub).literal(sub).build();

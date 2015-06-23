@@ -9,137 +9,33 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-12.
  * The abstract implementation of statements
  */
 public abstract class Statement<T> {
-    private final String identifierPatternString;
-    private final String prefixPatternString;
-    private final String suffixPatternString;
-    private final Pattern matchPattern;
+    private final Syntax syntax;
 
-    protected Statement() {
-        this.identifierPatternString = genIdentifierPatternString();
-        this.prefixPatternString = genPrefixPatternString();
-        this.suffixPatternString = genSuffixPatternString();
-        this.matchPattern = genMatchPattern();
-    }
-
-    // Public overridable methods
-
-    /**
-     * Gets the prefix for this statement. A {@link Line} must start with this to be considered (excluding whitespace)
-     *
-     * @return the prefix
-     */
-    public String getPrefix() {
-        return "";
+    protected Statement(Syntax syntax) {
+        this.syntax = syntax;
     }
 
     /**
-     * Gets the suffix for this statement. A {@link Line} must end with this to be considered (excluding whitespace)
-     *
-     * @return the suffix
+     * Gets the {@link Syntax} for this {@link Statement}
+     * @return the syntax
      */
-    public String getSuffix() {
-        return "";
+    public Syntax getSyntax() {
+        return this.syntax;
     }
-
-    /**
-     * Gets the split string for this statement; where arguments are divided
-     *
-     * @return the split string
-     */
-    public String getSplitString() {
-        return ",";
-    }
-
-    /**
-     * Gets if this statement only checks for arguments that are inside brackets '()'
-     *
-     * @return true if uses argument brackets
-     */
-    public boolean doesUseBrackets() {
-        return true;
-    }
-
-    /**
-     * Gets the {@link com.pqqqqq.directscript.lang.statement.Statement.ExecutionTime} for this statement
-     *
-     * @return the execution time
-     */
-    public ExecutionTime getExecutionTime() {
-        return ExecutionTime.RUNTIME;
-    }
-
-    // Public final non-overriable getter methods
-
-    /**
-     * Gets the identifier pattern string for {@link #getMatchPattern()}. This value is determined on initialization and never changes
-     *
-     * @return the identifier pattern string
-     */
-    public final String getIdentifierPatternString() {
-        return identifierPatternString;
-    }
-
-    /**
-     * Gets the prefix pattern string for {@link #getMatchPattern()}. This value is determined on initialization and never changes
-     *
-     * @return the prefix pattern string
-     */
-    public final String getPrefixPatternString() {
-        return prefixPatternString;
-    }
-
-    /**
-     * Gets the suffix pattern string for {@link #getMatchPattern()}. This value is determined on initialization and never changes
-     *
-     * @return the suffix pattern string
-     */
-    public final String getSuffixPatternString() {
-        return suffixPatternString;
-    }
-
-    /**
-     * Gets the {@link Pattern} that a {@link Line} must match to be heralded as this {@link Statement}. This value is determined on initialization and never changes
-     *
-     * @return the pattern
-     */
-    public final Pattern getMatchPattern() {
-        return matchPattern;
-    }
-
-    /**
-     * Gets whether a given line is applicable to this statement. This is analogous to: <code>getMatchPattern().matcher(line).matches()</code>
-     *
-     * @param line
-     * @return
-     */
-    public final boolean matches(String line) {
-        return matchPattern.matcher(line).matches();
-    }
-
-    // Abstract methods
-
-    /**
-     * Gets the identifiers for this statement, one of which is required to precede the prefix
-     *
-     * @return the identifier strings
-     */
-    public abstract String[] getIdentifiers();
-
-    /**
-     * Gets the {@link Argument} array for this statement
-     *
-     * @return the arguments
-     */
-    public abstract Argument[] getArguments();
 
     /**
      * Runs this {@link Statement} by the given {@link Context}
@@ -154,40 +50,10 @@ public abstract class Statement<T> {
         return obj == this;
     }
 
-    // Private generator methods
-    private String genIdentifierPatternString() {
-        if (getIdentifiers() == null || getIdentifiers().length == 0) {
-            return "";
-        }
-
-        String identifierString = "(";
-
-        for (String identifier : getIdentifiers()) {
-            identifierString += "\\Q" + identifier + "\\E|";
-        }
-
-        return identifierString.substring(0, identifierString.length() - 1) + ")";
-    }
-
-    private String genPrefixPatternString() {
-        return getPrefix().isEmpty() ? "" : "\\Q" + getPrefix() + "\\E";
-    }
-
-    private String genSuffixPatternString() {
-        return getSuffix().isEmpty() ? "" : "\\Q" + getSuffix() + "\\E";
-    }
-
-    private Pattern genMatchPattern() {
-        if (!doesUseBrackets()) {
-            return Pattern.compile("^(\\s*?)" + genPrefixPatternString() + genIdentifierPatternString() + "(.*?)" + genSuffixPatternString() + "(\\s*?)$");
-        }
-        return Pattern.compile("^(\\s*?)" + genPrefixPatternString() + genIdentifierPatternString() + "(\\s*?)\\((.*?)\\)(\\s*?)" + genSuffixPatternString() + "(\\s*?)$");
-    }
-
     /**
      * An enumeration of execution times, to be used by {@link Line} {@link com.google.common.base.Predicate}s when executing a {@link com.pqqqqq.directscript.lang.script.ScriptInstance}
      *
-     * @see Statement#getExecutionTime()
+     * @see Syntax#getExecutionTime()
      */
     public enum ExecutionTime {
         /**
@@ -207,11 +73,339 @@ public abstract class Statement<T> {
     }
 
     /**
-     * Denotes a class that represents a concept {@link Statement} that should work given the API, but is not yet implemented. These statements will be skipped by: {@link Statements#getStatement(String)}
+     * Denotes a class that represents a concept {@link Statement} that should work given the Sponge API, but is not yet implemented. These statements will be skipped by: {@link Statements#getStatement(String)}
      */
     @Retention(value = RetentionPolicy.RUNTIME)
     @Target(value = ElementType.TYPE)
     public @interface Concept {
+    }
+
+    /**
+     * An immutable class that denotes a {@link Statement}'s syntax
+     */
+    public static class Syntax {
+        private final String[] identifiers;
+        private final String prefix;
+        private final String suffix;
+        private final boolean doesUseBrackets;
+        private final ExecutionTime executionTime;
+        private final Arguments[] arguments;
+
+        // Generated
+        private final Pattern matchPattern;
+
+        Syntax(String[] identifiers, String prefix, String suffix, boolean doesUseBrackets, ExecutionTime executionTime, Arguments[] arguments) {
+            this.identifiers = identifiers;
+            this.prefix = prefix;
+            this.suffix = suffix;
+            this.doesUseBrackets = doesUseBrackets;
+            this.executionTime = executionTime;
+            this.arguments = arguments;
+
+            this.matchPattern = genMatchPattern();
+        }
+
+        /**
+         * Gets a new {@link Syntax.Builder} instance
+         *
+         * @return the builder
+         */
+        public static Syntax.Builder builder() {
+            return new Builder();
+        }
+
+        /**
+         * Gets the identifiers for this statement, one of which is required to precede the prefix
+         *
+         * @return the identifier strings
+         */
+        public String[] getIdentifiers() {
+            return identifiers;
+        }
+
+        /**
+         * Gets the prefix for this statement. A {@link Line} must start with this to be considered (excluding whitespace)
+         *
+         * @return the prefix
+         */
+        public String getPrefix() {
+            return prefix;
+        }
+
+        /**
+         * Gets the suffix for this statement. A {@link Line} must end with this to be considered (excluding whitespace)
+         *
+         * @return the suffix
+         */
+        public String getSuffix() {
+            return suffix;
+        }
+
+        /**
+         * Gets if this statement only checks for arguments that are inside brackets '()'
+         *
+         * @return true if uses argument brackets
+         */
+        public boolean doesUseBrackets() {
+            return doesUseBrackets;
+        }
+
+        /**
+         * Gets the {@link com.pqqqqq.directscript.lang.statement.Statement.ExecutionTime} for this statement
+         *
+         * @return the execution time
+         */
+        public ExecutionTime getExecutionTime() {
+            return executionTime;
+        }
+
+        /**
+         * Gets the array of {@link Arguments} for this statement
+         *
+         * @return the argument syntaxes
+         */
+        public Arguments[] getArguments() {
+            return arguments;
+        }
+
+        /**
+         * Gets whether a given line is applicable to this statement. This is analogous to: <code>getMatchPattern().matcher(line).matches()</code>
+         *
+         * @param line
+         * @return
+         */
+        public boolean matches(String line) {
+            return matchPattern.matcher(line).matches();
+        }
+
+        private String genIdentifierPatternString() {
+            if (getIdentifiers() == null || getIdentifiers().length == 0) {
+                return "";
+            }
+
+            String identifierString = "(";
+
+            for (String identifier : getIdentifiers()) {
+                identifierString += "\\Q" + identifier + "\\E|";
+            }
+
+            return identifierString.substring(0, identifierString.length() - 1) + ")";
+        }
+
+        private String genPrefixPatternString() {
+            return getPrefix().isEmpty() ? "" : "\\Q" + getPrefix() + "\\E";
+        }
+
+        private String genSuffixPatternString() {
+            return getSuffix().isEmpty() ? "" : "\\Q" + getSuffix() + "\\E";
+        }
+
+        private Pattern genMatchPattern() {
+            if (!doesUseBrackets()) {
+                return Pattern.compile("^(\\s*?)" + genPrefixPatternString() + genIdentifierPatternString() + "(.*?)" + genSuffixPatternString() + "(\\s*?)$");
+            }
+            return Pattern.compile("^(\\s*?)" + genPrefixPatternString() + genIdentifierPatternString() + "(\\s*?)\\((.*?)\\)(\\s*?)" + genSuffixPatternString() + "(\\s*?)$");
+        }
+
+        /**
+         * <p>The {@link Statement.Syntax} builder class</p>
+         * <p>Defaults:</p>
+         * <ul>
+         * <li>Identifiers: Empty
+         * <li>Prefix: Empty
+         * <li>Suffix: Empty
+         * <li>Brackets: Yes
+         * <li>Execution time: RUNTIME
+         * <li>Argument syntaxes: Empty (no arguments)
+         * </ul>
+         */
+        public static class Builder {
+            private List<String> identifiers = new ArrayList<String>();
+            private String prefix = "";
+            private String suffix = "";
+            private boolean doesUseBrackets = true;
+            private ExecutionTime executionTime = ExecutionTime.RUNTIME;
+            private List<Arguments> arguments = new ArrayList<Arguments>();
+
+            Builder() { // Default visibility
+            }
+
+            /**
+             * Adds the array of identifiers to this {@link Builder}
+             *
+             * @param identifiers the new identifiers
+             * @return this builder, for fluency
+             * @see Syntax#getIdentifiers()
+             */
+            public Builder identifiers(String... identifiers) {
+                this.identifiers.addAll(Arrays.asList(identifiers));
+                return this;
+            }
+
+            /**
+             * Sets the prefix for this {@link Builder}
+             *
+             * @param prefix the new prefix
+             * @return this builder, for fluency
+             * @see Syntax#getPrefix()
+             */
+            public Builder prefix(String prefix) {
+                this.prefix = prefix;
+                return this;
+            }
+
+            /**
+             * Sets the suffix for this {@link Builder}
+             *
+             * @param suffix the new suffix
+             * @return this builder, for fluency
+             * @see Syntax#getSuffix()
+             */
+            public Builder suffix(String suffix) {
+                this.suffix = suffix;
+                return this;
+            }
+
+            /**
+             * Sets whether this {@link Builder} should use brackets
+             *
+             * @param doesUseBrackets the new brackets state
+             * @return this builder, for fluency
+             * @see Syntax#doesUseBrackets
+             */
+            public Builder brackets(boolean doesUseBrackets) {
+                this.doesUseBrackets = doesUseBrackets;
+                return this;
+            }
+
+            /**
+             * Toggles whether this {@link Builder} should use brackets
+             *
+             * @return this builder, for fluency
+             */
+            public Builder brackets() {
+                return brackets(!doesUseBrackets);
+            }
+
+            /**
+             * Sets the {@link Statement.ExecutionTime} for this {@link Builder}
+             *
+             * @param executionTime the new execution time
+             * @return this builder, for fluency
+             * @see Syntax#getExecutionTime()
+             */
+            public Builder executionTime(ExecutionTime executionTime) {
+                this.executionTime = executionTime;
+                return this;
+            }
+
+            /**
+             * Adds the array of {@link Arguments}es to this {@link Builder}
+             *
+             * @param arguments the new argument syntaxes
+             * @return this builder, for fluency
+             * @see Syntax#getArguments()
+             */
+            public Builder arguments(Arguments... arguments) {
+                this.arguments.addAll(Arrays.asList(arguments));
+                return this;
+            }
+
+            /**
+             * Builds the {@link Syntax} instance
+             *
+             * @return the new syntax instance
+             */
+            public Syntax build() {
+                if (this.arguments.isEmpty()) {
+                    this.arguments.add(Arguments.empty());
+                }
+
+                Collections.sort(this.arguments);
+                return new Syntax(identifiers.toArray(new String[identifiers.size()]), prefix, suffix, doesUseBrackets, executionTime, arguments.toArray(new Arguments[arguments.size()]));
+            }
+        }
+    }
+
+    /**
+     * The {@link Argument} sequence for this {@link Statement}
+     */
+    public static class Arguments implements Comparable<Arguments> {
+        private static final Arguments EMPTY = new Arguments(new Argument[0], new String[0]);
+        private final Argument[] arguments;
+        private final String[] delimiters;
+
+        Arguments(Argument[] arguments, String[] delimiters) {
+            this.arguments = arguments;
+            this.delimiters = delimiters;
+        }
+
+        /**
+         * Returns an empty {@link Arguments} (no {@link Statement.Argument}s)
+         * @return the empty argument sequence
+         */
+        public static Arguments empty() {
+            return EMPTY;
+        }
+
+        /**
+         * <p>Creates a new {@link Arguments} instance with the given Object sequence</p>
+         * <p>Accepted types: Argument and String</p>
+         * @param sequence the sequence vararg
+         * @return the new instance
+         */
+        public static Arguments of(Object... sequence) {
+            checkNotNull(sequence, "Sequence cannot be null");
+
+            Argument[] arguments = new Argument[(int) Math.ceil(sequence.length / 2D)];
+            String[] delimiters = new String[(int) Math.floor(sequence.length / 2D)];
+
+            Class<?> lastType = null;
+            int argumentIndex = 0, delimiterIndex = 0;
+
+            for (Object obj : sequence) {
+                checkState(obj instanceof Argument || obj instanceof String, "Unknown type in argument syntax: " + obj.getClass().getName());
+                checkState(lastType == null || !lastType.equals(obj.getClass()), "Do not repeat two types after each other");
+                lastType = obj.getClass();
+
+                if (obj instanceof Argument) {
+                    arguments[argumentIndex++] = (Argument) obj;
+                } else if (obj instanceof String) {
+                    delimiters[delimiterIndex++] = (String) obj;
+                }
+            }
+            return new Arguments(arguments, delimiters);
+        }
+
+        /**
+         * Gets the {@link Statement.Argument} array sequence
+         * @return the argument sequence
+         */
+        public Argument[] getArguments() {
+            return arguments;
+        }
+
+        /**
+         * Gets the string delimiters array sequence
+         *
+         * @return the delimiter sequence
+         */
+        public String[] getDelimiters() {
+            return delimiters;
+        }
+
+        @Override
+        public int compareTo(Arguments o) {
+            if (delimiters.length > o.getDelimiters().length) {
+                return -1;
+            }
+
+            if (delimiters.length < o.getDelimiters().length) {
+                return 1;
+            }
+
+            return 0;
+        }
     }
 
     /**
@@ -221,16 +415,22 @@ public abstract class Statement<T> {
     public static class Argument {
         private final String name;
         private final boolean parse;
-        private final boolean optional;
         private final boolean modifier;
-        private final boolean rest;
 
-        Argument(String name, boolean parse, boolean optional, boolean modifier, boolean rest) {
+        Argument(String name, boolean parse, boolean modifier) {
             this.name = name;
             this.parse = parse;
-            this.optional = optional;
             this.modifier = modifier;
-            this.rest = rest;
+        }
+
+        /**
+         * <p>Creates a generic {@link Argument} with default options with the given name.</p>
+         * <p>This method is analogous to: Statement.builder().name(String).build()</p>
+         * @param name the name of the argument
+         * @return the new argument instance
+         */
+        public static Argument from(String name) {
+            return builder().name(name).build();
         }
 
         /**
@@ -252,21 +452,12 @@ public abstract class Statement<T> {
         }
 
         /**
-         * Gets if this argument should be parsed by {@link com.pqqqqq.directscript.lang.data.Sequencer#parse(String)}
+         * Gets if this argument should be parsed by {@link com.pqqqqq.directscript.lang.data.Sequencer#parse(Line, String)}
          *
          * @return whether to parse this argument
          */
         public boolean doParse() {
             return parse;
-        }
-
-        /**
-         * Gets if this argument is optional
-         *
-         * @return true if optional
-         */
-        public boolean isOptional() {
-            return optional;
         }
 
         /**
@@ -279,23 +470,12 @@ public abstract class Statement<T> {
         }
 
         /**
-         * Gets if this argument uses the rest of the line as its argument
-         *
-         * @return true if it uses the rest of the line
-         */
-        public boolean isRest() {
-            return rest;
-        }
-
-        /**
          * The builder for {@link Argument}s
          */
         public static class Builder {
             private String name = null;
             private boolean parse = true;
-            private boolean optional = false;
             private boolean modifier = false;
-            private boolean rest = false;
 
             Builder() { // Default view
             }
@@ -335,28 +515,6 @@ public abstract class Statement<T> {
             }
 
             /**
-             * Sets the optional value of the argument
-             *
-             * @param optional the new optional value
-             * @return this builder, for fluency
-             * @see Argument#isOptional()
-             */
-            public Builder optional(boolean optional) {
-                this.optional = optional;
-                return this;
-            }
-
-            /**
-             * Toggles the optional value of the argument
-             *
-             * @return this builder, for fluency
-             * @see Argument#isOptional()
-             */
-            public Builder optional() {
-                return optional(!optional);
-            }
-
-            /**
              * Sets the modifier value of the argument
              *
              * @param modifier the new modifier value
@@ -379,35 +537,13 @@ public abstract class Statement<T> {
             }
 
             /**
-             * Sets the rest value of the argument
-             *
-             * @param rest the new rest value
-             * @return this builder, for fluency
-             * @see Argument#isRest()
-             */
-            public Builder rest(boolean rest) {
-                this.rest = rest;
-                return this;
-            }
-
-            /**
-             * Toggles the rest value of the argument
-             *
-             * @return this builder, for fluency
-             * @see Argument#isRest()
-             */
-            public Builder rest() {
-                return rest(!rest);
-            }
-
-            /**
              * Builds the current builder data into a {@link Argument}
              *
              * @return the new argument instance
              */
             public Argument build() {
                 checkNotNull(name, "Name cannot be null.");
-                return new Argument(name, parse, optional, modifier, rest);
+                return new Argument(name, parse, modifier);
             }
         }
     }

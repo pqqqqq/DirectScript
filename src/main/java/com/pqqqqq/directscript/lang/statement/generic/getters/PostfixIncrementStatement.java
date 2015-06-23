@@ -14,36 +14,17 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class PostfixIncrementStatement extends Statement<Double> {
 
-    @Override
-    public String getSuffix() {
-        return "++";
-    }
-
-    @Override
-    public String getSplitString() {
-        return "";
-    }
-
-    @Override
-    public boolean doesUseBrackets() {
-        return false;
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[0];
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[]{
-                Argument.builder().name("VariableName").parse().build()
-        };
+    public PostfixIncrementStatement() {
+        super(Syntax.builder()
+                .suffix("++")
+                .brackets()
+                .arguments(Arguments.of(Argument.from("VariableName")))
+                .build());
     }
 
     @Override
     public Result<Double> run(Context ctx) {
-        LiteralHolder literalHolder = ((HolderContainer) Lang.instance().sequencer().parse(ctx.getLiteral(0).getString())).resolveHolder(ctx.getScriptInstance());
+        LiteralHolder literalHolder = ((HolderContainer) Lang.instance().sequencer().parse(ctx.getLine(), ctx.getLiteral("VariableName").getString())).resolveHolder(ctx.getScriptInstance());
         Literal before = literalHolder.getData();
         literalHolder.setData(before.add(Literals.ONE));
 

@@ -11,29 +11,12 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  */
 public class Termination extends Statement {
 
-    @Override
-    public ExecutionTime getExecutionTime() {
-        return ExecutionTime.ALWAYS;
-    }
-
-    @Override
-    public boolean doesUseBrackets() {
-        return false;
-    }
-
-    @Override
-    public String getSplitString() {
-        return " ";
-    }
-
-    @Override
-    public String[] getIdentifiers() {
-        return new String[]{"}"};
-    }
-
-    @Override
-    public Argument[] getArguments() {
-        return new Argument[0];
+    public Termination() {
+        super(Syntax.builder()
+                .identifiers("}")
+                .brackets()
+                .executionTime(ExecutionTime.ALWAYS)
+                .build());
     }
 
     @Override
