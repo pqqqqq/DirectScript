@@ -7,7 +7,7 @@ import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.statement.Statements;
-import com.pqqqqq.directscript.lang.util.Utilities;
+import com.pqqqqq.directscript.lang.util.StringParser;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -42,7 +42,7 @@ public class Line {
     public Line(int absoluteNumber, int scriptNumber, String line) {
         this.absoluteNumber = absoluteNumber;
         this.scriptNumber = scriptNumber;
-        this.line = Utilities.fullLineTrim(line);
+        this.line = StringParser.instance().trim(line);
         this.statement = Statements.getStatement(this.line).orNull();
     }
 

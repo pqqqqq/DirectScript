@@ -9,7 +9,6 @@ import com.pqqqqq.directscript.lang.statement.sponge.getters.*;
 import com.pqqqqq.directscript.lang.statement.sponge.setters.*;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 import com.pqqqqq.directscript.lang.util.RegistryUtil;
-import com.pqqqqq.directscript.lang.util.Utilities;
 
 import java.util.List;
 
@@ -104,7 +103,6 @@ public class Statements {
      * @return the statement
      */
     public static Optional<Statement> getStatement(String line) {
-        line = Utilities.fullLineTrim(line);
         for (Statement statement : REGISTRY) {
             if (!statement.getClass().isAnnotationPresent(Statement.Concept.class) && statement.getSyntax().matches(line)) { // Concept statements are excluded
                 return Optional.of(statement);

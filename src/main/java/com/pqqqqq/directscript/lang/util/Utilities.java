@@ -48,23 +48,6 @@ public class Utilities {
     }
 
     /**
-     * Fully trims a line, by calling {@link String#trim()} and replacing double whitespace
-     *
-     * @param line the line
-     * @return the trimmed line
-     */
-    public static String fullLineTrim(String line) {
-        line = line.trim(); // Actual trim first
-
-        if (line.contains("  ")) { // Get rid of double spaces
-            line = line.replace("  ", " ");
-            return fullLineTrim(line);
-        }
-
-        return line;
-    }
-
-    /**
      * Builds a {@link List} to the necessary index by placing default values at null locations
      *
      * @param list         the list

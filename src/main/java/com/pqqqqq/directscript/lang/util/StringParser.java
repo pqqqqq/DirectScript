@@ -272,6 +272,32 @@ public class StringParser {
     }
 
     /**
+     * Trims a string with {@link String#trim()} and by removing any doublr whitespace
+     *
+     * @param string the string
+     * @return the trimmed string
+     */
+    public String trim(String string) {
+        string = string.trim(); // First trim using String#trim()
+        boolean quotes = false;
+        String builder = "";
+
+        for (char c : string.toCharArray()) {
+            if (c == '"') {
+                if (!builder.endsWith("\\") || builder.endsWith("\\\\")) {
+                    quotes = !quotes;
+                }
+            }
+
+            if (quotes || !Character.isWhitespace(c) || !builder.isEmpty() && !Character.isWhitespace(builder.charAt(builder.length() - 1))) { // trim() should get rid of leading whitespace, but just incase
+                builder += c;
+            }
+        }
+
+        return builder;
+    }
+
+    /**
      * Gets a {@link Pair} of Boolean, String that represents the block comment status and the current string
      *
      * @param blockComment whether there is an active block comment
