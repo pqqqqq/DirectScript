@@ -155,6 +155,7 @@ public class Line {
         this.containers = null;
 
         Statement.Syntax syntax = this.statement.getSyntax();
+        Statement.Argument[] arguments = null;
 
         String trimmedLine;
         if (syntax.doesUseBrackets()) {
@@ -171,10 +172,9 @@ public class Line {
                 }
             }
 
-            trimmedLine = trimmedLine.substring(0, trimmedLine.length() - syntax.getSuffix().length()).trim(); // Trim suffix
+            trimmedLine = StringUtils.removeEnd(trimmedLine, syntax.getSuffix()); // Trim suffix
         }
 
-        Statement.Arguments arguments = null;
         argumentLoop:
         for (Statement.Arguments args : syntax.getArguments()) {
             String trimmedLineClone = trimmedLine;
@@ -188,34 +188,26 @@ public class Line {
                 if (index == -1) {
                     continue argumentLoop;
                 } else {
-                    strargs[i] = trimmedLineClone.substring(0, index);
+                    strargs[i] = trimmedLineClone.substring(0, index).trim();
                     trimmedLineClone = trimmedLineClone.substring(index + delimiter.length());
                 }
             }
 
             if (strargs.length > 0) {
-                strargs[strargs.length - 1] = trimmedLineClone;
+                strargs[strargs.length - 1] = trimmedLineClone.trim();
             }
 
             this.strargs = strargs;
-            arguments = args;
+            arguments = args.getArguments();
             break;
         }
 
         checkState(this.strargs != null && arguments != null, "Invalid argument syntax");
-
-        Statement.Argument[] args = arguments.getArguments();
         containers = new HashMap<String, DataContainer>();
 
-        for (Statement.Argument argument : args) {
+        for (Statement.Argument argument : arguments) {
             String strarg = strargs[containers.size()];
-            DataContainer litarg = argument.doParse() ? Lang.instance().sequencer().parse(this, strarg) : Literal.getLiteralBlindly(strarg); // Use doParse boolean
-
-            if (argument.isModifier() && (!(litarg instanceof Literal) || !((Literal) litarg).getString().equals(argument.getName()))) { // Use isModifier boolean
-                continue; // Basically skip this argument but keep the string
-            }
-
-            containers.put(argument.getName(), litarg);
+            containers.put(argument.getName(), (argument.doParse() ? Lang.instance().sequencer().parse(this, strarg) : Literal.getLiteralBlindly(strarg))); // Use doParse boolean
         }
     }
 

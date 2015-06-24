@@ -21,9 +21,9 @@ import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.util.command.CommandSource;
 
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -39,7 +39,7 @@ public class ScriptInstance extends Environment implements Runnable {
     private final Script script;
     private final Cause cause;
     private final Predicate<Line> linePredicate;
-    private final Map<String, Variable> variableMap;
+    private final Set<Variable> variables;
     private final Optional<Event> event;
     private final Optional<Player> causedBy;
 
@@ -51,13 +51,13 @@ public class ScriptInstance extends Environment implements Runnable {
     private boolean skipLines = false;
     private Line skipToLine = null;
 
-    ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Map<String, Variable> variableMap, Event event, Player causedBy) {
+    ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Set<Variable> variables, Event event, Player causedBy) {
         super((script == null ? null : script.getScriptsFile())); // The parent is the file
         this.script = script;
         this.cause = cause;
         this.linePredicate = linePredicate;
 
-        this.variableMap = variableMap;
+        this.variables = variables;
         resetVariables();
 
         this.event = Optional.fromNullable(event);
@@ -231,7 +231,7 @@ public class ScriptInstance extends Environment implements Runnable {
      */
     public void resetVariables() {
         getVariables().clear();
-        getVariables().putAll(this.variableMap);
+        getVariables().addAll(this.variables);
     }
 
     /**
@@ -327,7 +327,7 @@ public class ScriptInstance extends Environment implements Runnable {
         private Script script = null;
         private Cause cause = null;
         private Predicate<Line> linePredicate = Script.runtimePredicate();
-        private Map<String, Variable> variableMap = new HashMap<String, Variable>();
+        private Set<Variable> variables = new HashSet<Variable>();
         private Event event = null;
         private Player causedBy = null;
 
@@ -371,29 +371,25 @@ public class ScriptInstance extends Environment implements Runnable {
         }
 
         /**
-         * Sets the {@link Variable} {@link Map} ({@link String} vs Variable) for this {@link ScriptInstance} builder
-         *
-         * @param variableMap the variable map
+         * Adds the {@link Variable} {@link Collection} to this builder
+         * @param collection the collection
          * @return this builder, for fluency
+         * @see ScriptInstance#getVariables()
+         * @see Environment
          */
-        public Builder variables(Map<String, Variable> variableMap) {
-            this.variableMap.putAll(variableMap);
+        public Builder variables(Collection<? extends Variable> collection) {
+            this.variables.addAll(collection);
             return this;
         }
 
         /**
-         * Sets the {@link Variable} {@link Map} ({@link String} vs Variable) for this {@link ScriptInstance} builder
+         * Adds the {@link Variable} {@link Set} to this {@link ScriptInstance} builder
          *
          * @param variables the variable array
          * @return this builder, for fluency
          */
         public Builder variables(Variable... variables) {
-            Map<String, Variable> variableMap = new HashMap<String, Variable>();
-            for (Variable variable : variables) {
-                variableMap.put(variable.getName(), variable);
-            }
-
-            return variables(variableMap);
+            return variables(Arrays.asList(variables));
         }
 
         /**
@@ -437,7 +433,7 @@ public class ScriptInstance extends Environment implements Runnable {
          */
         @Override
         public Builder copy() {
-            return new Builder().script(script).cause(cause).predicate(linePredicate).variables(variableMap).event(event).causedBy(causedBy);
+            return new Builder().script(script).cause(cause).predicate(linePredicate).variables(variables).event(event).causedBy(causedBy);
         }
 
         /**
@@ -451,7 +447,7 @@ public class ScriptInstance extends Environment implements Runnable {
             checkState(script != null || cause.equals(Causes.COMPILE), "Script cannot be null");
 
             variables(); // Generic variables
-            return new ScriptInstance(script, cause, linePredicate, variableMap, event, causedBy);
+            return new ScriptInstance(script, cause, linePredicate, variables, event, causedBy);
         }
 
         private Builder variables() { // Adds generic variables for script (run on build)

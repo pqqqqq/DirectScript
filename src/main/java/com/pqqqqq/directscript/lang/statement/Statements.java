@@ -73,12 +73,14 @@ public class Statements {
     public static final Statement KICK = new KickStatement();
     public static final Statement TELEPORT = new TeleportStatement();
     public static final Statement ROTATE = new RotateStatement();
+    public static final Statement SET_HEALTH = new SetHealthStatement();
 
     public static final Statement<String> PLAYER_UUID = new UUIDStatement();
     public static final Statement<String> PLAYER_NAME = new NameStatement();
     public static final Statement<Boolean> PERMISSION = new PermissionStatement();
     public static final Statement<Boolean> ONLINE = new OnlineStatement();
     public static final Statement<Double[]> PLAYER_LOC = new PlayerLocStatement();
+    public static final Statement<Double> HEALTH = new HealthStatement();
 
     private static final List<Statement> REGISTRY;
 

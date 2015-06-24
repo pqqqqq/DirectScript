@@ -6,6 +6,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 /**
  * Created by Kevin on 2015-06-16.
  * Represents a timer delay statement
+ * @see com.pqqqqq.directscript.lang.trigger.cause.Cause.TimerCause
  */
 public class TimerStatement extends Statement {
 

@@ -27,7 +27,9 @@ public class CommandReload implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource commandSource, CommandContext commandContext) throws CommandException {
+        DirectScript.instance().getConfig().save();
         Lang.instance().reloadScripts();
+
         commandSource.sendMessage(Texts.of(TextColors.AQUA, "Scripts/config reloaded."));
         return CommandResult.success();
     }

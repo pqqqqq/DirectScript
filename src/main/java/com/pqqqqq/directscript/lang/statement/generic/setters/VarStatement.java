@@ -1,5 +1,6 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
+import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.env.Environment;
@@ -21,7 +22,7 @@ public class VarStatement extends Statement<Object> {
                 .brackets()
                 .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build()))
                 .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build(), "=", Argument.from("Value")))
-                .build()); // TODO: Fix syntax?
+                .build());
     }
 
     @Override
@@ -34,8 +35,14 @@ public class VarStatement extends Statement<Object> {
         for (String word : words) {
             if (word.equals("final")) {
                 isFinal = true;
-            } else if (word.equals("local")) { // TODO: Variable visibility masking fixes?
+
+                // TODO: Variable visibility masking fixes?
+            } else if (word.equals("local")) {
                 environment = ctx.getScript().getScriptsFile();
+            } else if (word.equals("global")) {
+                environment = Lang.instance();
+            } else if (word.equals("public")) {
+                environment = DirectScript.instance();
             } else {
                 name = word;
                 break;

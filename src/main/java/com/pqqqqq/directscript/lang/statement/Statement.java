@@ -415,12 +415,10 @@ public abstract class Statement<T> {
     public static class Argument {
         private final String name;
         private final boolean parse;
-        private final boolean modifier;
 
-        Argument(String name, boolean parse, boolean modifier) {
+        Argument(String name, boolean parse) {
             this.name = name;
             this.parse = parse;
-            this.modifier = modifier;
         }
 
         /**
@@ -458,15 +456,6 @@ public abstract class Statement<T> {
          */
         public boolean doParse() {
             return parse;
-        }
-
-        /**
-         * Gets if this argument is a modifier, and therefore its value must equal {@link #getName()}
-         *
-         * @return true if a modifier
-         */
-        public boolean isModifier() {
-            return modifier;
         }
 
         /**
@@ -515,35 +504,13 @@ public abstract class Statement<T> {
             }
 
             /**
-             * Sets the modifier value of the argument
-             *
-             * @param modifier the new modifier value
-             * @return this builder, for fluency
-             * @see Argument#isModifier()
-             */
-            public Builder modifier(boolean modifier) {
-                this.modifier = modifier;
-                return this;
-            }
-
-            /**
-             * Toggles the modifier value of the argument
-             *
-             * @return this builder, for fluency
-             * @see Argument#isModifier()
-             */
-            public Builder modifier() {
-                return modifier(!modifier);
-            }
-
-            /**
              * Builds the current builder data into a {@link Argument}
              *
              * @return the new argument instance
              */
             public Argument build() {
                 checkNotNull(name, "Name cannot be null.");
-                return new Argument(name, parse, modifier);
+                return new Argument(name, parse);
             }
         }
     }

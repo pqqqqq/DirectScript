@@ -6,10 +6,14 @@ import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.Subscribe;
+import org.spongepowered.api.event.entity.player.PlayerChatEvent;
+import org.spongepowered.api.event.entity.player.PlayerDeathEvent;
 import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
 import org.spongepowered.api.event.entity.player.PlayerQuitEvent;
 import org.spongepowered.api.event.message.CommandEvent;
+import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.util.command.CommandSource;
 
 /**
@@ -35,6 +39,19 @@ public class TriggerEvents {
     }
 
     @Subscribe
+    public void death(PlayerDeathEvent event) {
+        Causes.PLAYER_DEATH.activate(ScriptInstance.builder()
+                .causedBy(event.getEntity()));
+    }
+
+    @Subscribe
+    public void chat(PlayerChatEvent event) {
+        Causes.PLAYER_CHAT.activate(ScriptInstance.builder()
+                .causedBy(event.getEntity())
+                .variables(new Variable("sponge.message", Literal.getLiteralBlindly(Texts.toPlain(event.getNewMessage())), true)));
+    }
+
+    @Subscribe(order = Order.LATE)
     public void command(CommandEvent event) {
         CommandSource source = event.getSource();
         Causes.COMMAND.activate(ScriptInstance.builder()

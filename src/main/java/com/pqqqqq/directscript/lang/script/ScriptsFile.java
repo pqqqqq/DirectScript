@@ -1,6 +1,7 @@
 package com.pqqqqq.directscript.lang.script;
 
 import com.google.common.base.Optional;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.util.Utilities;
 
@@ -24,6 +25,7 @@ public class ScriptsFile extends Environment {
      * @param file the actual file
      */
     public ScriptsFile(File root, File file) {
+        super(Lang.instance()); // Lang is the script file's parent
         this.root = root;
         this.file = file;
     }

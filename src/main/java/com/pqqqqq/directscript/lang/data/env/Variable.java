@@ -15,7 +15,7 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class Variable extends LiteralHolder {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z]([A-Za-z0-9]|\\.)*$");
-    private static final Pattern ILLEGAL_NAMES = Pattern.compile("/^(local|final|in|and|or)$/");
+    private static final Pattern ILLEGAL_NAMES = Pattern.compile("/^(local|global|public|final|in|and|or)$/");
 
     private final String name;
     private final boolean isFinal;

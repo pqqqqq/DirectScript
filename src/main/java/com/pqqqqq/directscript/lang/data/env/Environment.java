@@ -2,9 +2,10 @@ package com.pqqqqq.directscript.lang.data.env;
 
 import com.google.common.base.Optional;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -14,7 +15,7 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public abstract class Environment implements Iterable<Variable> {
     private final Environment parent;
-    private final Map<String, Variable> variableMap = new HashMap<String, Variable>();
+    private final Set<Variable> variables = new HashSet<Variable>();
 
     protected Environment() {
         this(null);
@@ -34,12 +35,12 @@ public abstract class Environment implements Iterable<Variable> {
     }
 
     /**
-     * Gets the {@link Map} of {@link Variable}s
+     * Gets the {@link Set} of {@link Variable}s
      *
      * @return the map
      */
-    public Map<String, Variable> getVariables() {
-        return this.variableMap;
+    public Set<Variable> getVariables() {
+        return this.variables;
     }
 
     /**
@@ -51,9 +52,9 @@ public abstract class Environment implements Iterable<Variable> {
     public Variable addVariable(Variable variable) {
         checkState(Variable.namePattern().matcher(variable.getName()).matches(), "This variable name (" + variable.getName() + ") has illegal characters (only alphanumeric/period and must start with alphabetic).");
         checkState(!Variable.illegalNames().matcher(variable.getName()).matches(), variable.getName() + " is an illegal name.");
-        checkState(!getVariables().containsKey(variable.getName()), "A variable with this name already exists");
+        checkState(!getVariable(variable.getName()).isPresent(), "A variable with this name already exists");
 
-        getVariables().put(variable.getName(), variable);
+        getVariables().add(variable);
         return variable;
     }
 
@@ -64,17 +65,21 @@ public abstract class Environment implements Iterable<Variable> {
      * @return the variable
      */
     public Optional<Variable> getVariable(String name) {
-        Optional<Variable> variableOptional = Optional.fromNullable(getVariables().get(name.trim()));
-
-        if (getParent() != null && !variableOptional.isPresent()) {
-            variableOptional = getParent().getVariable(name);
+        for (Variable variable : getVariables()) {
+            if (variable.getName().equals(name)) {
+                return Optional.of(variable);
+            }
         }
 
-        return variableOptional;
+        if (getParent() != null) {
+            return getParent().getVariable(name);
+        }
+
+        return Optional.absent();
     }
 
     @Override
     public Iterator<Variable> iterator() {
-        return this.variableMap.values().iterator();
+        return this.variables.iterator();
     }
 }

@@ -1,7 +1,9 @@
 package com.pqqqqq.directscript.lang;
 
 import com.google.common.base.Optional;
+import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.data.Sequencer;
+import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.error.ErrorHandler;
 import com.pqqqqq.directscript.lang.reader.Reader;
 import com.pqqqqq.directscript.lang.script.Script;
@@ -15,11 +17,17 @@ import java.util.Set;
  * <p>The main language class for DirectScript.</p>
  * <p>This class contains getters and handlers for usage across scripts and statements.</p>
  */
-public class Lang {
-    private static final Lang INSTANCE = new Lang();
+public class Lang extends Environment {
+    private static Lang INSTANCE;
     private Set<ScriptsFile> scriptsFiles;
 
-    private Lang() {
+    /**
+     * Use {@link Lang#instance()} instead
+     */
+    @Deprecated
+    public Lang() {
+        super(DirectScript.instance());
+        INSTANCE = this;
     }
 
     /**

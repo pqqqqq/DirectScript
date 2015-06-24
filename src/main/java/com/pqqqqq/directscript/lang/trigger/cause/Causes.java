@@ -25,6 +25,8 @@ public class Causes {
     // Player causes
     public static final Cause PLAYER_JOIN = new Cause("PlayerJoin");
     public static final Cause PLAYER_QUIT = new Cause("PlayerQuit");
+    public static final Cause PLAYER_DEATH = new Cause("PlayerDeath");
+    public static final Cause PLAYER_CHAT = new Cause("PlayerChat");
     public static final Cause COMMAND = new Cause.CommandCause();
 
     private static final List<Cause> REGISTRY;

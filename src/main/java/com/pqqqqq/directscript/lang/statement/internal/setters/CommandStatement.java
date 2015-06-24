@@ -10,6 +10,7 @@ import java.util.List;
 /**
  * Created by Kevin on 2015-06-16.
  * Represents a command specification statement
+ * @see com.pqqqqq.directscript.lang.trigger.cause.Cause.CommandCause
  */
 public class CommandStatement extends Statement {
 
