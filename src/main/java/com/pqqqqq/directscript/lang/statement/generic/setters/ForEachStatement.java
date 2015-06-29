@@ -47,7 +47,7 @@ public class ForEachStatement extends Statement {
             }
         }
 
-        ctx.getScriptInstance().getVariables().remove(varName); // Remove the variable after the loops
+        ctx.getScriptInstance().removeVariable(varName); // Remove the variable after the loops
         ctx.getScriptInstance().setSkipToLine(ctx.getLine().getClosingBrace()); // Skip lines since we've already run the code block
         return Result.success();
     }

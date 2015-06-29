@@ -21,7 +21,7 @@ public class Variable extends LiteralHolder {
     private final boolean isFinal;
 
     /**
-     * Creates a new variable with the corresponding name that has a value of {@link com.pqqqqq.directscript.lang.data.Literals#EMPTY} and is not final
+     * Creates a new variable with the corresponding name that has a value of {@link Literal.Literals#EMPTY} and is not final
      *
      * @param name the name
      */
@@ -131,7 +131,7 @@ public class Variable extends LiteralHolder {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, getData(), isFinal);
+        return super.hashCode(); // We just want the natural object hashCode here, since Environments' HashMap requires a static hashCode
     }
 
     @Override

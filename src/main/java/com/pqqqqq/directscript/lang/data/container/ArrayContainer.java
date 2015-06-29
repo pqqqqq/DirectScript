@@ -46,6 +46,6 @@ public class ArrayContainer implements DataContainer {
             list.add(new LiteralHolder(dataContainer.resolve(scriptInstance)));
         }
 
-        return Literal.getLiteralBlindly(list);
+        return Literal.fromObject(list);
     }
 }

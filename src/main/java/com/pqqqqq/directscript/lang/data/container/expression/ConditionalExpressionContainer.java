@@ -47,21 +47,21 @@ public class ConditionalExpressionContainer extends ExpressionContainer<Boolean>
 
         switch (comparator) {
             case EQUALS:
-                return Literal.getLiteralBlindly(firstTerm.getValue().equals(secondTerm.getValue()));
+                return Literal.fromObject(firstTerm.getValue().equals(secondTerm.getValue()));
             case NOT_EQUALS:
-                return Literal.getLiteralBlindly(!firstTerm.getValue().equals(secondTerm.getValue()));
+                return Literal.fromObject(!firstTerm.getValue().equals(secondTerm.getValue()));
             case SIMILAR:
-                return Literal.getLiteralBlindly(firstTerm.getString().equalsIgnoreCase(secondTerm.getString()));
+                return Literal.fromObject(firstTerm.getString().equalsIgnoreCase(secondTerm.getString()));
             case DISSIMILAR:
-                return Literal.getLiteralBlindly(!firstTerm.getString().equalsIgnoreCase(secondTerm.getString()));
+                return Literal.fromObject(!firstTerm.getString().equalsIgnoreCase(secondTerm.getString()));
             case LESS_THAN:
-                return Literal.getLiteralBlindly(firstTerm.getNumber() < secondTerm.getNumber());
+                return Literal.fromObject(firstTerm.getNumber() < secondTerm.getNumber());
             case MORE_THAN:
-                return Literal.getLiteralBlindly(firstTerm.getNumber() > secondTerm.getNumber());
+                return Literal.fromObject(firstTerm.getNumber() > secondTerm.getNumber());
             case LESS_THAN_EQUAL_TO:
-                return Literal.getLiteralBlindly(firstTerm.getNumber() <= secondTerm.getNumber());
+                return Literal.fromObject(firstTerm.getNumber() <= secondTerm.getNumber());
             case MORE_THAN_EQUAL_TO:
-                return Literal.getLiteralBlindly(firstTerm.getNumber() >= secondTerm.getNumber());
+                return Literal.fromObject(firstTerm.getNumber() >= secondTerm.getNumber());
             default:
                 throw new IllegalStateException("Unknown comparative operator: " + comparator);
         }

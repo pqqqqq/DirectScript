@@ -272,7 +272,7 @@ public class StringParser {
     }
 
     /**
-     * Trims a string with {@link String#trim()} and by removing any doublr whitespace
+     * Trims a string with {@link String#trim()} and by removing any double whitespace
      *
      * @param string the string
      * @return the trimmed string
@@ -289,7 +289,7 @@ public class StringParser {
                 }
             }
 
-            if (quotes || !Character.isWhitespace(c) || !builder.isEmpty() && !Character.isWhitespace(builder.charAt(builder.length() - 1))) { // trim() should get rid of leading whitespace, but just incase
+            if (quotes || !Character.isWhitespace(c) || !builder.isEmpty() && !Character.isWhitespace(builder.charAt(builder.length() - 1))) { // trim() should get rid of leading whitespace, but just in case
                 builder += c;
             }
         }

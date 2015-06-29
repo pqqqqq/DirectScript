@@ -1,7 +1,6 @@
 package com.pqqqqq.directscript.lang.data.container;
 
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.Literals;
 import com.pqqqqq.directscript.lang.data.container.expression.ConditionalExpressionContainer;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 
@@ -63,9 +62,9 @@ public class ConditionContainer implements DataContainer<Boolean> {
                 }
             }
 
-            return Literals.TRUE; // The only time it should ever reach here is if all expressions are true!
+            return Literal.Literals.TRUE; // The only time it should ever reach here is if all expressions are true!
         }
 
-        return Literals.FALSE;
+        return Literal.Literals.FALSE;
     }
 }

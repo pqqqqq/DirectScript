@@ -396,11 +396,11 @@ public abstract class Statement<T> {
 
         @Override
         public int compareTo(Arguments o) {
-            if (delimiters.length > o.getDelimiters().length) {
+            if (arguments.length > o.getArguments().length || delimiters.length > o.getDelimiters().length) {
                 return -1;
             }
 
-            if (delimiters.length < o.getDelimiters().length) {
+            if (arguments.length < o.getArguments().length || delimiters.length < o.getDelimiters().length) {
                 return 1;
             }
 
@@ -623,7 +623,7 @@ public abstract class Statement<T> {
              * @see Result#getLiteralResult()
              */
             public Builder<T> literal(T literalResult) {
-                this.literalResult = Literal.getLiteralBlindly(literalResult);
+                this.literalResult = Literal.fromObject(literalResult);
                 return this;
             }
 

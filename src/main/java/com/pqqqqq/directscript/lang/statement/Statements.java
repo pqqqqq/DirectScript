@@ -64,6 +64,7 @@ public class Statements {
     public static final Statement<Double> DECREMENT = new DecrementStatement();
     public static final Statement<Double> POSTFIX_INCREMENT = new PostfixIncrementStatement();
     public static final Statement<Double> POSTFIX_DECREMENT = new PostfixDecrementStatement();
+    public static final Statement<Object> EVENT_VAR = new EventVarStatement();
 
     // Sponge statements
     public static final Statement PLAYER = new PlayerStatement();
@@ -72,14 +73,24 @@ public class Statements {
     public static final Statement KICK = new KickStatement();
     public static final Statement TELEPORT = new TeleportStatement();
     public static final Statement ROTATE = new RotateStatement();
+    public static final Statement CLOSE_INVENTORY = new CloseInventoryStatement();
+    public static final Statement CONSOLE = new ConsoleStatement();
+    public static final Statement PLAYER_COMMAND = new PlayerCommandStatement();
     public static final Statement SET_HEALTH = new SetHealthStatement();
+    public static final Statement SET_HUNGER = new SetHungerStatement();
+    public static final Statement SET_BLOCK = new SetBlockStatement();
+    public static final Statement SPAWN = new SpawnStatement();
 
     public static final Statement<String> PLAYER_UUID = new UUIDStatement();
     public static final Statement<String> PLAYER_NAME = new NameStatement();
+    public static final Statement<String> PLAYER_IP = new IPStatement();
     public static final Statement<Boolean> PERMISSION = new PermissionStatement();
     public static final Statement<Boolean> ONLINE = new OnlineStatement();
-    public static final Statement<Double[]> PLAYER_LOC = new PlayerLocStatement();
+    public static final Statement<Double[]> PLAYER_LOC = new LocationStatement();
     public static final Statement<Double> HEALTH = new HealthStatement();
+    public static final Statement<Double> HUNGER = new HungerStatement();
+    public static final Statement<Object> BLOCK = new BlockStatement();
+    public static final Statement<Object> ITEM = new ItemStackStatement();
 
     private static final List<Statement> REGISTRY;
 

@@ -6,14 +6,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 import org.spongepowered.api.entity.player.Player;
 
 /**
- * Created by Kevin on 2015-06-04.
- * A statement that gets the name of the specified player
+ * Created by Kevin on 2015-06-24.
+ * A statement that retrieves a player's IP address
  */
-public class NameStatement extends Statement<String> {
+public class IPStatement extends Statement<String> {
 
-    public NameStatement() {
+    public IPStatement() {
         super(Syntax.builder()
-                .identifiers("name")
+                .identifiers("ip")
                 .prefix("@")
                 .arguments(Arguments.empty(), Arguments.of(Argument.from("Player")))
                 .build());
@@ -26,6 +26,7 @@ public class NameStatement extends Statement<String> {
             return Result.failure();
         }
 
-        return Result.<String>builder().success().result(player.get().getName()).literal(player.get().getName()).build();
+        String ip = player.get().getConnection().getAddress().getAddress().getHostAddress();
+        return Result.<String>builder().success().result(ip).literal(ip).build();
     }
 }

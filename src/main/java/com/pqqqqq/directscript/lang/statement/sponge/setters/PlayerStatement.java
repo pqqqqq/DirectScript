@@ -22,7 +22,7 @@ public class PlayerStatement extends Statement {
 
     @Override
     public Result run(Context ctx) {
-        Optional<Player> player = ctx.getPlayerOrCauser("Player");
+        Optional<Player> player = ctx.getLiteral("Player").getPlayer();
         String message = ctx.getLiteral("Message").getString();
 
         if (!player.isPresent()) {

@@ -78,7 +78,7 @@ public class DirectScript extends Environment {
         eventManager.register(this, new TriggerEvents(this));
 
         // Schedule events
-        game.getSyncScheduler().runRepeatingTaskAfter(this, new InternalTimer(), 5L, 5L);
+        game.getScheduler().getTaskBuilder().delay(5L).interval(5L).execute(new InternalTimer()).name("ScriptTimer").submit(this);
     }
 
     @Subscribe

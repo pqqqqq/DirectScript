@@ -1,17 +1,12 @@
 package com.pqqqqq.directscript.events;
 
 import com.pqqqqq.directscript.DirectScript;
-import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.Subscribe;
-import org.spongepowered.api.event.entity.player.PlayerChatEvent;
-import org.spongepowered.api.event.entity.player.PlayerDeathEvent;
-import org.spongepowered.api.event.entity.player.PlayerJoinEvent;
-import org.spongepowered.api.event.entity.player.PlayerQuitEvent;
+import org.spongepowered.api.event.entity.player.*;
 import org.spongepowered.api.event.message.CommandEvent;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.util.command.CommandSource;
@@ -29,26 +24,67 @@ public class TriggerEvents {
     @Subscribe
     public void join(PlayerJoinEvent event) {
         Causes.PLAYER_JOIN.activate(ScriptInstance.builder()
-                .causedBy(event.getEntity()));
+                .event(event)
+                .eventVar(event.getEntity()));
     }
 
     @Subscribe
     public void quit(PlayerQuitEvent event) {
         Causes.PLAYER_QUIT.activate(ScriptInstance.builder()
-                .causedBy(event.getEntity()));
+                .event(event)
+                .eventVar(event.getEntity()));
     }
 
     @Subscribe
     public void death(PlayerDeathEvent event) {
         Causes.PLAYER_DEATH.activate(ScriptInstance.builder()
-                .causedBy(event.getEntity()));
+                .event(event)
+                .eventVar(event.getEntity()));
     }
 
     @Subscribe
     public void chat(PlayerChatEvent event) {
         Causes.PLAYER_CHAT.activate(ScriptInstance.builder()
-                .causedBy(event.getEntity())
-                .variables(new Variable("sponge.message", Literal.getLiteralBlindly(Texts.toPlain(event.getNewMessage())), true)));
+                .event(event)
+                .eventVar(event.getEntity())
+                .eventVar("Message", Texts.toPlain(event.getNewMessage())));
+    }
+
+    @Subscribe
+    public void itemPickup(PlayerPickUpItemEvent event) {
+        Causes.ITEM_PICKUP.activate(ScriptInstance.builder()
+                .event(event)
+                .eventVar(event.getEntity())
+                .eventVar("Items", event.getItems()));
+    }
+
+    @Subscribe
+    public void itemDrop(PlayerDropItemEvent event) {
+        Causes.ITEM_DROP.activate(ScriptInstance.builder()
+                .event(event)
+                .eventVar(event.getEntity())
+                .eventVar("ItemStacks", event.getDroppedItems()));
+    }
+
+    @Subscribe
+    public void blockPlace(PlayerPlaceBlockEvent event) {
+        Causes.BLOCK_PLACE.activate(ScriptInstance.builder()
+                .event(event)
+                .eventVar(event.getUser())
+                .eventVar("Location", event.getBlock())
+                .eventVar("Block", event.getBlock())
+                .eventVar("Replaced", event.getReplacementBlock()));
+    }
+
+    @Subscribe
+    public void blockBreak(PlayerBreakBlockEvent event) {
+        Causes.BLOCK_BREAK.activate(ScriptInstance.builder()
+                .event(event)
+                .eventVar(event.getUser())
+                .eventVar("Location", event.getBlock())
+                .eventVar("Block", event.getBlock())
+                .eventVar("Replaced", event.getReplacementBlock())
+                .eventVar("Exp", event.getExp()));
     }
 
     @Subscribe(order = Order.LATE)
@@ -56,8 +92,8 @@ public class TriggerEvents {
         CommandSource source = event.getSource();
         Causes.COMMAND.activate(ScriptInstance.builder()
                 .event(event)
-                .causedBy((source instanceof Player ? (Player) source : null))
-                .variables(source)
-                .variables(new Variable("sponge.command", Literal.getLiteralBlindly(event.getCommand()), true), new Variable("sponge.arguments", Literal.getLiteralBlindly(event.getArguments()), true)));
+                .eventVar((source instanceof Player ? (Player) source : null))
+                .eventVar("Command", event.getCommand())
+                .eventVar("Arguments", event.getArguments()));
     }
 }

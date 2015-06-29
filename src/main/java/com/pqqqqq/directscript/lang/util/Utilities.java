@@ -1,5 +1,8 @@
 package com.pqqqqq.directscript.lang.util;
 
+import com.google.common.base.Optional;
+import com.pqqqqq.directscript.DirectScript;
+import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.text.Texts;
 
 import java.io.File;
@@ -89,5 +92,25 @@ public class Utilities {
         }
 
         return str.replaceAll(Texts.getLegacyChar() + "([0-9a-fA-FkKlLmMnNoOrR])", "&$1");
+    }
+
+    /**
+     * Temporary method to get the {@link Optional} {@link org.spongepowered.api.CatalogType} by its ID
+     *
+     * @param id the id
+     * @return the catalog type
+     */
+    public static <T extends CatalogType> Optional<T> getType(Class<T> type, String id) {
+        if (!id.startsWith("minecraft:")) {
+            id = "minecraft:" + id;
+        }
+
+        for (T catalogType : DirectScript.instance().getGame().getRegistry().getAllOf(type)) {
+            if (catalogType.getId().equalsIgnoreCase(id)) {
+                return Optional.of(catalogType);
+            }
+        }
+
+        return Optional.absent();
     }
 }

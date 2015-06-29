@@ -50,7 +50,7 @@ public class VarStatement extends Statement<Object> {
         }
 
         checkNotNull(name, "Improper variable declaration");
-        Literal value = ctx.getLiteral("Value");
+        Literal value = ctx.getLiteral("Value").copy();
 
         environment.addVariable(new Variable(name, value, isFinal));
         return Result.builder().success().result(value.getValue().orNull()).literal(value).build();

@@ -4,7 +4,6 @@ import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.LiteralHolder;
-import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
@@ -40,8 +39,7 @@ public class CallStatement extends Statement {
 
         List<LiteralHolder> arguments = ctx.getLiteral("ArgumentArray").getArray();
 
-        ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).causedBy(ctx.getScriptInstance().getCausedBy().orNull()).build();
-        scriptInstanceNew.addVariable(new Variable("generic.arguments", Literal.getLiteralBlindly(arguments)));
+        ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).eventVar(ctx.getScriptInstance().getEventVars()).eventVar("Arguments", arguments).build();
         scriptInstanceNew.execute();
 
         Literal returnLiteral = scriptInstanceNew.getReturnValue().orNull();

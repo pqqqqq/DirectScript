@@ -36,6 +36,7 @@ public class TriggerStatement extends Statement<Trigger> {
             Optional<Cause> cause = Causes.getCause(causeString);
 
             checkState(cause.isPresent(), "Unknown cause: " + causeString);
+            checkState(cause.get() != Causes.COMPILE, "The Compile cause cannot be used at runtime");
             triggerBuilder.cause(cause.get());
         }
 

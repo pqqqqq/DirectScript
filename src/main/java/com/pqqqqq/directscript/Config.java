@@ -51,7 +51,7 @@ public class Config {
             CommentedConfigurationNode root = cfg.createEmptyNode(ConfigurationOptions.defaults());
             CommentedConfigurationNode publicNode = root.getNode("public");
 
-            for (Variable publicVariable : DirectScript.instance().getVariables()) {
+            for (Variable publicVariable : DirectScript.instance()) {
                 publicNode.getNode(publicVariable.getName()).setValue(publicVariable.getData().or("null").getString());
             }
 

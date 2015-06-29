@@ -1,7 +1,5 @@
 package com.pqqqqq.directscript.lang.trigger.cause;
 
-import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 
@@ -125,16 +123,16 @@ public class Cause {
                 return false;
             }
 
-            Optional<Variable> commandExec = scriptInstance.getVariable("sponge.command");
-            if (commandExec.isPresent()) {
-                String comp = commandExec.get().getData().getString();
+            Object cmd = scriptInstance.getEventVars().get("Command");
+            if (cmd != null && cmd instanceof String) {
+                String cmdString = (String) cmd;
+
                 for (String alias : aliases) {
-                    if (alias.equalsIgnoreCase(comp)) {
+                    if (alias.equalsIgnoreCase(cmdString)) {
                         return true;
                     }
                 }
             }
-
             return false;
         }
     }

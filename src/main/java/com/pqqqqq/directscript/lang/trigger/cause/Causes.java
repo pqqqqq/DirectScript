@@ -27,6 +27,10 @@ public class Causes {
     public static final Cause PLAYER_QUIT = new Cause("PlayerQuit");
     public static final Cause PLAYER_DEATH = new Cause("PlayerDeath");
     public static final Cause PLAYER_CHAT = new Cause("PlayerChat");
+    public static final Cause ITEM_PICKUP = new Cause("ItemPickup");
+    public static final Cause ITEM_DROP = new Cause("ItemDrop");
+    public static final Cause BLOCK_PLACE = new Cause("BlockPlace");
+    public static final Cause BLOCK_BREAK = new Cause("BlockBreak");
     public static final Cause COMMAND = new Cause.CommandCause();
 
     private static final List<Cause> REGISTRY;

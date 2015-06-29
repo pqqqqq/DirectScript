@@ -16,13 +16,13 @@ public class SetHealthStatement extends Statement {
         super(Syntax.builder()
                 .identifiers("sethealth")
                 .prefix("@")
-                .arguments(Arguments.of(Argument.from("Player")), Arguments.of(Argument.from("Player"), ",", Argument.from("Health")))
+                .arguments(Arguments.empty(), Arguments.of(Argument.from("Health")), Arguments.of(Argument.from("Player"), ",", Argument.from("Health")))
                 .build());
     }
 
     @Override
     public Result run(Context ctx) {
-        Optional<Player> playerOptional = ctx.getPlayerOrCauser("Player");
+        Optional<Player> playerOptional = ctx.getLiteral("Player").getPlayer();
         if (!playerOptional.isPresent()) {
             return Result.failure();
         }

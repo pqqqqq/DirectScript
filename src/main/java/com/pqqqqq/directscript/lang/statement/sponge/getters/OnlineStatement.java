@@ -15,13 +15,13 @@ public class OnlineStatement extends Statement<Boolean> {
         super(Syntax.builder()
                 .identifiers("online")
                 .prefix("@")
-                .arguments(Arguments.of(Argument.from("Player")))
+                .arguments(Arguments.of(Argument.from("User")))
                 .build());
     }
 
     @Override
     public Result<Boolean> run(Context ctx) {
-        Optional<Player> player = ctx.getLiteral("Player").getPlayer();
+        Optional<Player> player = ctx.getLiteral("User").getPlayer();
         return Result.<Boolean>builder().result(player.isPresent()).literal(player.isPresent()).build();
     }
 }

@@ -207,7 +207,7 @@ public class Line {
 
         for (Statement.Argument argument : arguments) {
             String strarg = strargs[containers.size()];
-            containers.put(argument.getName(), (argument.doParse() ? Lang.instance().sequencer().parse(this, strarg) : Literal.getLiteralBlindly(strarg))); // Use doParse boolean
+            containers.put(argument.getName(), (argument.doParse() ? Lang.instance().sequencer().parse(this, strarg) : Literal.fromObject(strarg))); // Use doParse boolean
         }
     }
 

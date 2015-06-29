@@ -49,7 +49,7 @@ public class Sequencer {
 
         sequence = sequence.trim();
         if (sequence.isEmpty()) {
-            return Literals.EMPTY;
+            return Literal.Literals.EMPTY;
         }
 
         // Get rid of brackets if they're still there
@@ -82,8 +82,14 @@ public class Sequencer {
             }
 
             // Check leading exclamation points (negation)
-            if (sequence.startsWith("!")) {
-                return new NegateContainer(parse(line, sequence.substring(1)));
+            boolean negate = false;
+            while (sequence.startsWith("!")) {
+                sequence = sequence.substring(1);
+                negate = !negate;
+            }
+
+            if (negate) {
+                return new NegateContainer(parse(line, sequence));
             }
 
             // Check trailing array index values
@@ -105,7 +111,7 @@ public class Sequencer {
             }
 
             // Check plain data
-            Optional<Literal> literal = Literal.getLiteral(sequence);
+            Optional<Literal> literal = Literal.fromSequence(sequence);
             if (literal.isPresent()) {
                 return literal.get();
             }

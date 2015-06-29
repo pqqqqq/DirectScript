@@ -21,7 +21,7 @@ public class UUIDStatement extends Statement<String> {
 
     @Override
     public Result<String> run(Context ctx) {
-        Optional<Player> player = ctx.getPlayerOrCauser("Player");
+        Optional<Player> player = ctx.getLiteral("Player").getPlayer();
         if (!player.isPresent()) {
             return Result.failure();
         }

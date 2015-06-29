@@ -3,8 +3,6 @@ package com.pqqqqq.directscript.commands;
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.Lang;
-import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
@@ -45,8 +43,7 @@ public class CommandCall implements CommandExecutor {
         } else {
             Script script = scriptOptional.get();
 
-            ScriptInstance scriptInstance = ScriptInstance.builder().script(script).cause(Causes.CALL).build(); // TODO: Caused by the sender is they're a player?
-            scriptInstance.addVariable(new Variable("generic.arguments", Literal.getLiteralBlindly(arguments.split(" "))));
+            ScriptInstance scriptInstance = ScriptInstance.builder().script(script).cause(Causes.CALL).eventVar("Arguments", arguments.split(" ")).build(); // TODO: Caused by the sender is they're a player?
             scriptInstance.execute();
 
             commandSource.sendMessage(Texts.of(TextColors.GREEN, "Script ran successfully."));

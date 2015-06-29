@@ -1,19 +1,14 @@
 package com.pqqqqq.directscript.lang.reader;
 
-import com.google.common.base.Optional;
-import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.Literals;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
-import org.spongepowered.api.entity.player.Player;
-import org.spongepowered.api.world.World;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Created by Kevin on 2015-06-12.
@@ -36,9 +31,9 @@ public class Context {
         this.stringArguments = stringArguments;
         this.containers = containers;
 
-        this.literals = new HashMap<String, Literal>();
+        this.literals = new TreeMap<String, Literal>(String.CASE_INSENSITIVE_ORDER); // Case insensitive
         for (Map.Entry<String, DataContainer> entry : containers.entrySet()) {
-            this.literals.put(entry.getKey(), (entry.getValue() == null ? Literals.EMPTY : entry.getValue().resolve(scriptInstance)));
+            this.literals.put(entry.getKey(), (entry.getValue() == null ? Literal.Literals.EMPTY : entry.getValue().resolve(scriptInstance)));
         }
     }
 
@@ -102,11 +97,11 @@ public class Context {
      * Gets the {@link Literal} with the given name
      *
      * @param name the name
-     * @return the literal argument, or {@link Literals#EMPTY}
+     * @return the literal argument, or {@link Literal.Literals#EMPTY}
      */
     public Literal getLiteral(String name) {
         Literal literal = this.literals.get(name);
-        return literal == null ? Literals.EMPTY : literal;
+        return (literal == null ? Literal.Literals.EMPTY : literal).or(this.scriptInstance.getEventVars().get(name));
     }
 
     /**
@@ -145,44 +140,11 @@ public class Context {
     }
 
     /**
-     * Returns the {@link com.pqqqqq.directscript.lang.script.ScriptInstance.Result} of the last run of this context
+     * Returns the {@link ScriptInstance.Result} of the last run of this context
      *
      * @return the result, or null if not run yet
      */
     public Statement.Result getResult() {
         return result;
-    }
-
-    // Convenience stuff
-
-    /**
-     * Gets an {@link Optional} {@link Player} at the index that, if {@link com.pqqqqq.directscript.lang.data.Literals#EMPTY}, uses the {@link ScriptInstance#getCausedBy()} player instead
-     *
-     * @param name the name
-     * @return the player
-     */
-    public Optional<Player> getPlayerOrCauser(String name) {
-        Optional<Player> causedBy = this.scriptInstance.getCausedBy();
-        Literal literal = getLiteral(name);
-        return (literal.isEmpty() ? causedBy : literal.getPlayer());
-    }
-
-    /**
-     * Gets an {@link Optional} {@link World} at the index that, if {@link com.pqqqqq.directscript.lang.data.Literals#EMPTY}, uses the {@link ScriptInstance#getCausedBy()} player's world instead
-     *
-     * @param name the name
-     * @return the world
-     */
-    public Optional<World> getWorldOrCauserWorld(String name) {
-        Literal literal = getLiteral(name);
-
-        if (literal.isEmpty()) {
-            Optional<Player> causedBy = this.scriptInstance.getCausedBy();
-            if (causedBy.isPresent()) {
-                return Optional.of(causedBy.get().getWorld());
-            }
-            return Optional.absent();
-        }
-        return DirectScript.instance().getGame().getServer().getWorld(literal.getString());
     }
 }

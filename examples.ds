@@ -5,7 +5,7 @@ script("MessagePlayer") {
 	// Script starts here
 	@cancel()
 
-	var arguments = split(sponge.arguments, " ")
+	var arguments = split(eventvar("Arguments"), " ")
 	if (size(arguments) < 2) {
 		@player("&cInvalid format: /sendmsg <player> <message ...>")
 	} else {
@@ -35,7 +35,7 @@ script("LoopCheck") {
 	// Script starts here
 	@cancel()
 
-	var arguments = split(sponge.arguments, " ")
+	var arguments = split(eventvar("Arguments"), " ")
 	if (arguments[1] == "") {
 		@player("&cInvalid format: /loopcheck <for|foreach|while>")
 	} else if (arguments[1] == "for") {
@@ -62,5 +62,18 @@ script("LoopCheck") {
 		}
 	} else {
 		@player("&cUnknown argument: " + arguments[1] + ", expected for, foreach or while")
+	}
+}
+
+script("BlockPlace") {
+	trigger("blockplace")
+	@broadcast(@name() + " placed a " + @block("id") + " at " + @location())
+}
+
+script("ItemDrop") {
+	trigger("itemdrop")
+
+	foreach (item in eventvar("ItemStacks")) {
+		@broadcast(@name() + " dropped a " + @item("id", item))
 	}
 }

@@ -35,15 +35,6 @@ public abstract class Environment implements Iterable<Variable> {
     }
 
     /**
-     * Gets the {@link Set} of {@link Variable}s
-     *
-     * @return the map
-     */
-    public Set<Variable> getVariables() {
-        return this.variables;
-    }
-
-    /**
      * Safely adds a new {@link Variable} to the variable {@link Map}
      *
      * @param variable the new variable to add
@@ -52,9 +43,9 @@ public abstract class Environment implements Iterable<Variable> {
     public Variable addVariable(Variable variable) {
         checkState(Variable.namePattern().matcher(variable.getName()).matches(), "This variable name (" + variable.getName() + ") has illegal characters (only alphanumeric/period and must start with alphabetic).");
         checkState(!Variable.illegalNames().matcher(variable.getName()).matches(), variable.getName() + " is an illegal name.");
-        checkState(!getVariable(variable.getName()).isPresent(), "A variable with this name already exists");
+        checkState(!getVariable(variable.getName()).isPresent(), "A variable with this name (" + variable.getName() + ") already exists");
 
-        getVariables().add(variable);
+        this.variables.add(variable);
         return variable;
     }
 
@@ -65,7 +56,7 @@ public abstract class Environment implements Iterable<Variable> {
      * @return the variable
      */
     public Optional<Variable> getVariable(String name) {
-        for (Variable variable : getVariables()) {
+        for (Variable variable : this) {
             if (variable.getName().equals(name)) {
                 return Optional.of(variable);
             }
@@ -76,6 +67,36 @@ public abstract class Environment implements Iterable<Variable> {
         }
 
         return Optional.absent();
+    }
+
+    /**
+     * Removes a {@link Variable} from this environment by its name, or checks its parent
+     *
+     * @param name the name of the variable
+     * @return true if the variable was removed
+     */
+    public boolean removeVariable(String name) {
+        for (Iterator<Variable> i = iterator(); i.hasNext(); ) {
+            Variable variable = i.next();
+
+            if (variable.getName().equals(name)) {
+                i.remove();
+                return true;
+            }
+        }
+
+        if (getParent() != null) {
+            return getParent().removeVariable(name);
+        }
+
+        return false;
+    }
+
+    /**
+     * Clears all {@link Variable}s in this environment
+     */
+    public void clear() {
+        this.variables.clear();
     }
 
     @Override

@@ -37,7 +37,7 @@ public class ForStatement extends Statement {
         checkNotNull(internalBlock, "This line has no internal block");
 
         for (double x = startValue; (startValue <= endValue ? x <= endValue : x >= endValue); x += increment) {
-            var.setData(Literal.getLiteralBlindly(x));
+            var.setData(Literal.fromObject(x));
             ScriptInstance.Result result = ctx.getScriptInstance().execute(internalBlock);
 
             if (result == ScriptInstance.Result.FAILURE_BREAK) {
@@ -49,7 +49,7 @@ public class ForStatement extends Statement {
             }
         }
 
-        ctx.getScriptInstance().getVariables().remove(varName); // Remove the variable after the loops
+        ctx.getScriptInstance().removeVariable(varName); // Remove the variable after the loops
         ctx.getScriptInstance().setSkipToLine(ctx.getLine().getClosingBrace()); // Skip lines since we've already run the code block
         return Result.success();
     }
