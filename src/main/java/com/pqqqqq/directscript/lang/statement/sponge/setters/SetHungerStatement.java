@@ -23,7 +23,7 @@ public class SetHungerStatement extends Statement {
 
     @Override
     public Result run(Context ctx) {
-        Optional<Player> playerOptional = ctx.getLiteral("Player").getPlayer();
+        Optional<Player> playerOptional = ctx.getLiteral("Player", Player.class).getAs(Player.class);
         if (!playerOptional.isPresent()) {
             return Result.failure();
         }

@@ -23,12 +23,12 @@ public class RotateStatement extends Statement {
 
     @Override
     public Result run(Context ctx) {
-        Optional<Player> player = ctx.getLiteral("Player").getPlayer();
+        Optional<Player> player = ctx.getLiteral("Player").getAs(Player.class);
         if (!player.isPresent()) {
             return Result.failure();
         }
 
-        Optional<Vector3d> rotationArray = ctx.getLiteral("Rotation").getVector();
+        Optional<Vector3d> rotationArray = ctx.getLiteral("Rotation").getAs(Vector3d.class);
         if (!rotationArray.isPresent()) {
             return Result.failure();
         }

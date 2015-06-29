@@ -21,7 +21,7 @@ public class PermissionStatement extends Statement<Boolean> {
 
     @Override
     public Result<Boolean> run(Context ctx) {
-        Optional<Player> player = ctx.getLiteral("Player").getPlayer();
+        Optional<Player> player = ctx.getLiteral("Player", Player.class).getAs(Player.class);
         String permission = ctx.getLiteral("Permission").getString();
 
         if (!player.isPresent()) {

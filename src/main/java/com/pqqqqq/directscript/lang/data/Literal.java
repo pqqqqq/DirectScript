@@ -9,11 +9,7 @@ import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.util.ICopyable;
 import com.pqqqqq.directscript.lang.util.Utilities;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.player.Player;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.text.DecimalFormat;
@@ -230,81 +226,35 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
     // Some common additional getters (sponge)
 
     /**
-     * Gets an {@link Optional} {@link Player} by checking both the names and UUIDs of players in the server
-     *
-     * @return the player
+     * Gets the {@link Literal} as a specific given type
+     * @param type the type
+     * @param <T> the generic type parameter
+     * @return the optional value of the type
      */
-    public Optional<Player> getPlayer() {
-        try {
-            Optional<Player> playerOptional = DirectScript.instance().getGame().getServer().getPlayer(getString()); // Check name first
-            if (playerOptional.isPresent()) {
-                return playerOptional;
+    public <T> Optional<T> getAs(Class<T> type) {
+        if (type.equals(Player.class)) {
+            try {
+                Optional<Player> playerOptional = DirectScript.instance().getGame().getServer().getPlayer(getString()); // Check name first
+                if (playerOptional.isPresent()) {
+                    return (Optional<T>) playerOptional;
+                }
+
+                return (Optional<T>) DirectScript.instance().getGame().getServer().getPlayer(UUID.fromString(getString())); // Check uuid now
+            } catch (IllegalArgumentException e) {
+                return Optional.absent();
+            }
+        } else if (type.equals(World.class)) {
+            return (Optional<T>) DirectScript.instance().getGame().getServer().getWorld(getString());
+        } else if (type.equals(Vector3d.class)) {
+            checkState(isArray(), "Location must be an array");
+
+            List<LiteralHolder> array = getArray();
+            if (array.size() < 3) {
+                return Optional.absent();
             }
 
-            return DirectScript.instance().getGame().getServer().getPlayer(UUID.fromString(getString())); // Check uuid now
-        } catch (IllegalArgumentException e) {
-            return Optional.absent();
+            return (Optional<T>) Optional.of(new Vector3d(array.get(0).getData().getNumber(), array.get(1).getData().getNumber(), array.get(2).getData().getNumber()));
         }
-    }
-
-    /**
-     * Gets an {@link Optional} {@link World} by checking its name
-     *
-     * @return the world
-     */
-    public Optional<World> getWorld() {
-        return DirectScript.instance().getGame().getServer().getWorld(getString());
-    }
-
-    /**
-     * Gets an {@link Optional} {@link Vector3d} by checking the array
-     *
-     * @return the 3D vector
-     */
-    public Optional<Vector3d> getVector() {
-        checkState(isArray(), "Location must be an array");
-
-        List<LiteralHolder> array = getArray();
-        if (array.size() < 3) {
-            return Optional.absent();
-        }
-
-        return Optional.of(new Vector3d(array.get(0).getData().getNumber(), array.get(1).getData().getNumber(), array.get(2).getData().getNumber()));
-    }
-
-    /**
-     * Gets an {@link Optional} {@link Location}
-     *
-     * @return the location
-     */
-    public Optional<Location> getLocation() {
-        return Optional.absent();
-    }
-
-    /**
-     * Gets an {@link Optional} {@link Item}
-     *
-     * @return the item
-     */
-    public Optional<Item> getItem() {
-        return Optional.absent();
-    }
-
-    /**
-     * Gets an {@link Optional} {@link ItemStack}
-     *
-     * @return the item stack
-     */
-    public Optional<ItemStack> getItemStack() {
-        return Optional.absent();
-    }
-
-    /**
-     * Gets an {@link Optional} {@link BlockSnapshot}
-     *
-     * @return the block snapshot
-     */
-    public Optional<BlockSnapshot> getBlock() {
         return Optional.absent();
     }
 

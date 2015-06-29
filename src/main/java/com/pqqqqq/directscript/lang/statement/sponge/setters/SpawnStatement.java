@@ -21,19 +21,19 @@ public class SpawnStatement extends Statement {
                 .prefix("@")
                 .arguments(Arguments.of(Argument.from("EntityType")))
                 .arguments(Arguments.of(Argument.from("EntityType"), ",", Argument.from("Amount")))
-                .arguments(Arguments.of(Argument.from("Location"), ",", Argument.from("EntityType"), ",", Argument.from("Amount")))
-                .arguments(Arguments.of(Argument.from("World"), ",", Argument.from("Location"), ",", Argument.from("EntityType"), ",", Argument.from("Amount")))
+                .arguments(Arguments.of(Argument.from("Vector"), ",", Argument.from("EntityType"), ",", Argument.from("Amount")))
+                .arguments(Arguments.of(Argument.from("World"), ",", Argument.from("Vector"), ",", Argument.from("EntityType"), ",", Argument.from("Amount")))
                 .build());
     }
 
     @Override
     public Result run(Context ctx) {
-        Optional<World> world = ctx.getLiteral("World").getWorld();
+        Optional<World> world = ctx.getLiteral("World", World.class).getAs(World.class);
         if (!world.isPresent()) {
             return Result.failure();
         }
 
-        Optional<Vector3d> coordinates = ctx.getLiteral("Location").getVector();
+        Optional<Vector3d> coordinates = ctx.getLiteral("Vector", Vector3d.class).getAs(Vector3d.class);
         if (!coordinates.isPresent()) {
             return Result.failure();
         }

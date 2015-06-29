@@ -4,7 +4,7 @@ import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import org.spongepowered.api.data.manipulator.entity.HealthData;
-import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.entity.living.Living;
 
 /**
  * Created by Kevin on 2015-06-22.
@@ -16,22 +16,22 @@ public class SetHealthStatement extends Statement {
         super(Syntax.builder()
                 .identifiers("sethealth")
                 .prefix("@")
-                .arguments(Arguments.empty(), Arguments.of(Argument.from("Health")), Arguments.of(Argument.from("Player"), ",", Argument.from("Health")))
+                .arguments(Arguments.empty(), Arguments.of(Argument.from("Health")), Arguments.of(Argument.from("Living"), ",", Argument.from("Health")))
                 .build());
     }
 
     @Override
     public Result run(Context ctx) {
-        Optional<Player> playerOptional = ctx.getLiteral("Player").getPlayer();
-        if (!playerOptional.isPresent()) {
+        Optional<Living> livingOptional = ctx.getLiteral("Living", Living.class).getAs(Living.class);
+        if (!livingOptional.isPresent()) {
             return Result.failure();
         }
 
-        HealthData healthData = playerOptional.get().getHealthData();
+        HealthData healthData = livingOptional.get().getHealthData();
         double health = ctx.getLiteral("Health", healthData.getMaxHealth()).getNumber();
 
         healthData.setHealth(health);
-        playerOptional.get().offer(healthData);
+        livingOptional.get().offer(healthData);
         return Result.success();
     }
 }

@@ -10,11 +10,11 @@ import org.spongepowered.api.text.Texts;
  * Created by Kevin on 2015-06-02.
  * A statement that sends a message to a player
  */
-public class PlayerStatement extends Statement {
+public class SendStatement extends Statement {
 
-    public PlayerStatement() {
+    public SendStatement() {
         super(Syntax.builder()
-                .identifiers("player")
+                .identifiers("send", "tell")
                 .prefix("@")
                 .arguments(Arguments.of(Argument.from("Message")), Arguments.of(Argument.from("Player"), ",", Argument.from("Message")))
                 .build());
@@ -22,7 +22,7 @@ public class PlayerStatement extends Statement {
 
     @Override
     public Result run(Context ctx) {
-        Optional<Player> player = ctx.getLiteral("Player").getPlayer();
+        Optional<Player> player = ctx.getLiteral("Player", Player.class).getAs(Player.class);
         String message = ctx.getLiteral("Message").getString();
 
         if (!player.isPresent()) {

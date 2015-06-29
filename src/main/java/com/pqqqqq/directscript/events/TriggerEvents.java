@@ -71,8 +71,7 @@ public class TriggerEvents {
         Causes.BLOCK_PLACE.activate(ScriptInstance.builder()
                 .event(event)
                 .eventVar(event.getUser())
-                .eventVar("Location", event.getBlock())
-                .eventVar("Block", event.getBlock())
+                .eventVar(event.getBlock())
                 .eventVar("Replaced", event.getReplacementBlock()));
     }
 
@@ -81,8 +80,7 @@ public class TriggerEvents {
         Causes.BLOCK_BREAK.activate(ScriptInstance.builder()
                 .event(event)
                 .eventVar(event.getUser())
-                .eventVar("Location", event.getBlock())
-                .eventVar("Block", event.getBlock())
+                .eventVar(event.getBlock())
                 .eventVar("Replaced", event.getReplacementBlock())
                 .eventVar("Exp", event.getExp()));
     }

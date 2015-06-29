@@ -101,7 +101,24 @@ public class Context {
      */
     public Literal getLiteral(String name) {
         Literal literal = this.literals.get(name);
-        return (literal == null ? Literal.Literals.EMPTY : literal).or(this.scriptInstance.getEventVars().get(name));
+        return literal == null ? Literal.Literals.EMPTY : literal;
+    }
+
+    /**
+     * Gets the {@link Literal} with the given name and type
+     *
+     * @param name the name
+     * @param type the type for defaults
+     * @return the literal, or {@link Literal.Literals#EMPTY}
+     */
+    public Literal getLiteral(String name, Class<?> type) {
+        Literal literal = getLiteral(name);
+
+        if (!literal.isEmpty()) {
+            return literal; // Don't just use or because no need to iterate through this all
+        }
+
+        return literal.or(scriptInstance.getEventVarWithType(type));
     }
 
     /**

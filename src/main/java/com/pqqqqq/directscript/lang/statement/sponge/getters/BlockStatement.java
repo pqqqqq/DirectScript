@@ -22,7 +22,7 @@ public class BlockStatement extends Statement<Object> {
 
     @Override
     public Result<Object> run(Context ctx) {
-        Optional<BlockSnapshot> block = ctx.getLiteral("Block").getBlock();
+        Optional<BlockSnapshot> block = ctx.getLiteral("Block", BlockSnapshot.class).getAs(BlockSnapshot.class);
         if (!block.isPresent()) {
             return Result.failure();
         }

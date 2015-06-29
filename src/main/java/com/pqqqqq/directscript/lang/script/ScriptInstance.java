@@ -16,8 +16,11 @@ import com.pqqqqq.directscript.lang.statement.internal.setters.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import com.pqqqqq.directscript.lang.util.ICopyable;
+import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.entity.Item;
 import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Event;
+import org.spongepowered.api.world.Location;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -129,6 +132,25 @@ public class ScriptInstance extends Environment implements Runnable {
      */
     public Map<String, Object> getEventVars() {
         return eventVars;
+    }
+
+    /**
+     * Gets the event var that is closest in subclasses to the given type
+     * @param type the type
+     * @param <T> the generic type parameter
+     * @return the closest event var, or null if none
+     */
+    public <T> T getEventVarWithType(Class<T> type) {
+        T current = null;
+        for (Object value : getEventVars().values()) {
+            if (type.isAssignableFrom(value.getClass())) {
+                if (current == null || !current.getClass().equals(value.getClass()) && !current.getClass().isAssignableFrom(value.getClass())) {
+                    current = (T) value;
+                }
+            }
+        }
+
+        return current;
     }
 
     /**
@@ -396,8 +418,50 @@ public class ScriptInstance extends Environment implements Runnable {
         public Builder eventVar(Player player) {
             if (player != null) {
                 this.eventVars.put("Player", player);
-                this.eventVars.put("World", player.getWorld());
-                this.eventVars.put("Location", player.getLocation());
+                eventVar(player.getLocation());
+            }
+            return this;
+        }
+
+        /**
+         * Puts all associated object entries for a {@link Item}
+         *
+         * @param item the item
+         * @return this builder, for fluency
+         */
+        public Builder eventVar(Item item) {
+            if (item != null) {
+                this.eventVars.put("Item", item);
+                eventVar(item.getLocation());
+            }
+            return this;
+        }
+
+        /**
+         * Puts all associated object entries for a {@link BlockSnapshot}
+         *
+         * @param block the block
+         * @return this builder, for fluency
+         */
+        public Builder eventVar(BlockSnapshot block) {
+            if (block != null) {
+                this.eventVars.put("Block", block);
+                this.eventVars.put("Vector", block.getLocation().toDouble());
+            }
+            return this;
+        }
+
+        /**
+         * Puts all associated object entires for a {@link Location}
+         *
+         * @param location the location
+         * @return this builder, for fluency
+         */
+        public Builder eventVar(Location location) {
+            if (location != null) {
+                this.eventVars.put("Location", location);
+                this.eventVars.put("World", location.getExtent());
+                eventVar(location.getBlockSnapshot());
             }
             return this;
         }

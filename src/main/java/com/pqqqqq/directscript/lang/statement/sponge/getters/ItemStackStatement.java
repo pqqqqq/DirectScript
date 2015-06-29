@@ -22,7 +22,7 @@ public class ItemStackStatement extends Statement<Object> {
 
     @Override
     public Result<Object> run(Context ctx) {
-        Optional<ItemStack> itemStack = ctx.getLiteral("ItemStack").getItemStack();
+        Optional<ItemStack> itemStack = ctx.getLiteral("ItemStack", ItemStack.class).getAs(ItemStack.class);
         if (!itemStack.isPresent()) {
             return Result.failure();
         }

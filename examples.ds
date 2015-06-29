@@ -7,9 +7,9 @@ script("MessagePlayer") {
 
 	var arguments = split(eventvar("Arguments"), " ")
 	if (size(arguments) < 2) {
-		@player("&cInvalid format: /sendmsg <player> <message ...>")
+		@send("&cInvalid format: /sendmsg <player> <message ...>")
 	} else {
-		@player(arguments[1], join(arguments, " ", 2))
+		@send(arguments[1], join(arguments, " ", 2))
 	}
 }
 
@@ -22,9 +22,9 @@ script("NullCheck") {
 
 	var nullvar
 	if (nullvar == null) {
-		@player("Nullvar is a null value")
+		@send("Nullvar is a null value")
 	} else {
-		@player("Nullvar is not a null value")
+		@send("Nullvar is not a null value")
 	}
 }
 
@@ -37,43 +37,43 @@ script("LoopCheck") {
 
 	var arguments = split(eventvar("Arguments"), " ")
 	if (arguments[1] == "") {
-		@player("&cInvalid format: /loopcheck <for|foreach|while>")
+		@send("&cInvalid format: /loopcheck <for|foreach|while>")
 	} else if (arguments[1] == "for") {
 		for (i=1,3) {
-			@player(i)
+			@send(i)
 		}
 
 		for (i=3,1,-1) {
-			@player(i)
+			@send(i)
 		}
 
 		for (i=1,3,1.35) {
-			@player(i)
+			@send(i)
 		}
 	} else if (arguments[1] == "foreach") {
 		foreach (item in arguments) {
-			@player(item)
+			@send(item)
 		}
 	} else if (arguments[1] == "while") {
 		var x = 1
 		while (x < 10) {
-			@player(x)
+			@send(x)
 			set x = x + 1
 		}
 	} else {
-		@player("&cUnknown argument: " + arguments[1] + ", expected for, foreach or while")
+		@send("&cUnknown argument: " + arguments[1] + ", expected for, foreach or while")
 	}
 }
 
 script("BlockPlace") {
 	trigger("blockplace")
-	@broadcast(@name() + " placed a " + @block("id") + " at " + @location())
+	@broadcast(@player("name") + " placed a " + @block("id") + " at " + @location() + " in " + @world())
 }
 
 script("ItemDrop") {
 	trigger("itemdrop")
 
 	foreach (item in eventvar("ItemStacks")) {
-		@broadcast(@name() + " dropped a " + @item("id", item))
+		@broadcast(@player("name") + " dropped a " + @item("id", item))
 	}
 }

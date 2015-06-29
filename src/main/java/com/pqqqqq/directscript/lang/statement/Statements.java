@@ -67,7 +67,7 @@ public class Statements {
     public static final Statement<Object> EVENT_VAR = new EventVarStatement();
 
     // Sponge statements
-    public static final Statement PLAYER = new PlayerStatement();
+    public static final Statement SEND = new SendStatement();
     public static final Statement BROADCAST = new BroadcastStatement();
     public static final Statement CANCEL = new CancelStatement();
     public static final Statement KICK = new KickStatement();
@@ -81,16 +81,14 @@ public class Statements {
     public static final Statement SET_BLOCK = new SetBlockStatement();
     public static final Statement SPAWN = new SpawnStatement();
 
-    public static final Statement<String> PLAYER_UUID = new UUIDStatement();
-    public static final Statement<String> PLAYER_NAME = new NameStatement();
-    public static final Statement<String> PLAYER_IP = new IPStatement();
     public static final Statement<Boolean> PERMISSION = new PermissionStatement();
     public static final Statement<Boolean> ONLINE = new OnlineStatement();
     public static final Statement<Double[]> PLAYER_LOC = new LocationStatement();
-    public static final Statement<Double> HEALTH = new HealthStatement();
-    public static final Statement<Double> HUNGER = new HungerStatement();
     public static final Statement<Object> BLOCK = new BlockStatement();
     public static final Statement<Object> ITEM = new ItemStackStatement();
+    public static final Statement<Object> WORLD = new WorldStatement();
+    public static final Statement<Object> PLAYER = new PlayerStatement();
+    public static final Statement<Object> LIVING = new LivingStatement();
 
     private static final List<Statement> REGISTRY;
 

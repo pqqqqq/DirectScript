@@ -22,7 +22,7 @@ public class KickStatement extends Statement {
 
     @Override
     public Result run(Context ctx) {
-        Optional<Player> player = ctx.getLiteral("Player").getPlayer();
+        Optional<Player> player = ctx.getLiteral("Player", Player.class).getAs(Player.class);
         String message = ctx.getLiteral("KickMessage", "").getString();
 
         if (!player.isPresent()) {

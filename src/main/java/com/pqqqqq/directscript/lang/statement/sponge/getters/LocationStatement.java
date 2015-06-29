@@ -7,7 +7,7 @@ import org.spongepowered.api.world.Location;
 
 /**
  * Created by Kevin on 2015-06-10.
- * A statement that gets the {@link Location} of a player
+ * A statement that gets the {@link Location} of an entity
  */
 public class LocationStatement extends Statement<Double[]> {
 
@@ -21,7 +21,7 @@ public class LocationStatement extends Statement<Double[]> {
 
     @Override
     public Result<Double[]> run(Context ctx) {
-        Optional<Location> locationOptional = ctx.getLiteral("Location").getLocation();
+        Optional<Location> locationOptional = ctx.getLiteral("Location", Location.class).getAs(Location.class);
         if (!locationOptional.isPresent()) {
             return Result.failure();
         }

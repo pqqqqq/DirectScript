@@ -18,26 +18,26 @@ public class TeleportStatement extends Statement {
         super(Syntax.builder()
                 .identifiers("tp")
                 .prefix("@")
-                .arguments(Arguments.of(Argument.from("Location")))
-                .arguments(Arguments.of(Argument.from("Player"), ",", Argument.from("Location")))
-                .arguments(Arguments.of(Argument.from("Player"), ",", Argument.from("World"), ",", Argument.from("Location")))
-                .arguments(Arguments.of(Argument.from("Player"), ",", Argument.from("World"), ",", Argument.from("Location"), ",", Argument.from("Safely")))
+                .arguments(Arguments.of(Argument.from("Vector")))
+                .arguments(Arguments.of(Argument.from("Player"), ",", Argument.from("Vector")))
+                .arguments(Arguments.of(Argument.from("Player"), ",", Argument.from("World"), ",", Argument.from("Vector")))
+                .arguments(Arguments.of(Argument.from("Player"), ",", Argument.from("World"), ",", Argument.from("Vector"), ",", Argument.from("Safely")))
                 .build());
     }
 
     @Override
     public Result run(Context ctx) {
-        Optional<Player> player = ctx.getLiteral("Player").getPlayer();
+        Optional<Player> player = ctx.getLiteral("Player", Player.class).getAs(Player.class);
         if (!player.isPresent()) {
             return Result.failure();
         }
 
-        Optional<World> world = ctx.getLiteral("World").getWorld();
+        Optional<World> world = ctx.getLiteral("World", World.class).getAs(World.class);
         if (!world.isPresent()) {
             return Result.failure();
         }
 
-        Optional<Vector3d> coordinates = ctx.getLiteral("Location").getVector();
+        Optional<Vector3d> coordinates = ctx.getLiteral("Vector", Vector3d.class).getAs(Vector3d.class);
         if (!coordinates.isPresent()) {
             return Result.failure();
         }
