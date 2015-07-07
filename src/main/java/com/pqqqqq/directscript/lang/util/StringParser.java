@@ -81,7 +81,7 @@ public class StringParser {
     }
 
     /**
-     * Parses the next {@link com.pqqqqq.directscript.lang.util.StringParser.SplitSequence} in a string by a prioritized split group
+     * Parses the next {@link StringParser.SplitSequence} in a string by a prioritized split group
      *
      * @param string          the string to parse
      * @param delimiterGroups a two-dimensional delimiter string array, where each String[] in the String[][] is prioritized by its ordinal

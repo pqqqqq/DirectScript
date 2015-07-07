@@ -80,15 +80,18 @@ public class Statements {
     public static final Statement SET_HUNGER = new SetHungerStatement();
     public static final Statement SET_BLOCK = new SetBlockStatement();
     public static final Statement SPAWN = new SpawnStatement();
+    public static final Statement GIVE = new GiveStatement();
 
     public static final Statement<Boolean> PERMISSION = new PermissionStatement();
     public static final Statement<Boolean> ONLINE = new OnlineStatement();
-    public static final Statement<Double[]> PLAYER_LOC = new LocationStatement();
+    public static final Statement<Object> LOCATION = new LocationStatement();
+    public static final Statement<Object> VECTOR = new VectorStatement();
     public static final Statement<Object> BLOCK = new BlockStatement();
     public static final Statement<Object> ITEM = new ItemStackStatement();
     public static final Statement<Object> WORLD = new WorldStatement();
     public static final Statement<Object> PLAYER = new PlayerStatement();
     public static final Statement<Object> LIVING = new LivingStatement();
+    public static final Statement<Object> ENTITY = new EntityStatement();
 
     private static final List<Statement> REGISTRY;
 

@@ -35,7 +35,7 @@ public class StatementContainer implements DataContainer {
 
     @Override
     public Literal resolve(ScriptInstance scriptInstance) {
-        Statement.Result result = getStatement().toContex(scriptInstance).run();
+        Statement.Result result = getStatement().toContext(scriptInstance).run();
 
         Optional<Literal> literalOptional = result.getLiteralResult();
         checkState(literalOptional.isPresent(), String.format("%s is a void statement, and did not return a type.", getStatement().getStatement().getClass().getName()));

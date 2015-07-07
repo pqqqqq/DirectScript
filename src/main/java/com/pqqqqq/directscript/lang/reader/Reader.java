@@ -164,7 +164,7 @@ public class Reader {
                     if (statementOptional instanceof ScriptDeclaration) { // Check if this is a script declaration
                         checkState(currentScript == null, "Please end a script declaration with an end brace (})");
 
-                        Statement.Result<String> result = lineInst.toContex(ScriptInstance.compile(null)).run();
+                        Statement.Result<String> result = lineInst.toContext(ScriptInstance.compile(null)).run();
                         checkState(result.isSuccess() && result.getResult().isPresent(), String.format("File %s has an improper formatted script declaration", file.getName()));
 
                         currentScript = new Script(scriptsFile, result.getResult().get());

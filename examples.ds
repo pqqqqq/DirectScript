@@ -67,7 +67,7 @@ script("LoopCheck") {
 
 script("BlockPlace") {
 	trigger("blockplace")
-	@broadcast(@player("name") + " placed a " + @block("id") + " at " + @location() + " in " + @world())
+	@broadcast(@player("name") + " placed a " + @block("id") + " at " + @location("string"))
 }
 
 script("ItemDrop") {

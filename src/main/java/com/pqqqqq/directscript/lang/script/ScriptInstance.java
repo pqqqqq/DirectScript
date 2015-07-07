@@ -275,7 +275,7 @@ public class ScriptInstance extends Environment implements Runnable {
                             return Result.FAILURE_CONTINUE;
                         }
 
-                        Context ctx = line.toContex(this);
+                        Context ctx = line.toContext(this);
                         ctx.run();
                         getContextSet().add(ctx); // Add to context set
                     }

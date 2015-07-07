@@ -26,7 +26,7 @@ public abstract class Statement<T> {
     private final Syntax syntax;
 
     protected Statement(Syntax syntax) {
-        this.syntax = syntax;
+        this.syntax = checkNotNull(syntax, "Syntax");
     }
 
     /**
@@ -509,8 +509,7 @@ public abstract class Statement<T> {
              * @return the new argument instance
              */
             public Argument build() {
-                checkNotNull(name, "Name cannot be null.");
-                return new Argument(name, parse);
+                return new Argument(checkNotNull(name, "Name"), parse);
             }
         }
     }
@@ -679,8 +678,7 @@ public abstract class Statement<T> {
              * @return the new result instance
              */
             public Result<T> build() {
-                checkNotNull(success, "Success state must be specified");
-                return new Result<T>(result, literalResult, success);
+                return new Result<T>(result, literalResult, checkNotNull(success, "Success"));
             }
         }
     }

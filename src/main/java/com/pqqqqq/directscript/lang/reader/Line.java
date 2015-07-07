@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -141,12 +142,12 @@ public class Line {
      * @param scriptInstance the script instance that's running this line
      * @return the context
      */
-    public Context toContex(ScriptInstance scriptInstance) {
+    public Context toContext(ScriptInstance scriptInstance) {
         if (strargs == null || containers == null) {
             parse();
         }
 
-        return new Context(scriptInstance, this, strargs, containers);
+        return new Context(scriptInstance, this, checkNotNull(strargs, "Strargs"), checkNotNull(containers, "Containers"));
     }
 
     private void parse() {

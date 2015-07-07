@@ -110,10 +110,8 @@ public class Trigger {
          * @return the new trigger
          */
         public Trigger build() {
-            checkNotNull(script, "Script cannot be null");
             checkState(!causes.isEmpty(), "At least one cause must be present");
-
-            Trigger buildTrigger = new Trigger(script, causes.toArray(new Cause[causes.size()]));
+            Trigger buildTrigger = new Trigger(checkNotNull(script, "Script"), causes.toArray(new Cause[causes.size()]));
 
             // Notify all causes of a new trigger
             for (Cause cause : causes) {

@@ -9,6 +9,8 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Created by Kevin on 2015-06-02.
  * Represents a {@link Environment} wrapper for a {@link File} that contains {@link Script}s
@@ -26,8 +28,8 @@ public class ScriptsFile extends Environment {
      */
     public ScriptsFile(File root, File file) {
         super(Lang.instance()); // Lang is the script file's parent
-        this.root = root;
-        this.file = file;
+        this.root = checkNotNull(root, "Root");
+        this.file = checkNotNull(file, "File");
     }
 
     /**

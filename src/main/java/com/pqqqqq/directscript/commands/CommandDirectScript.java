@@ -22,7 +22,7 @@ public class CommandDirectScript implements CommandExecutor {
 
     public static CommandSpec build(DirectScript plugin) {
         return CommandSpec.builder().executor(new CommandDirectScript(plugin)).description(Texts.of(TextColors.AQUA, "Main plugin command"))
-                .child(CommandReload.build(plugin), "reload").child(CommandCall.build(plugin), "call", "run").build();
+                .child(CommandReload.build(plugin), "reload").child(CommandCall.build(plugin), "call", "run").child(CommandFile.build(plugin), "file").child(CommandScript.build(plugin), "script").build();
     }
 
     @Override

@@ -6,6 +6,8 @@ import com.pqqqqq.directscript.lang.trigger.Trigger;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Created by Kevin on 2015-06-02.
  * Represents something that can be identified as the cause of something (in game or otherwise)
@@ -15,7 +17,7 @@ public class Cause {
     private final Set<Trigger> triggers = new HashSet<Trigger>();
 
     Cause(String name) {
-        this.name = name;
+        this.name = checkNotNull(name, "Name");
     }
 
     /**

@@ -1,13 +1,13 @@
 package com.pqqqqq.directscript.lang.statement.sponge.setters;
 
-import com.flowpowered.math.vector.Vector3d;
 import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.util.Utilities;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityType;
-import org.spongepowered.api.world.World;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.extent.Extent;
 
 /**
  * Created by Kevin on 2015-06-24.
@@ -21,22 +21,18 @@ public class SpawnStatement extends Statement {
                 .prefix("@")
                 .arguments(Arguments.of(Argument.from("EntityType")))
                 .arguments(Arguments.of(Argument.from("EntityType"), ",", Argument.from("Amount")))
-                .arguments(Arguments.of(Argument.from("Vector"), ",", Argument.from("EntityType"), ",", Argument.from("Amount")))
-                .arguments(Arguments.of(Argument.from("World"), ",", Argument.from("Vector"), ",", Argument.from("EntityType"), ",", Argument.from("Amount")))
+                .arguments(Arguments.of(Argument.from("Location"), ",", Argument.from("EntityType"), ",", Argument.from("Amount")))
                 .build());
     }
 
     @Override
     public Result run(Context ctx) {
-        Optional<World> world = ctx.getLiteral("World", World.class).getAs(World.class);
-        if (!world.isPresent()) {
+        Optional<Location> locationOptional = ctx.getLiteral("Location", Location.class).getAs(Location.class);
+        if (!locationOptional.isPresent()) {
             return Result.failure();
         }
 
-        Optional<Vector3d> coordinates = ctx.getLiteral("Vector", Vector3d.class).getAs(Vector3d.class);
-        if (!coordinates.isPresent()) {
-            return Result.failure();
-        }
+        Extent extent = locationOptional.get().getExtent();
 
         String entityType = ctx.getLiteral("EntityType").getString();
         Optional<EntityType> entityTypeOptional = Utilities.getType(EntityType.class, entityType);
@@ -46,8 +42,8 @@ public class SpawnStatement extends Statement {
 
         int amount = ctx.getLiteral("Amount", 1).getNumber().intValue();
         for (int i = 0; i < amount; i++) {
-            Entity newEntity = world.get().createEntity(entityTypeOptional.get(), coordinates.get().toInt()).get();
-            world.get().spawnEntity(newEntity);
+            Entity newEntity = extent.createEntity(entityTypeOptional.get(), locationOptional.get().getBlockPosition()).get();
+            extent.spawnEntity(newEntity);
         }
 
         return Result.success();

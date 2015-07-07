@@ -7,6 +7,8 @@ import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Created by Kevin on 2015-06-02.
  * A piece of code that runs or does something when {@link Trigger}ed
@@ -43,8 +45,8 @@ public class Script extends Block {
      */
     public Script(ScriptsFile scriptsFile, String name) {
         super(); // Constructs an empty block with no parent
-        this.scriptsFile = scriptsFile;
-        this.name = name;
+        this.scriptsFile = checkNotNull(scriptsFile, "ScriptsFile");
+        this.name = checkNotNull(name, "Name");
     }
 
     /**

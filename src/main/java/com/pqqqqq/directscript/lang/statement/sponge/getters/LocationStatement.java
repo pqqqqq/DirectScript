@@ -4,29 +4,35 @@ import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
 /**
  * Created by Kevin on 2015-06-10.
  * A statement that gets the {@link Location} of an entity
  */
-public class LocationStatement extends Statement<Double[]> {
+public class LocationStatement extends Statement<Object> {
 
     public LocationStatement() {
         super(Syntax.builder()
                 .identifiers("location", "loc")
                 .prefix("@")
-                .arguments(Arguments.empty(), Arguments.of(Argument.from("Location")))
+                .arguments(Arguments.of(Argument.from("Getter")), Arguments.of(Argument.from("Getter"), ",", Argument.from("Location")))
                 .build());
     }
 
     @Override
-    public Result<Double[]> run(Context ctx) {
+    public Result<Object> run(Context ctx) {
         Optional<Location> locationOptional = ctx.getLiteral("Location", Location.class).getAs(Location.class);
         if (!locationOptional.isPresent()) {
             return Result.failure();
         }
 
-        Double[] result = new Double[]{locationOptional.get().getX(), locationOptional.get().getY(), locationOptional.get().getZ()};
-        return Result.<Double[]>builder().success().result(result).literal(result).build();
+        String getter = ctx.getLiteral("Getter").getString();
+        if (getter.equalsIgnoreCase("string")) {
+            Object[] result = new Object[]{((World) locationOptional.get().getExtent()).getName(), locationOptional.get().getX(), locationOptional.get().getY(), locationOptional.get().getZ()};
+            return Result.builder().success().result(result).literal(result).build();
+        }
+
+        return Result.failure();
     }
 }

@@ -10,6 +10,9 @@ import com.pqqqqq.directscript.lang.util.ICopyable;
 import com.pqqqqq.directscript.lang.util.Utilities;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.text.DecimalFormat;
@@ -217,13 +220,12 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
     public LiteralHolder getArrayValue(int index) {
         checkState(isArray(), "This literal is not an array");
 
-        index--; // Base 1
         List<LiteralHolder> literalHolders = getArray();
-        Utilities.buildToIndex(literalHolders, index, new LiteralHolder());
+        Utilities.buildToIndex(literalHolders, --index, new LiteralHolder()); // Base 1
         return literalHolders.get(index);
     }
 
-    // Some common additional getters (sponge)
+    // Sponge casting
 
     /**
      * Gets the {@link Literal} as a specific given type
@@ -231,6 +233,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @param <T> the generic type parameter
      * @return the optional value of the type
      */
+    @SuppressWarnings("unchecked")
     public <T> Optional<T> getAs(Class<T> type) {
         if (type.equals(Player.class)) {
             try {
@@ -246,14 +249,21 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
         } else if (type.equals(World.class)) {
             return (Optional<T>) DirectScript.instance().getGame().getServer().getWorld(getString());
         } else if (type.equals(Vector3d.class)) {
-            checkState(isArray(), "Location must be an array");
-
             List<LiteralHolder> array = getArray();
-            if (array.size() < 3) {
-                return Optional.absent();
-            }
-
             return (Optional<T>) Optional.of(new Vector3d(array.get(0).getData().getNumber(), array.get(1).getData().getNumber(), array.get(2).getData().getNumber()));
+        } else if (type.equals(Location.class)) {
+            List<LiteralHolder> array = getArray();
+
+            World world = DirectScript.instance().getGame().getServer().getWorld(array.get(0).getData().getString()).get();
+            Vector3d vec = new Vector3d(array.get(1).getData().getNumber(), array.get(2).getData().getNumber(), array.get(3).getData().getNumber());
+
+            return (Optional<T>) Optional.of(new Location(world, vec));
+        } else if (type.equals(ItemStack.class)) {
+            List<LiteralHolder> array = getArray();
+            ItemType itemType = Utilities.getType(ItemType.class, array.get(0).getData().getString()).get();
+            int quantity = array.size() >= 2 ? array.get(1).getData().getNumber().intValue() : 1;
+
+            return (Optional<T>) Optional.of(DirectScript.instance().getGame().getRegistry().getItemBuilder().itemType(itemType).quantity(quantity).build());
         }
         return Optional.absent();
     }

@@ -47,7 +47,7 @@ public class ElseStatement extends Statement {
                 Line truncatedLine = new Line(line.getAbsoluteNumber(), line.getScriptNumber(), trimBeginning.trim());
 
                 if (truncatedLine.isRunnable()) {
-                    return truncatedLine.toContex(scriptInstance).run();
+                    return truncatedLine.toContext(scriptInstance).run();
                 }
             } else {
                 scriptInstance.setSkipLines(true); // Skip lines if previously one was true
