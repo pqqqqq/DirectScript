@@ -10,7 +10,6 @@ import org.spongepowered.api.entity.player.Player;
  * Created by Kevin on 2015-06-24.
  * A statement that sets the hunger level of a player
  */
-@Statement.Concept
 public class SetHungerStatement extends Statement {
 
     public SetHungerStatement() {

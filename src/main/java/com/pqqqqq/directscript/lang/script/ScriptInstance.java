@@ -16,11 +16,7 @@ import com.pqqqqq.directscript.lang.statement.internal.setters.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import com.pqqqqq.directscript.lang.util.ICopyable;
-import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.entity.Item;
-import org.spongepowered.api.entity.player.Player;
 import org.spongepowered.api.event.Event;
-import org.spongepowered.api.world.Location;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -406,62 +402,8 @@ public class ScriptInstance extends Environment implements Runnable {
          * @return this builder, for fluency
          */
         public Builder eventVar(String key, Object value) {
-            this.eventVars.put(key, value);
-            return this;
-        }
-
-        /**
-         * Puts all associated object entries for a {@link Player}
-         * @param player the player
-         * @return this builder, for fluency
-         */
-        public Builder eventVar(Player player) {
-            if (player != null) {
-                this.eventVars.put("Player", player);
-                eventVar(player.getLocation());
-            }
-            return this;
-        }
-
-        /**
-         * Puts all associated object entries for a {@link Item}
-         *
-         * @param item the item
-         * @return this builder, for fluency
-         */
-        public Builder eventVar(Item item) {
-            if (item != null) {
-                this.eventVars.put("Item", item);
-                eventVar(item.getLocation());
-            }
-            return this;
-        }
-
-        /**
-         * Puts all associated object entries for a {@link BlockSnapshot}
-         *
-         * @param block the block
-         * @return this builder, for fluency
-         */
-        public Builder eventVar(BlockSnapshot block) {
-            if (block != null) {
-                this.eventVars.put("Block", block);
-                this.eventVars.put("Vector", block.getLocation().toDouble());
-            }
-            return this;
-        }
-
-        /**
-         * Puts all associated object entires for a {@link Location}
-         *
-         * @param location the location
-         * @return this builder, for fluency
-         */
-        public Builder eventVar(Location location) {
-            if (location != null) {
-                this.eventVars.put("Location", location);
-                this.eventVars.put("World", location.getExtent());
-                eventVar(location.getBlockSnapshot());
+            if (key != null && value != null) {
+                this.eventVars.put(key, value);
             }
             return this;
         }
@@ -486,7 +428,7 @@ public class ScriptInstance extends Environment implements Runnable {
             checkNotNull(linePredicate, "Predicate cannot be null");
             checkState(script != null || cause.equals(Causes.COMPILE), "Script cannot be null");
 
-            this.eventVars.put("Cause", cause.getName()); // Add cause to eventvars
+            this.eventVars.put("Cause", cause.getNames()[0]); // Add cause to eventvars
             return new ScriptInstance(script, cause, linePredicate, event, eventVars);
         }
     }

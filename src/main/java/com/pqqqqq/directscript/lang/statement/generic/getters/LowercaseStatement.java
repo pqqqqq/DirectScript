@@ -19,6 +19,6 @@ public class LowercaseStatement extends Statement<String> {
     @Override
     public Result<String> run(Context ctx) {
         String lower = ctx.getLiteral("String").getString().toLowerCase();
-        return Result.<String>builder().result(lower).literal(lower).build();
+        return Result.<String>builder().success().result(lower).literal(lower).build();
     }
 }

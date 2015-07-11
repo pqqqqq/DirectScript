@@ -5,6 +5,7 @@ import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import org.spongepowered.api.data.manipulator.entity.FoodData;
 import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 /**
  * Created by Kevin on 2015-06-29.
@@ -39,6 +40,9 @@ public class PlayerStatement extends Statement<Object> {
             FoodData foodData = playerOptional.get().getData(FoodData.class).get();
             double foodLevel = foodData.getFoodLevel();
             return Result.builder().success().result(foodLevel).literal(foodLevel).build();
+        } else if (getter.equalsIgnoreCase("hand")) {
+            ItemStack itemStack = playerOptional.get().getItemInHand().orNull();
+            return Result.builder().success().result(itemStack).literal(itemStack).build();
         }
 
         return Result.failure();

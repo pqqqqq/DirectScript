@@ -22,15 +22,21 @@ public class Causes {
     public static final Cause CALL = new Cause("Call");
     public static final Cause TIMER = new Cause.TimerCause();
 
+    // Server events
+    public static final Cause ENTITY_SPAWN = new Cause("Spawn", "EntitySpawn");
+
     // Player causes
-    public static final Cause PLAYER_JOIN = new Cause("PlayerJoin");
-    public static final Cause PLAYER_QUIT = new Cause("PlayerQuit");
-    public static final Cause PLAYER_DEATH = new Cause("PlayerDeath");
-    public static final Cause PLAYER_CHAT = new Cause("PlayerChat");
-    public static final Cause ITEM_PICKUP = new Cause("ItemPickup");
-    public static final Cause ITEM_DROP = new Cause("ItemDrop");
-    public static final Cause BLOCK_PLACE = new Cause("BlockPlace");
-    public static final Cause BLOCK_BREAK = new Cause("BlockBreak");
+    public static final Cause PLAYER_JOIN = new Cause("Join", "PlayerJoin");
+    public static final Cause PLAYER_QUIT = new Cause("Quit", "PlayerQuit");
+    public static final Cause PLAYER_DEATH = new Cause("Death", "PlayerDeath");
+    public static final Cause PLAYER_CHAT = new Cause("Chat", "PlayerChat");
+    public static final Cause PLAYER_CHANGE_HEALTH = new Cause("ChangeHealth", "PlayerChangeHealth");
+    public static final Cause PLAYER_INTERACT_BLOCK = new Cause("InteractBlock");
+    public static final Cause PLAYER_INTERACT_ENTITY = new Cause("InteractEntity");
+    public static final Cause ITEM_PICKUP = new Cause("Pickup", "ItemPickup");
+    public static final Cause ITEM_DROP = new Cause("Drop", "ItemDrop");
+    public static final Cause BLOCK_PLACE = new Cause("Place", "BlockPlace");
+    public static final Cause BLOCK_BREAK = new Cause("Break", "BlockBreak");
     public static final Cause COMMAND = new Cause.CommandCause();
 
     private static final List<Cause> REGISTRY;
@@ -57,7 +63,7 @@ public class Causes {
     public static Optional<Cause> getCause(String key) {
         key = key.trim().replace("_", "").replace(" ", "");
         for (Cause cause : REGISTRY) {
-            if (key.equalsIgnoreCase(cause.getName())) {
+            if (cause.hasName(key)) {
                 return Optional.of(cause);
             }
         }

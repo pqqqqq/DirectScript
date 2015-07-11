@@ -235,37 +235,59 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      */
     @SuppressWarnings("unchecked")
     public <T> Optional<T> getAs(Class<T> type) {
-        if (type.equals(Player.class)) {
-            try {
+        try {
+            if (type.equals(Player.class)) {
                 Optional<Player> playerOptional = DirectScript.instance().getGame().getServer().getPlayer(getString()); // Check name first
                 if (playerOptional.isPresent()) {
                     return (Optional<T>) playerOptional;
                 }
 
                 return (Optional<T>) DirectScript.instance().getGame().getServer().getPlayer(UUID.fromString(getString())); // Check uuid now
-            } catch (IllegalArgumentException e) {
-                return Optional.absent();
+            } else if (type.equals(World.class)) {
+                return (Optional<T>) DirectScript.instance().getGame().getServer().getWorld(getString());
+            } else if (type.equals(Vector3d.class)) {
+                List<LiteralHolder> array = getArray();
+                return (Optional<T>) Optional.of(new Vector3d(array.get(0).getData().getNumber(), array.get(1).getData().getNumber(), array.get(2).getData().getNumber()));
+            } else if (type.equals(Location.class)) {
+                List<LiteralHolder> array = getArray();
+
+                World world = DirectScript.instance().getGame().getServer().getWorld(array.get(0).getData().getString()).get();
+                Vector3d vec = new Vector3d(array.get(1).getData().getNumber(), array.get(2).getData().getNumber(), array.get(3).getData().getNumber());
+
+                return (Optional<T>) Optional.of(new Location(world, vec));
+            } else if (type.equals(ItemStack.class)) {
+                List<LiteralHolder> array = getArray();
+                ItemType itemType = Utilities.getType(ItemType.class, array.get(0).getData().getString()).get();
+                int quantity = array.size() >= 2 ? array.get(1).getData().getNumber().intValue() : 1;
+
+                return (Optional<T>) Optional.of(DirectScript.instance().getGame().getRegistry().getItemBuilder().itemType(itemType).quantity(quantity).build());
             }
-        } else if (type.equals(World.class)) {
-            return (Optional<T>) DirectScript.instance().getGame().getServer().getWorld(getString());
-        } else if (type.equals(Vector3d.class)) {
-            List<LiteralHolder> array = getArray();
-            return (Optional<T>) Optional.of(new Vector3d(array.get(0).getData().getNumber(), array.get(1).getData().getNumber(), array.get(2).getData().getNumber()));
-        } else if (type.equals(Location.class)) {
-            List<LiteralHolder> array = getArray();
-
-            World world = DirectScript.instance().getGame().getServer().getWorld(array.get(0).getData().getString()).get();
-            Vector3d vec = new Vector3d(array.get(1).getData().getNumber(), array.get(2).getData().getNumber(), array.get(3).getData().getNumber());
-
-            return (Optional<T>) Optional.of(new Location(world, vec));
-        } else if (type.equals(ItemStack.class)) {
-            List<LiteralHolder> array = getArray();
-            ItemType itemType = Utilities.getType(ItemType.class, array.get(0).getData().getString()).get();
-            int quantity = array.size() >= 2 ? array.get(1).getData().getNumber().intValue() : 1;
-
-            return (Optional<T>) Optional.of(DirectScript.instance().getGame().getRegistry().getItemBuilder().itemType(itemType).quantity(quantity).build());
+        } catch (Throwable e) { // This stuff is all handled by individual statements by the result being absent, so no errors should be thrown
         }
         return Optional.absent();
+    }
+
+    /**
+     * Converts this {@link Literal} into a sequence sequenceable by {@link Sequencer}
+     *
+     * @return the sequence
+     */
+    public String toSequence() {
+        if (isEmpty()) {
+            return "null";
+        } else if (isString()) {
+            return "\"" + getString() + "\"";
+        } else if (isArray()) {
+            String str = "";
+
+            for (LiteralHolder literalHolder : getArray()) {
+                str += literalHolder.getData().toSequence() + ", ";
+            }
+
+            return str.isEmpty() ? "{}" : "{" + str.substring(0, str.length() - 2) + "}";
+        }
+
+        return getString(); // Numbers and booleans
     }
 
     // Arithmetic

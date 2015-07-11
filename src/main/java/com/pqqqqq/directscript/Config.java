@@ -52,7 +52,7 @@ public class Config {
             CommentedConfigurationNode publicNode = root.getNode("public");
 
             for (Variable publicVariable : DirectScript.instance()) {
-                publicNode.getNode(publicVariable.getName()).setValue(publicVariable.getData().or("null").getString());
+                publicNode.getNode(publicVariable.getName()).setValue(publicVariable.getData().toSequence());
             }
 
             cfg.save(root);

@@ -31,6 +31,8 @@ public class LocationStatement extends Statement<Object> {
         if (getter.equalsIgnoreCase("string")) {
             Object[] result = new Object[]{((World) locationOptional.get().getExtent()).getName(), locationOptional.get().getX(), locationOptional.get().getY(), locationOptional.get().getZ()};
             return Result.builder().success().result(result).literal(result).build();
+        } else if (getter.equalsIgnoreCase("world")) {
+            return Result.builder().success().result(locationOptional.get().getExtent()).literal(locationOptional.get().getExtent()).build();
         }
 
         return Result.failure();

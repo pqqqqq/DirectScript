@@ -30,6 +30,12 @@ public class VectorStatement extends Statement<Object> {
         if (getter.equalsIgnoreCase("string")) {
             Double[] result = new Double[]{vectorOptional.get().getX(), vectorOptional.get().getY(), vectorOptional.get().getZ()};
             return Result.builder().success().result(result).literal(result).build();
+        } else if (getter.equalsIgnoreCase("x")) {
+            return Result.builder().success().result(vectorOptional.get().getX()).literal(vectorOptional.get().getX()).build();
+        } else if (getter.equalsIgnoreCase("y")) {
+            return Result.builder().success().result(vectorOptional.get().getY()).literal(vectorOptional.get().getY()).build();
+        } else if (getter.equalsIgnoreCase("z")) {
+            return Result.builder().success().result(vectorOptional.get().getZ()).literal(vectorOptional.get().getZ()).build();
         }
 
         return Result.failure();

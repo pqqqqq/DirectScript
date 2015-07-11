@@ -44,6 +44,11 @@ public class LiteralHolder<T> implements ICopyable<LiteralHolder<T>> {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return obj instanceof LiteralHolder && data.equals(((LiteralHolder) obj).getData());
+    }
+
+    @Override
     public LiteralHolder<T> copy() {
         return new LiteralHolder<T>(getData().copy());
     }

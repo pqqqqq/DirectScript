@@ -44,14 +44,12 @@ public class VarStatement extends Statement<Object> {
             } else if (word.equals("public")) {
                 environment = DirectScript.instance();
             } else {
-                name = word;
+                name = checkNotNull(word, "Improper variable declaration");
                 break;
             }
         }
 
-        checkNotNull(name, "Improper variable declaration");
         Literal value = ctx.getLiteral("Value").copy();
-
         environment.addVariable(new Variable(name, value, isFinal));
         return Result.builder().success().result(value.getValue().orNull()).literal(value).build();
     }

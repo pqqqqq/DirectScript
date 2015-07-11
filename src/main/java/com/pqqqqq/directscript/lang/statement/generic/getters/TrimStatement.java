@@ -19,6 +19,6 @@ public class TrimStatement extends Statement<String> {
     @Override
     public Result<String> run(Context ctx) {
         String trim = ctx.getLiteral("String").getString().trim();
-        return Result.<String>builder().result(trim).literal(trim).build();
+        return Result.<String>builder().success().result(trim).literal(trim).build();
     }
 }

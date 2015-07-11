@@ -13,20 +13,36 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Represents something that can be identified as the cause of something (in game or otherwise)
  */
 public class Cause {
-    private final String name;
+    private final String[] names;
     private final Set<Trigger> triggers = new HashSet<Trigger>();
 
-    Cause(String name) {
-        this.name = checkNotNull(name, "Name");
+    Cause(String... names) {
+        this.names = checkNotNull(names, "Name");
     }
 
     /**
-     * Gets the name of this cause
+     * Gets the names of this cause
      *
      * @return the name
      */
-    public String getName() {
-        return name;
+    public String[] getNames() {
+        return names;
+    }
+
+    /**
+     * Checks if this cause has the given name
+     *
+     * @param name the name to check
+     * @return true if it has the name
+     */
+    public boolean hasName(String name) {
+        for (String nm : names) {
+            if (nm.equalsIgnoreCase(name)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -19,6 +19,6 @@ public class UppercaseStatement extends Statement<String> {
     @Override
     public Result<String> run(Context ctx) {
         String upper = ctx.getLiteral("String").getString().toUpperCase();
-        return Result.<String>builder().result(upper).literal(upper).build();
+        return Result.<String>builder().success().result(upper).literal(upper).build();
     }
 }
