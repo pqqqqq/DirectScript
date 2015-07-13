@@ -43,7 +43,7 @@ public class ArrayContainer implements DataContainer {
     public Literal<List<LiteralHolder>> resolve(ScriptInstance scriptInstance) {
         List<LiteralHolder> list = new ArrayList<LiteralHolder>();
         for (DataContainer dataContainer : getList()) {
-            list.add(new LiteralHolder(dataContainer.resolve(scriptInstance)));
+            list.add(dataContainer.resolve(scriptInstance).toHolder());
         }
 
         return Literal.fromObject(list);

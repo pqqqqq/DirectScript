@@ -9,19 +9,11 @@ import com.pqqqqq.directscript.lang.util.ICopyable;
 public class LiteralHolder<T> implements ICopyable<LiteralHolder<T>> {
     private Literal<T> data;
 
-    /**
-     * Creates a new {@link LiteralHolder} instance with {@link Literal.Literals#EMPTY} data
-     */
-    public LiteralHolder() {
+    protected LiteralHolder() {
         this(Literal.Literals.EMPTY);
     }
 
-    /**
-     * Creates a new {@link LiteralHolder} instance with the given data
-     *
-     * @param data the data
-     */
-    public LiteralHolder(Literal<T> data) {
+    protected LiteralHolder(Literal<T> data) {
         this.data = data;
     }
 

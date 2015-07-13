@@ -8,17 +8,17 @@ import com.pqqqqq.directscript.lang.script.ScriptInstance;
  * Created by Kevin on 2015-06-18.
  * A statement that resolves a {@link HolderContainer} from a {@link ArrayContainer}
  */
-public class ArrayIndexContainer implements HolderContainer {
+public class IndexContainer implements HolderContainer {
     private final DataContainer array;
     private final DataContainer index;
 
     /**
-     * Creates a new {@link ArrayIndexContainer} with the given {@link DataContainer} array and index
+     * Creates a new {@link IndexContainer} with the given {@link DataContainer} array and index
      *
      * @param array the array
      * @param index the index
      */
-    public ArrayIndexContainer(DataContainer array, DataContainer index) {
+    public IndexContainer(DataContainer array, DataContainer index) {
         this.array = array;
         this.index = index;
     }
@@ -48,6 +48,11 @@ public class ArrayIndexContainer implements HolderContainer {
 
     @Override
     public LiteralHolder resolveHolder(ScriptInstance scriptInstance) {
-        return getArray().resolve(scriptInstance).getArrayValue(getIndex().resolve(scriptInstance).getNumber().intValue());
+        Literal arrayLiteral = getArray().resolve(scriptInstance);
+        if (arrayLiteral.isMap()) {
+            return arrayLiteral.getMapValue(getIndex().resolve(scriptInstance));
+        } else {
+            return arrayLiteral.getArrayValue(getIndex().resolve(scriptInstance).getNumber().intValue());
+        }
     }
 }

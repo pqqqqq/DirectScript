@@ -21,7 +21,7 @@ public class VectorStatement extends Statement<Object> {
 
     @Override
     public Result<Object> run(Context ctx) {
-        Optional<Vector3d> vectorOptional = ctx.getLiteral("Vector3d", Vector3d.class).getAs(Vector3d.class);
+        Optional<Vector3d> vectorOptional = ctx.getLiteral("Vector", Vector3d.class).getAs(Vector3d.class);
         if (!vectorOptional.isPresent()) {
             return Result.failure();
         }

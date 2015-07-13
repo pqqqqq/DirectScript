@@ -5,7 +5,7 @@ import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Created by Kevin on 2015-06-16.
@@ -25,8 +25,8 @@ public class ContainsStatement extends Statement<Boolean> {
         Literal container = ctx.getLiteral("Container");
 
         boolean result = false;
-        if (container.isArray()) {
-            List<LiteralHolder> array = container.getArray();
+        if (container.isArray() || container.isMap()) {
+            Collection<LiteralHolder> array = (container.isArray() ? container.getArray() : container.getMap().keySet());
             Literal check = ctx.getLiteral("Check");
 
             for (LiteralHolder literalHolder : array) {

@@ -16,10 +16,7 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -73,17 +70,40 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
         if (value.getClass().isArray()) { // Special for arrays
             List<LiteralHolder> array = new ArrayList<LiteralHolder>();
             for (Object obj : (Object[]) value) {
-                array.add(obj instanceof LiteralHolder ? (LiteralHolder) obj : new LiteralHolder(Literal.fromObject(obj)));
+                array.add(obj instanceof LiteralHolder ? (LiteralHolder) obj : Literal.fromObject(obj).toHolder());
             }
+
+            if (array.isEmpty()) {
+                return Literals.EMPTY_ARRAY;
+            }
+
             return new Literal<List<LiteralHolder>>(array);
         }
 
         if (value instanceof Collection) { // Special for collections
             List<LiteralHolder> array = new ArrayList<LiteralHolder>();
             for (Object obj : (Collection) value) {
-                array.add(obj instanceof LiteralHolder ? (LiteralHolder) obj : new LiteralHolder(Literal.fromObject(obj)));
+                array.add(obj instanceof LiteralHolder ? (LiteralHolder) obj : Literal.fromObject(obj).toHolder());
             }
+
+            if (array.isEmpty()) {
+                return Literals.EMPTY_ARRAY;
+            }
+
             return new Literal<List<LiteralHolder>>(array);
+        }
+
+        if (value instanceof Map) { // Special for maps
+            Map<LiteralHolder, LiteralHolder> map = new HashMap<LiteralHolder, LiteralHolder>();
+            for (Map.Entry entry : ((Map<Object, Object>) value).entrySet()) {
+                map.put(entry.getKey() instanceof LiteralHolder ? (LiteralHolder) entry.getKey() : Literal.fromObject(entry.getKey()).toHolder(), entry.getValue() instanceof LiteralHolder ? (LiteralHolder) entry.getValue() : Literal.fromObject(entry.getValue()).toHolder());
+            }
+
+            if (map.isEmpty()) {
+                return Literals.EMPTY_MAP;
+            }
+
+            return new Literal<Map<LiteralHolder, LiteralHolder>>(map);
         }
 
         return new Literal(value);
@@ -176,6 +196,15 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
     }
 
     /**
+     * Gets whether this {@link Literal}'s value is an instance of a Map
+     * @return true if a Map
+     */
+    public boolean isMap() {
+        checkState(getValue().isPresent(), "This literal must be present to check this");
+        return getValue().get() instanceof Map;
+    }
+
+    /**
      * Gets the String value of this {@link Literal}
      *
      * @return the String value
@@ -212,6 +241,15 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
     }
 
     /**
+     * Gets the map ({@link LiteralHolder} K-V {@link Map}) value of this {@link Literal}
+     * @return the map value
+     */
+    public Map<LiteralHolder, LiteralHolder> getMap() {
+        checkState(isMap(), "This literal must be a map");
+        return (Map<LiteralHolder, LiteralHolder>) getValue().get();
+    }
+
+    /**
      * Gets the specific {@link LiteralHolder} array data at the index
      *
      * @param index the index for the array (base 1)
@@ -221,8 +259,35 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
         checkState(isArray(), "This literal is not an array");
 
         List<LiteralHolder> literalHolders = getArray();
-        Utilities.buildToIndex(literalHolders, --index, new LiteralHolder()); // Base 1
+        Utilities.buildToIndex(literalHolders, --index, Literals.EMPTY.toHolder()); // Base 1
         return literalHolders.get(index);
+    }
+
+    /**
+     * Gets a {@link LiteralHolder} map data from its key
+     *
+     * @param literalHolder the key value holder
+     * @return the map value
+     */
+    public LiteralHolder getMapValue(LiteralHolder literalHolder) {
+        return getMapValue(literalHolder.getData());
+    }
+
+    /**
+     * Gets a {@link LiteralHolder} map data from its key
+     *
+     * @param literal the key value
+     * @return the map value
+     */
+    public LiteralHolder getMapValue(Literal literal) {
+        checkState(isMap(), "This literal is not a map");
+        for (Map.Entry<LiteralHolder, LiteralHolder> entry : getMap().entrySet()) {
+            if (entry.getKey().getData().equals(literal)) {
+                return entry.getValue();
+            }
+        }
+
+        return null;
     }
 
     // Sponge casting
@@ -268,6 +333,15 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
     }
 
     /**
+     * Converts this {@link Literal} into a {@link LiteralHolder}
+     *
+     * @return the enw literal holder
+     */
+    public LiteralHolder<T> toHolder() {
+        return new LiteralHolder<T>(this);
+    }
+
+    /**
      * Converts this {@link Literal} into a sequence sequenceable by {@link Sequencer}
      *
      * @return the sequence
@@ -285,6 +359,14 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
             }
 
             return str.isEmpty() ? "{}" : "{" + str.substring(0, str.length() - 2) + "}";
+        } else if (isMap()) {
+            String str = "";
+
+            for (Map.Entry<LiteralHolder, LiteralHolder> entry : getMap().entrySet()) {
+                str += entry.getKey().getData().toSequence() + " : " + entry.getValue().getData().toSequence() + ", ";
+            }
+
+            return str.isEmpty() ? "{}" : "{" + str.substring(0, str.length() - 2) + "}";
         }
 
         return getString(); // Numbers and booleans
@@ -299,6 +381,24 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @return the sum literal
      */
     public Literal add(Literal other) {
+        if (isArray()) {
+            Literal copy = copy(); // We want a new literal for the sum literal
+            List<LiteralHolder> array = copy.getArray();
+
+            if (other.isArray()) {
+                array.addAll(other.getArray());
+            } else {
+                array.add(other.toHolder());
+            }
+            return copy;
+        } else if (other.isArray()) {
+            return other.add(this); // Just swap it around, no need to rewrite code
+        } else if (isMap() && other.isMap()) {
+            Literal copy = copy();
+            copy.getMap().putAll(other.getMap());
+            return copy;
+        }
+
         if (isNumber() && other.isNumber()) {
             return Literal.fromObject(getNumber() + other.getNumber());
         }
@@ -386,13 +486,22 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
 
     @Override
     public Literal<T> copy() {
-        if (!isEmpty() && isArray()) {
-            List<LiteralHolder> newarray = new ArrayList<LiteralHolder>();
-            for (LiteralHolder literalHolder : getArray()) {
-                newarray.add(literalHolder.copy());
-            }
+        if (!isEmpty()) {
+            if (isArray()) {
+                List<LiteralHolder> newarray = new ArrayList<LiteralHolder>();
+                for (LiteralHolder literalHolder : getArray()) {
+                    newarray.add(literalHolder.copy());
+                }
 
-            return Literal.fromObject(newarray);
+                return Literal.fromObject(newarray);
+            } else if (isMap()) {
+                Map<LiteralHolder, LiteralHolder> newmap = new HashMap<LiteralHolder, LiteralHolder>();
+                for (Map.Entry<LiteralHolder, LiteralHolder> entry : getMap().entrySet()) {
+                    newmap.put(entry.getKey().copy(), entry.getValue().copy());
+                }
+
+                return Literal.fromObject(newmap);
+            }
         }
 
         return this;
@@ -438,6 +547,18 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
             return Literal.fromObject((array.isEmpty() ? string : string.substring(0, string.length() - 2)) + "}");
         }
 
+        // Format maps
+        if (isMap()) {
+            String string = "{";
+            Map<LiteralHolder, LiteralHolder> map = getMap();
+
+            for (Map.Entry<LiteralHolder, LiteralHolder> entry : map.entrySet()) {
+                string += entry.getKey().getData().getString() + " : " + entry.getValue().getData().getString() + ", ";
+            }
+
+            return Literal.fromObject((map.isEmpty() ? string : string.substring(0, string.length() - 2)) + "}");
+        }
+
         return Literal.fromObject(getValue().get().toString());
     }
 
@@ -452,7 +573,6 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
     }
 
     private Literal<List<LiteralHolder>> parseArray() {
-
         checkState(getValue().isPresent(), "This parse must be present to do this");
         return Literal.fromObject(new Literal[]{this}); // Create a singleton of the data
     }
@@ -478,13 +598,23 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
         public static final Literal<Boolean> FALSE = new Literal(false);
 
         /**
-         * A {@link Literal} where whose value is a number equal to 0
+         * A {@link Literal} whose value is a number equal to 0
          */
         public static final Literal<Double> ZERO = new Literal(0D);
 
         /**
-         * A {@link Literal} where whose value is a number equal to 1
+         * A {@link Literal} whose value is a number equal to 1
          */
         public static final Literal<Double> ONE = new Literal(1D);
+
+        /**
+         * A {@link Literal} whose value is an empty array
+         */
+        public static final Literal<List<LiteralHolder>> EMPTY_ARRAY = new Literal(new ArrayList<LiteralHolder>());
+
+        /**
+         * A {@link Literal} whose value is an empty map
+         */
+        public static final Literal<Map<LiteralHolder, LiteralHolder>> EMPTY_MAP = new Literal(new HashMap<LiteralHolder, LiteralHolder>());
     }
 }

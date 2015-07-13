@@ -10,7 +10,9 @@ import com.pqqqqq.directscript.lang.statement.Statements;
 import com.pqqqqq.directscript.lang.util.StringParser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -92,22 +94,34 @@ public class Sequencer {
                 return new NegateContainer(parse(line, sequence));
             }
 
-            // Check trailing array index values
+            // Check trailing array/map index values
             if (sequence.endsWith("]")) {
                 int index = Lang.instance().stringParser().lastIndexOf(sequence, "[");
                 if (index > -1) {
-                    return new ArrayIndexContainer(parse(line, sequence.substring(0, index)), parse(line, sequence.substring(index + 1, sequence.length() - 1)));
+                    return new IndexContainer(parse(line, sequence.substring(0, index)), parse(line, sequence.substring(index + 1, sequence.length() - 1)));
                 }
             }
 
-            // Check if it's an array
+            // Check if it's an array or map
             if (sequence.startsWith("{") && sequence.endsWith("}")) {
-                List<DataContainer> array = new ArrayList<DataContainer>();
-                for (String arrayValue : Lang.instance().stringParser().parseSplit(sequence.substring(1, sequence.length() - 1), ",")) {
-                    array.add(parse(line, arrayValue));
-                }
+                String trimBraces = sequence.substring(1, sequence.length() - 1);
 
-                return new ArrayContainer(array);
+                if (Lang.instance().stringParser().indexOf(trimBraces, ":") > -1) { // Map
+                    Map<DataContainer, DataContainer> map = new HashMap<DataContainer, DataContainer>();
+                    for (String mapEntry : Lang.instance().stringParser().parseSplit(trimBraces, ",")) {
+                        int mapColon = Lang.instance().stringParser().indexOf(mapEntry, ":");
+                        map.put(parse(line, mapEntry.substring(0, mapColon)), parse(line, mapEntry.substring(mapColon + 1)));
+                    }
+
+                    return new MapContainer(map);
+                } else { // Array
+                    List<DataContainer> array = new ArrayList<DataContainer>();
+                    for (String arrayValue : Lang.instance().stringParser().parseSplit(trimBraces, ",")) {
+                        array.add(parse(line, arrayValue));
+                    }
+
+                    return new ArrayContainer(array);
+                }
             }
 
             // Check plain data

@@ -38,6 +38,7 @@ public class Statements {
     public static final Statement RETURN = new ReturnStatement();
     public static final Statement BREAK = new BreakStatement();
     public static final Statement CONTINUE = new ContinueStatement();
+    public static final Statement REMOVE = new RemoveStatement();
 
     public static final Statement<String[]> SPLIT = new SplitStatement();
     public static final Statement<Integer> SIZE = new SizeStatement();
@@ -92,6 +93,7 @@ public class Statements {
     public static final Statement<Object> PLAYER = new PlayerStatement();
     public static final Statement<Object> LIVING = new LivingStatement();
     public static final Statement<Object> ENTITY = new EntityStatement();
+    public static final Statement<Double> DISTANCE = new DistanceStatement();
 
     private static final List<Statement> REGISTRY;
 
