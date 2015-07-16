@@ -22,6 +22,6 @@ public class FindStatement extends Statement<Integer> {
         String contains = ctx.getLiteral("FindString").getString();
         int find = string.indexOf(contains);
 
-        return Result.<Integer>builder().success().result(find).literal(find).build();
+        return Result.<Integer>builder().success().result(find).build();
     }
 }

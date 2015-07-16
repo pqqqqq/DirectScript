@@ -31,11 +31,11 @@ public class ItemStackStatement extends Statement<Object> {
         String getter = ctx.getLiteral("Getter").getString();
 
         if (getter.equalsIgnoreCase("id")) {
-            return Result.builder().success().result(itemType.getId()).literal(itemType.getId()).build();
+            return Result.builder().success().result(itemType.getId()).build();
         } else if (getter.equalsIgnoreCase("name")) {
-            return Result.builder().success().result(itemType.getName()).literal(itemType.getName()).build();
+            return Result.builder().success().result(itemType.getName()).build();
         } else if (getter.equalsIgnoreCase("amount")) {
-            return Result.builder().success().result(itemStack.get().getQuantity()).literal(itemStack.get().getQuantity()).build();
+            return Result.builder().success().result(itemStack.get().getQuantity()).build();
         }
 
         return Result.failure();

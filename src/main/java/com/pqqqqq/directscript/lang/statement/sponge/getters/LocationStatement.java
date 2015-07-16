@@ -28,11 +28,13 @@ public class LocationStatement extends Statement<Object> {
         }
 
         String getter = ctx.getLiteral("Getter").getString();
-        if (getter.equalsIgnoreCase("string")) {
+        if (getter.equalsIgnoreCase("array")) {
             Object[] result = new Object[]{((World) locationOptional.get().getExtent()).getName(), locationOptional.get().getX(), locationOptional.get().getY(), locationOptional.get().getZ()};
-            return Result.builder().success().result(result).literal(result).build();
+            return Result.builder().success().result(result).build();
+        } else if (getter.equalsIgnoreCase("string")) {
+            return Result.builder().success().result("{" + ((World) locationOptional.get().getExtent()).getName() + ", " + locationOptional.get().getX() + ", " + locationOptional.get().getY() + ", " + locationOptional.get().getZ() + "}").build();
         } else if (getter.equalsIgnoreCase("world")) {
-            return Result.builder().success().result(locationOptional.get().getExtent()).literal(locationOptional.get().getExtent()).build();
+            return Result.builder().success().result(locationOptional.get().getExtent()).build();
         }
 
         return Result.failure();

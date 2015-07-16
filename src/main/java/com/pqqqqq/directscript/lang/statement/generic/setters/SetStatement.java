@@ -29,6 +29,6 @@ public class SetStatement extends Statement<Object> {
         Literal value = ctx.getLiteral("Value").copy(); // We want a copied version
 
         literalHolder.setData(value);
-        return Result.builder().success().result(value.getValue().orNull()).literal(value).build();
+        return Result.builder().success().result(value.getValue().orNull()).build();
     }
 }

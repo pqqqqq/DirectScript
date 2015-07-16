@@ -29,7 +29,9 @@ public class Causes {
     public static final Cause PLAYER_JOIN = new Cause("Join", "PlayerJoin");
     public static final Cause PLAYER_QUIT = new Cause("Quit", "PlayerQuit");
     public static final Cause PLAYER_DEATH = new Cause("Death", "PlayerDeath");
+    public static final Cause PLAYER_RESPAWN = new Cause("Respawn", "PlayerRespawn");
     public static final Cause PLAYER_CHAT = new Cause("Chat", "PlayerChat");
+    public static final Cause PLAYER_CONSUME = new Cause("Consume", "PlayerConsume");
     public static final Cause PLAYER_CHANGE_HEALTH = new Cause("ChangeHealth", "PlayerChangeHealth");
     public static final Cause PLAYER_INTERACT_BLOCK = new Cause("InteractBlock");
     public static final Cause PLAYER_INTERACT_ENTITY = new Cause("InteractEntity");
@@ -37,6 +39,7 @@ public class Causes {
     public static final Cause ITEM_DROP = new Cause("Drop", "ItemDrop");
     public static final Cause BLOCK_PLACE = new Cause("Place", "BlockPlace");
     public static final Cause BLOCK_BREAK = new Cause("Break", "BlockBreak");
+    public static final Cause BLOCK_HARVEST = new Cause("Harvest", "BlockHarvest");
     public static final Cause COMMAND = new Cause.CommandCause();
 
     private static final List<Cause> REGISTRY;

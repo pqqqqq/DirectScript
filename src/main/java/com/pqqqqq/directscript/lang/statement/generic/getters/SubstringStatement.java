@@ -24,6 +24,6 @@ public class SubstringStatement extends Statement<String> {
         int end = ctx.getLiteral("End", string.length()).getNumber().intValue();
         String sub = string.substring(start, end);
 
-        return Result.<String>builder().success().result(sub).literal(sub).build();
+        return Result.<String>builder().success().result(sub).build();
     }
 }

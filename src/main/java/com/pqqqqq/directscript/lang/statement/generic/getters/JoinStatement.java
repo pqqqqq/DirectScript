@@ -34,6 +34,6 @@ public class JoinStatement extends Statement<String> {
         }
 
         joined = joined.isEmpty() ? joined : joined.substring(0, joined.length() - joinString.length());
-        return Result.<String>builder().success().result(joined).literal(joined).build();
+        return Result.<String>builder().success().result(joined).build();
     }
 }

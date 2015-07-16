@@ -23,6 +23,6 @@ public class ReplaceStatement extends Statement<String> {
         String replace = ctx.getLiteral("Replacement").getString();
         String result = string.replace(find, replace);
 
-        return Result.<String>builder().success().result(result).literal(result).build();
+        return Result.<String>builder().success().result(result).build();
     }
 }

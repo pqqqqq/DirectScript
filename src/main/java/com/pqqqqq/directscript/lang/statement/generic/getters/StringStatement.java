@@ -19,6 +19,6 @@ public class StringStatement extends Statement<String> {
     @Override
     public Result<String> run(Context ctx) {
         String stringValue = ctx.getLiteral("Literal").getString();
-        return Result.<String>builder().success().result(stringValue).literal(stringValue).build();
+        return Result.<String>builder().success().result(stringValue).build();
     }
 }

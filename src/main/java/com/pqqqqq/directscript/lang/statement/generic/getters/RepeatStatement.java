@@ -26,6 +26,6 @@ public class RepeatStatement extends Statement<Object[]> {
             array[i] = repeatObj;
         }
 
-        return Result.<Object[]>builder().success().result(array).literal(array).build();
+        return Result.<Object[]>builder().success().result(array).build();
     }
 }

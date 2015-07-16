@@ -21,6 +21,6 @@ public class SizeStatement extends Statement<Integer> {
     public Result<Integer> run(Context ctx) {
         Literal array = ctx.getLiteral("Array");
         int size = array.isArray() ? array.getArray().size() : array.getMap().size();
-        return Result.<Integer>builder().success().result(size).literal(size).build();
+        return Result.<Integer>builder().success().result(size).build();
     }
 }

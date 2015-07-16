@@ -27,6 +27,6 @@ public class IncrementStatement extends Statement<Double> {
         Literal incr = literalHolder.getData().add(Literal.Literals.ONE);
         literalHolder.setData(incr);
 
-        return Result.<Double>builder().success().result(incr.getNumber()).literal(incr).build();
+        return Result.<Double>builder().success().result(incr.getNumber()).build();
     }
 }

@@ -41,6 +41,6 @@ public class ContainsStatement extends Statement<Boolean> {
             result = stringContainer.contains(check);
         }
 
-        return Result.<Boolean>builder().success().result(result).literal(result).build();
+        return Result.<Boolean>builder().success().result(result).build();
     }
 }

@@ -4,7 +4,6 @@ import com.google.common.base.Optional;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -17,12 +16,18 @@ public abstract class Environment implements Iterable<Variable> {
     private final Environment parent;
     private final Set<Variable> variables = new HashSet<Variable>();
 
+    private Environment daughter = null;
+
     protected Environment() {
         this(null);
     }
 
     protected Environment(Environment parent) {
         this.parent = parent;
+
+        if (this.parent != null) {
+            this.parent.setDaughter(this);
+        }
     }
 
     /**
@@ -35,41 +40,67 @@ public abstract class Environment implements Iterable<Variable> {
     }
 
     /**
-     * Safely adds a new {@link Variable} to the variable {@link Map}
+     * Gets this {@link Environment}'s daughter
+     * @return the daughter
+     */
+    public Environment getDaughter() {
+        return daughter;
+    }
+
+    void setDaughter(Environment daughter) {
+        this.daughter = daughter;
+    }
+
+    /**
+     * Safely adds a new {@link Variable} to the variable {@link Set}
      *
      * @param variable the new variable to add
      * @return the variable
      */
     public Variable addVariable(Variable variable) {
-        checkState(Variable.namePattern().matcher(variable.getName()).matches(), "This variable name (" + variable.getName() + ") has illegal characters (only alphanumeric/period and must start with alphabetic).");
-        checkState(!Variable.illegalNames().matcher(variable.getName()).matches(), variable.getName() + " is an illegal name.");
+        synchronized (variables) {
+            checkState(Variable.namePattern().matcher(variable.getName()).matches(), "This variable name (" + variable.getName() + ") has illegal characters (only alphanumeric/period and must start with alphabetic).");
+            checkState(!Variable.illegalNames().matcher(variable.getName()).matches(), variable.getName() + " is an illegal name.");
 
-        if (getVariable(variable.getName()).isPresent()) {
-            return null;
+            if (getVariableHere(variable.getName()).isPresent()) {
+                return null;
+            }
+
+            this.variables.add(variable);
+            return variable;
         }
-
-        this.variables.add(variable);
-        return variable;
     }
 
     /**
-     * Gets a {@link Optional} {@link Variable} by its corresponding name, or checks its parent
+     * Gets a {@link Optional} {@link Variable} by its corresponding name, or checks its parent and daughters
      *
      * @param name the name of the variable
      * @return the variable
      */
     public Optional<Variable> getVariable(String name) {
-        for (Variable variable : this) {
-            if (variable.getName().equals(name)) {
-                return Optional.of(variable);
+        return getTop().getVariableLoad(name);
+    }
+
+    Optional<Variable> getVariableLoad(String name) {
+        Optional<Variable> result = getVariableHere(name);
+
+        if (!result.isPresent() && parent != null) {
+            return getParent().getVariableLoad(name);
+        }
+
+        return result;
+    }
+
+    Optional<Variable> getVariableHere(String name) {
+        synchronized (variables) {
+            for (Variable variable : this) {
+                if (variable.getName().equals(name)) {
+                    return Optional.of(variable);
+                }
             }
-        }
 
-        if (getParent() != null) {
-            return getParent().getVariable(name);
+            return Optional.absent();
         }
-
-        return Optional.absent();
     }
 
     /**
@@ -79,27 +110,59 @@ public abstract class Environment implements Iterable<Variable> {
      * @return true if the variable was removed
      */
     public boolean removeVariable(String name) {
-        for (Iterator<Variable> i = iterator(); i.hasNext(); ) {
-            Variable variable = i.next();
+        return getTop().removeVariableLoad(name);
+    }
 
-            if (variable.getName().equals(name)) {
-                i.remove();
-                return true;
+    boolean removeVariableLoad(String name) {
+        synchronized (variables) {
+            for (Iterator<Variable> i = iterator(); i.hasNext(); ) {
+                Variable variable = i.next();
+
+                if (variable.getName().equals(name)) {
+                    i.remove();
+                    return true;
+                }
             }
-        }
 
-        if (getParent() != null) {
-            return getParent().removeVariable(name);
-        }
+            if (getParent() != null) {
+                return getParent().removeVariableLoad(name);
+            }
 
-        return false;
+            return false;
+        }
     }
 
     /**
      * Clears all {@link Variable}s in this environment
      */
     public void clear() {
-        this.variables.clear();
+        synchronized (variables) {
+            this.variables.clear();
+        }
+    }
+
+    /**
+     * Gets the top of the {@link Environment} chain
+     *
+     * @return the top
+     */
+    public Environment getTop() {
+        if (daughter != null) {
+            return daughter.getTop();
+        }
+        return this;
+    }
+
+    /**
+     * Gets the bottom of the {@link Environment} chain
+     *
+     * @return the bottom
+     */
+    public Environment getBottom() {
+        if (parent != null) {
+            return parent.getBottom();
+        }
+        return this;
     }
 
     @Override

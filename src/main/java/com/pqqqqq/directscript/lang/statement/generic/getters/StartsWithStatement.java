@@ -22,6 +22,6 @@ public class StartsWithStatement extends Statement<Boolean> {
         String contains = ctx.getLiteral("StartsWithString").getString();
         boolean check = string.startsWith(contains);
 
-        return Result.<Boolean>builder().success().result(check).literal(check).build();
+        return Result.<Boolean>builder().success().result(check).build();
     }
 }

@@ -20,6 +20,6 @@ public class RoundStatement extends Statement<Double> {
     @Override
     public Result<Double> run(Context ctx) {
         double rounded = GenericMath.round(ctx.getLiteral("Number").getNumber(), 0);
-        return Result.<Double>builder().success().result(rounded).literal(rounded).build();
+        return Result.<Double>builder().success().result(rounded).build();
     }
 }

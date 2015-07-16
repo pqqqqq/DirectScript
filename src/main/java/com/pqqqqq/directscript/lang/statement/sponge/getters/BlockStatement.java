@@ -31,11 +31,11 @@ public class BlockStatement extends Statement<Object> {
         String getter = ctx.getLiteral("Getter").getString();
 
         if (getter.equalsIgnoreCase("id")) {
-            return Result.builder().success().result(blockType.getId()).literal(blockType.getId()).build();
+            return Result.builder().success().result(blockType.getId()).build();
         } else if (getter.equalsIgnoreCase("name")) {
-            return Result.builder().success().result(blockType.getName()).literal(blockType.getName()).build();
+            return Result.builder().success().result(blockType.getName()).build();
         } else if (getter.equalsIgnoreCase("light")) {
-            return Result.builder().success().result((double) blockType.getEmittedLight()).literal((double) blockType.getEmittedLight()).build();
+            return Result.builder().success().result((double) blockType.getEmittedLight()).build();
         }
 
         return Result.failure();

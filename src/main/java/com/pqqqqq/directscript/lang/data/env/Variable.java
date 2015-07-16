@@ -98,8 +98,7 @@ public class Variable extends LiteralHolder {
     }
 
     private void forceSetData(Literal data) {
-        checkNotNull(data, "Data itself cannot be null. Use Literal#empty for null data");
-        super.setData(data);
+        super.setData(checkNotNull(data, "Data itself cannot be null. Use Literal#empty for null data"));
     }
 
     /**

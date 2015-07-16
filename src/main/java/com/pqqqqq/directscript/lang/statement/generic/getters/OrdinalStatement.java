@@ -22,6 +22,6 @@ public class OrdinalStatement extends Statement<Integer> {
         char firstChar = string.charAt(0);
         int ordinal = (int) firstChar;
 
-        return Result.<Integer>builder().success().result(ordinal).literal(ordinal).build();
+        return Result.<Integer>builder().success().result(ordinal).build();
     }
 }

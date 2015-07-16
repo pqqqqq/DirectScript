@@ -21,9 +21,7 @@ public class EventVarStatement extends Statement<Object> {
     @Override
     public Result<Object> run(Context ctx) {
         String eventVar = ctx.getLiteral("String").getString();
-        Object value = ctx.getScriptInstance().getEventVars().get(eventVar);
-
-        checkNotNull(value, "There is no event var with this key");
-        return Result.builder().success().result(value).literal(value).build();
+        Object value = checkNotNull(ctx.getScriptInstance().getEventVars().get(eventVar), "There is no event var with this key");
+        return Result.builder().success().result(value).build();
     }
 }

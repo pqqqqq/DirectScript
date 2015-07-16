@@ -2,17 +2,12 @@ package com.pqqqqq.directscript.lang.script;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.reader.Block;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.Statement;
-import com.pqqqqq.directscript.lang.statement.generic.setters.BreakStatement;
-import com.pqqqqq.directscript.lang.statement.generic.setters.ContinueStatement;
-import com.pqqqqq.directscript.lang.statement.generic.setters.ElseStatement;
-import com.pqqqqq.directscript.lang.statement.internal.setters.Termination;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import com.pqqqqq.directscript.lang.util.ICopyable;
@@ -34,7 +29,7 @@ import static com.google.common.base.Preconditions.checkState;
  * Created by Kevin on 2015-06-02.
  * Represents a running instance of a {@link Environment} {@link Script} that can be executed
  */
-public class ScriptInstance extends Environment implements Runnable {
+public class ScriptInstance extends Environment {
     private static final Builder COMPILE = builder().cause(Causes.COMPILE).predicate(Script.compileTimePredicate());
 
     private final Script script;
@@ -45,11 +40,8 @@ public class ScriptInstance extends Environment implements Runnable {
 
     private final Set<Context> contextSet = new HashSet<Context>();
 
-    private Optional<Line> currentLine = Optional.absent();
     private Optional<Literal> returnValue = Optional.absent();
-
-    private boolean skipLines = false;
-    private Line skipToLine = null;
+    private Optional<Block.BlockRunnable> currentRunnable = Optional.absent();
 
     ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Event event, Map<String, Object> eventVars) {
         super((script == null ? null : script.getScriptsFile())); // The parent is the file
@@ -154,52 +146,6 @@ public class ScriptInstance extends Environment implements Runnable {
     }
 
     /**
-     * Gets the {@link Optional} current {@link Line} in execution
-     *
-     * @return the current line
-     */
-    public Optional<Line> getCurrentLine() {
-        return currentLine;
-    }
-
-    /**
-     * Gets whether this {@link ScriptInstance} is current skipping line execution
-     *
-     * @return true if skipping execution
-     */
-    public boolean doSkipLines() {
-        return skipLines;
-    }
-
-    /**
-     * Sets whether this {@link ScriptInstance} should skip line execution
-     *
-     * @param skipLines the new skip value boolean
-     */
-    public void setSkipLines(boolean skipLines) {
-        this.skipLines = skipLines;
-    }
-
-    /**
-     * Gets the {@link Line} that needs to be reached before skipping lines is toggled off
-     *
-     * @return the skip to line
-     */
-    public Line getSkipToLine() {
-        return skipToLine;
-    }
-
-    /**
-     * Sets the {@link Line} that needs to be reached before skipping lines is toggled off
-     *
-     * @param skipToLine the new skip to line
-     */
-    public void setSkipToLine(Line skipToLine) {
-        this.skipToLine = skipToLine;
-        setSkipLines(skipToLine != null);
-    }
-
-    /**
      * Gets the {@link Optional} {@link Literal} for the return value of this {@link ScriptInstance}
      *
      * @return the literal return value
@@ -215,6 +161,23 @@ public class ScriptInstance extends Environment implements Runnable {
      */
     public void setReturnValue(Optional<Literal> returnValue) {
         this.returnValue = returnValue;
+    }
+
+    /**
+     * Gets the current active {@link Block.BlockRunnable}
+     * @return the block runnable
+     */
+    public Optional<Block.BlockRunnable> getCurrentRunnable() {
+        return currentRunnable;
+    }
+
+    /**
+     * Sets the current active {@link Block.BlockRunnable}
+     *
+     * @param currentRunnable the new block runnable
+     */
+    public void setCurrentRunnable(Optional<Block.BlockRunnable> currentRunnable) {
+        this.currentRunnable = currentRunnable;
     }
 
     /**
@@ -242,64 +205,20 @@ public class ScriptInstance extends Environment implements Runnable {
     }
 
     /**
-     * Executes a {@link Block} with the {@link ScriptInstance}
-     *
-     * @param block the block
+     * Executes the {@link Script} {@link Block} in the given {@link ScriptInstance} environment
+     * @return the {@link Result}
      */
-    public Result execute(Block block) {
-        checkNotNull(block, "Block cannot be null");
-        for (Line line : block) {
-            try {
-                if (getReturnValue().isPresent()) {
-                    return Result.SUCCESS; // Return if execution is halted
-                }
-
-                if (getSkipToLine() != null) {
-                    if (!getSkipToLine().equals(line)) {
-                        continue;
-                    }
-                    setSkipToLine(null);
-                }
-
-                if (getLinePredicate().apply(line)) {
-                    this.currentLine = Optional.of(line); // Set current line
-
-                    Statement statement = line.getStatement();
-                    if (!doSkipLines() || statement instanceof Termination || statement instanceof ElseStatement) {
-                        // Break and continue get special treatment
-                        if (statement instanceof BreakStatement) {
-                            return Result.FAILURE_BREAK;
-                        }
-
-                        if (statement instanceof ContinueStatement) {
-                            return Result.FAILURE_CONTINUE;
-                        }
-
-                        Context ctx = line.toContext(this);
-                        ctx.run();
-                        getContextSet().add(ctx); // Add to context set
-                    }
-                }
-            } catch (Throwable e) {
-                Lang.instance().errorHandler().log(String.format("Error in script '%s' -> '%s' at line #%d (script line #%d): ", getScript().getScriptsFile().getStringRepresentation(), getScript().getName(), line.getAbsoluteNumber(), line.getScriptNumber()));
-                Lang.instance().errorHandler().log(e);
-                Lang.instance().errorHandler().flush();
-                return Result.FAILURE_ERROR; // Stop running of script
-            }
-        }
-        return Result.SUCCESS;
+    public Result execute() {
+        return execute(getScript());
     }
 
     /**
-     * Executes the {@link Script}'s {@link Block}
+     * Executes the {@link Block} in the given {@link ScriptInstance} environment
+     * @param block the block to execute
+     * @return the {@link Result}
      */
-    public Result execute() {
-        return execute(getScript()); // Runs the script's block
-    }
-
-    @Override
-    public void run() {
-        execute(); // Override for Runnable, just perform the execute() method
+    public Result execute(Block block) { // Convenience method
+        return block.toRunnable(this).execute();
     }
 
     /**
@@ -484,12 +403,9 @@ public class ScriptInstance extends Environment implements Runnable {
          * @return the new script instance
          */
         public ScriptInstance build() {
-            checkNotNull(cause, "Cause cannot be null");
-            checkNotNull(linePredicate, "Predicate cannot be null");
-            checkState(script != null || cause.equals(Causes.COMPILE), "Script cannot be null");
-
+            checkState(script != null || checkNotNull(cause, "Cause cannot be null").equals(Causes.COMPILE), "Script cannot be null");
             this.eventVars.put("Cause", cause.getNames()[0]); // Add cause to eventvars
-            return new ScriptInstance(script, cause, linePredicate, event, eventVars);
+            return new ScriptInstance(script, cause, checkNotNull(linePredicate, "Predicate cannot be null"), event, eventVars);
         }
     }
 }

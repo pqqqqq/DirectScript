@@ -27,6 +27,6 @@ public class PostfixDecrementStatement extends Statement<Double> {
         Literal before = literalHolder.getData();
         literalHolder.setData(before.sub(Literal.Literals.ONE));
 
-        return Result.<Double>builder().success().result(before.getNumber()).literal(before).build();
+        return Result.<Double>builder().success().result(before.getNumber()).build();
     }
 }

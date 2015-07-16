@@ -30,19 +30,19 @@ public class PlayerStatement extends Statement<Object> {
 
         String getter = ctx.getLiteral("Getter").getString();
         if (getter.equalsIgnoreCase("name")) {
-            return Result.builder().success().result(playerOptional.get().getName()).literal(playerOptional.get().getName()).build();
+            return Result.builder().success().result(playerOptional.get().getName()).build();
         } else if (getter.equalsIgnoreCase("uuid")) {
-            return Result.builder().success().result(playerOptional.get().getIdentifier()).literal(playerOptional.get().getIdentifier()).build();
+            return Result.builder().success().result(playerOptional.get().getIdentifier()).build();
         } else if (getter.equalsIgnoreCase("ip")) {
             String address = playerOptional.get().getConnection().getAddress().getAddress().getHostAddress();
-            return Result.builder().success().result(address).literal(address).build();
+            return Result.builder().success().result(address).build();
         } else if (getter.equalsIgnoreCase("hunger")) {
             FoodData foodData = playerOptional.get().getData(FoodData.class).get();
             double foodLevel = foodData.getFoodLevel();
-            return Result.builder().success().result(foodLevel).literal(foodLevel).build();
+            return Result.builder().success().result(foodLevel).build();
         } else if (getter.equalsIgnoreCase("hand")) {
             ItemStack itemStack = playerOptional.get().getItemInHand().orNull();
-            return Result.builder().success().result(itemStack).literal(itemStack).build();
+            return Result.builder().success().result(itemStack).build();
         }
 
         return Result.failure();

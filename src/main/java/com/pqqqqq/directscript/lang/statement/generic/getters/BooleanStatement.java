@@ -19,6 +19,6 @@ public class BooleanStatement extends Statement<Boolean> {
     @Override
     public Result<Boolean> run(Context ctx) {
         Boolean booleanValue = ctx.getLiteral("Literal").getBoolean();
-        return Result.<Boolean>builder().success().result(booleanValue).literal(booleanValue).build();
+        return Result.<Boolean>builder().success().result(booleanValue).build();
     }
 }

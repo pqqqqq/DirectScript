@@ -245,8 +245,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @return the map value
      */
     public Map<LiteralHolder, LiteralHolder> getMap() {
-        checkState(isMap(), "This literal must be a map");
-        return (Map<LiteralHolder, LiteralHolder>) getValue().get();
+        return isMap() ? (Map<LiteralHolder, LiteralHolder>) getValue().get() : parseMap().getMap();
     }
 
     /**
@@ -574,7 +573,22 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
 
     private Literal<List<LiteralHolder>> parseArray() {
         checkState(getValue().isPresent(), "This parse must be present to do this");
+
+        if (isMap() && getMap().isEmpty()) {
+            return Literals.EMPTY_ARRAY;
+        }
+
         return Literal.fromObject(new Literal[]{this}); // Create a singleton of the data
+    }
+
+    private Literal<Map<LiteralHolder, LiteralHolder>> parseMap() {
+        checkState(getValue().isPresent(), "This parse must be present to do this");
+
+        if (isArray() && getArray().isEmpty()) {
+            return Literals.EMPTY_MAP;
+        }
+
+        throw new IllegalStateException("Maps cannot be casted to and fro'");
     }
 
     /**

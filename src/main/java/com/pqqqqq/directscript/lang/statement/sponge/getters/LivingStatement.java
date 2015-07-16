@@ -31,7 +31,7 @@ public class LivingStatement extends Statement<Object> {
         if (getter.equalsIgnoreCase("health")) {
             HealthData healthData = livingOptional.get().getHealthData();
             double health = healthData.getHealth();
-            return Result.builder().success().result(health).literal(health).build();
+            return Result.builder().success().result(health).build();
         }
 
         return Result.failure();

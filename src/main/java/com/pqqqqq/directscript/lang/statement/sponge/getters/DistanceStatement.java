@@ -32,6 +32,6 @@ public class DistanceStatement extends Statement<Double> {
         }
 
         double dist = vector1Optional.get().distance(vector2Optional.get());
-        return Result.<Double>builder().success().result(dist).literal(dist).build();
+        return Result.<Double>builder().success().result(dist).build();
     }
 }

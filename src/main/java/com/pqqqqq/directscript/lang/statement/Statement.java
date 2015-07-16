@@ -73,7 +73,8 @@ public abstract class Statement<T> {
     }
 
     /**
-     * Denotes a class that represents a concept {@link Statement} that should work given the Sponge API, but is not yet implemented. These statements will be skipped by: {@link Statements#getStatement(String)}
+     * <p>Denotes a class that represents a concept {@link Statement} that should work given the Sponge API, but is not yet implemented.</p>
+     * <p>These statements will be skipped by: {@link Statements#getStatement(String)}.</p>
      */
     @Retention(value = RetentionPolicy.RUNTIME)
     @Target(value = ElementType.TYPE)
@@ -355,9 +356,7 @@ public abstract class Statement<T> {
          * @return the new instance
          */
         public static Arguments of(Object... sequence) {
-            checkNotNull(sequence, "Sequence cannot be null");
-
-            Argument[] arguments = new Argument[(int) Math.ceil(sequence.length / 2D)];
+            Argument[] arguments = new Argument[(int) Math.ceil(checkNotNull(sequence, "Sequence cannot be null").length / 2D)];
             String[] delimiters = new String[(int) Math.floor(sequence.length / 2D)];
 
             Class<?> lastType = null;
@@ -523,12 +522,10 @@ public abstract class Statement<T> {
         private static final Result<Object> FAILURE = builder().failure().build();
 
         private final Optional<T> result;
-        private final Optional<Literal<T>> literalResult;
         private final boolean success;
 
-        Result(T result, Literal<T> literalResult, boolean success) {
+        Result(T result, boolean success) {
             this.result = Optional.fromNullable(result);
-            this.literalResult = Optional.fromNullable(literalResult);
             this.success = success;
         }
 
@@ -576,8 +573,11 @@ public abstract class Statement<T> {
          *
          * @return the literal result
          */
-        public Optional<Literal<T>> getLiteralResult() {
-            return literalResult;
+        public Optional<Literal> getLiteralResult() {
+            if (getResult().isPresent()) {
+                return Optional.of(Literal.fromObject(getResult().get()));
+            }
+            return Optional.absent();
         }
 
         /**
@@ -596,10 +596,9 @@ public abstract class Statement<T> {
          */
         public static class Builder<T> {
             private T result = null;
-            private Literal<T> literalResult = null;
             private Boolean success = null;
 
-            Builder() {
+            Builder() { // Default view
             }
 
             /**
@@ -611,30 +610,6 @@ public abstract class Statement<T> {
              */
             public Builder<T> result(T result) {
                 this.result = result;
-                return this;
-            }
-
-            /**
-             * Sets the {@link Literal} result of this {@link Result}
-             *
-             * @param literalResult the new result, to be created into a literal
-             * @return this builder, for fluency
-             * @see Result#getLiteralResult()
-             */
-            public Builder<T> literal(T literalResult) {
-                this.literalResult = Literal.fromObject(literalResult);
-                return this;
-            }
-
-            /**
-             * Sets the {@link Literal} result of this {@link Result}
-             *
-             * @param literalResult the new literal result
-             * @return this builder, for fluency
-             * @see Result#getLiteralResult()
-             */
-            public Builder<T> literal(Literal<T> literalResult) {
-                this.literalResult = literalResult;
                 return this;
             }
 
@@ -678,7 +653,7 @@ public abstract class Statement<T> {
              * @return the new result instance
              */
             public Result<T> build() {
-                return new Result<T>(result, literalResult, checkNotNull(success, "Success"));
+                return new Result<T>(result, checkNotNull(success, "Success"));
             }
         }
     }

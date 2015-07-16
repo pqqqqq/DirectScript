@@ -22,6 +22,6 @@ public class CharacterStatement extends Statement<String> {
         char character = (char) ordinal;
         String result = Character.toString(character);
 
-        return Result.<String>builder().success().result(result).literal(result).build();
+        return Result.<String>builder().success().result(result).build();
     }
 }

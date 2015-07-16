@@ -27,6 +27,6 @@ public class DecrementStatement extends Statement<Double> {
         Literal decr = literalHolder.getData().sub(Literal.Literals.ONE);
         literalHolder.setData(decr);
 
-        return Result.<Double>builder().success().result(decr.getNumber()).literal(decr).build();
+        return Result.<Double>builder().success().result(decr.getNumber()).build();
     }
 }

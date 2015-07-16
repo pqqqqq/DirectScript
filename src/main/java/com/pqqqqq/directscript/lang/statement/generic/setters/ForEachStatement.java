@@ -28,15 +28,15 @@ public class ForEachStatement extends Statement {
     @Override
     public Result run(Context ctx) {
         String varName = ctx.getLiteral("VariableName").getString();
-        Variable var = ctx.getScriptInstance().addVariable(new Variable(varName));
         List<LiteralHolder> array = ctx.getLiteral("IterableArray").getArray();
 
-        Block internalBlock = ctx.getLine().getInternalBlock();
-        checkNotNull(internalBlock, "This line has no internal block");
+        Block internalBlock = checkNotNull(ctx.getLine().getInternalBlock(), "This line has no internal block");
+        Block.BlockRunnable blockRunnable = internalBlock.toRunnable(ctx.getScriptInstance());
+        Variable var = blockRunnable.addVariable(new Variable(varName));
 
         for (LiteralHolder arrayVar : array) {
             var.setData(arrayVar.getData());
-            ScriptInstance.Result result = ctx.getScriptInstance().execute(internalBlock);
+            ScriptInstance.Result result = blockRunnable.execute();
 
             if (result == ScriptInstance.Result.FAILURE_BREAK) {
                 break;
@@ -47,8 +47,6 @@ public class ForEachStatement extends Statement {
             }
         }
 
-        ctx.getScriptInstance().removeVariable(varName); // Remove the variable after the loops
-        ctx.getScriptInstance().setSkipToLine(ctx.getLine().getClosingBrace()); // Skip lines since we've already run the code block
         return Result.success();
     }
 }

@@ -28,9 +28,9 @@ public class WorldStatement extends Statement<Object> {
 
         String getter = ctx.getLiteral("Getter").getString();
         if (getter.equalsIgnoreCase("name")) {
-            return Result.builder().success().result(worldOptional.get().getName()).literal(worldOptional.get().getName()).build();
+            return Result.builder().success().result(worldOptional.get().getName()).build();
         } else if (getter.equalsIgnoreCase("difficulty")) {
-            return Result.builder().success().result(worldOptional.get().getDifficulty().getId()).literal(worldOptional.get().getDifficulty().getId()).build();
+            return Result.builder().success().result(worldOptional.get().getDifficulty().getId()).build();
         }
 
         return Result.failure();

@@ -28,7 +28,7 @@ public class VarStatement extends Statement<Object> {
     @Override
     public Result<Object> run(Context ctx) {
         boolean isFinal = false;
-        Environment environment = ctx.getScriptInstance();
+        Environment environment = ctx.getScriptInstance().getTop();
         String name = null;
 
         String[] words = Lang.instance().stringParser().parseSplit(ctx.getLiteral("VariableName").getString(), " ");
@@ -51,6 +51,6 @@ public class VarStatement extends Statement<Object> {
 
         Literal value = ctx.getLiteral("Value").copy();
         environment.addVariable(new Variable(name, value, isFinal));
-        return Result.builder().success().result(value.getValue().orNull()).literal(value).build();
+        return Result.builder().success().result(value.getValue().orNull()).build();
     }
 }

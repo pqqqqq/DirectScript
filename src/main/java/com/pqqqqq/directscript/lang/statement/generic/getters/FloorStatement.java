@@ -19,6 +19,6 @@ public class FloorStatement extends Statement<Double> {
     @Override
     public Result<Double> run(Context ctx) {
         double floor = Math.floor(ctx.getLiteral("Number").getNumber());
-        return Result.<Double>builder().success().result(floor).literal(floor).build();
+        return Result.<Double>builder().success().result(floor).build();
     }
 }

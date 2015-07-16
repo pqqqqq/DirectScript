@@ -101,7 +101,7 @@ public class Utilities {
      * @return the catalog type
      */
     public static <T extends CatalogType> Optional<T> getType(Class<T> type, String id) {
-        if (!id.startsWith("minecraft:")) {
+        if (!id.contains(":")) {
             id = "minecraft:" + id;
         }
 

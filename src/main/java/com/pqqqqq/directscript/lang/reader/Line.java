@@ -29,6 +29,7 @@ public class Line {
     private Line openingBrace = null;
     private Line closingBrace = null;
     private Block internalBlock = null;
+    private int depth = 0;
 
     private String[] strargs = null;
     private Map<String, DataContainer> containers = null;
@@ -72,6 +73,25 @@ public class Line {
      */
     public String getLine() {
         return line;
+    }
+
+    /**
+     * <p>Gets the depth of this line, or how far from the main script block this line is</p>
+     * <p>This value is an unsigned integer where 0 represents the main block, and anything above is an upper block</p>
+     * @return the depth
+     */
+    public int getDepth() {
+        return depth;
+    }
+
+    /**
+     * Sets the depth of this line
+     *
+     * @param depth the new depth
+     * @see #getDepth()
+     */
+    public void setDepth(int depth) {
+        this.depth = Math.max(0, depth);
     }
 
     /**
@@ -127,13 +147,22 @@ public class Line {
         return internalBlock;
     }
 
+    /**
+     * Sets the internal nested {@link Block} that this {@link Line} initiates
+     *
+     * @param internalBlock the internal block
+     */
+    public void setInternalBlock(Block internalBlock) {
+        this.internalBlock = internalBlock;
+    }
+
     void generateInternalBlock(Block parentBlock) { // Default view
         int startLine = getScriptNumber() + 1;
         int endLine = getClosingBrace().getScriptNumber(); // Don't subtract 1 since subList is exclusive for the end
 
         int maxStartLine = Math.max(0, startLine);
         int minEndLine = Math.min(parentBlock.getLines().size(), endLine);
-        this.internalBlock = new Block(parentBlock.getLines().subList(maxStartLine, minEndLine));
+        this.internalBlock = new Block(getDepth() + 1, parentBlock.getLines().subList(maxStartLine, minEndLine));
     }
 
     /**

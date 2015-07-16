@@ -19,6 +19,6 @@ public class NumberStatement extends Statement<Double> {
     @Override
     public Result<Double> run(Context ctx) {
         Double numberValue = ctx.getLiteral("Literal").getNumber();
-        return Result.<Double>builder().success().result(numberValue).literal(numberValue).build();
+        return Result.<Double>builder().success().result(numberValue).build();
     }
 }

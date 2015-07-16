@@ -1,6 +1,7 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
 import com.google.common.base.Optional;
+import com.pqqqqq.directscript.lang.reader.Block;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
@@ -27,9 +28,7 @@ public class ElseStatement extends Statement {
     public Result run(Context ctx) {
         ScriptInstance scriptInstance = ctx.getScriptInstance();
         Line line = ctx.getLine();
-
-        Line associatedLine = line.getOpeningBrace();
-        checkNotNull(associatedLine, "Unknown termination sequence");
+        Line associatedLine = checkNotNull(line.getOpeningBrace(), "Unknown termination sequence");
 
         if (scriptInstance.isRuntime()) {
             Result statementResult = scriptInstance.getResultOf(associatedLine);
@@ -42,16 +41,21 @@ public class ElseStatement extends Statement {
 
             Boolean bool = (Boolean) result.get();
             if (!bool) {
-                scriptInstance.setSkipLines(false); // Turn off skipping lines for this
                 String trimBeginning = line.getLine().substring(6);
+
                 Line truncatedLine = new Line(line.getAbsoluteNumber(), line.getScriptNumber(), trimBeginning.trim());
+                truncatedLine.setInternalBlock(line.getInternalBlock());
+                truncatedLine.setDepth(line.getDepth()); // Depth is the same as else line
 
                 if (truncatedLine.isRunnable()) {
                     return truncatedLine.toContext(scriptInstance).run();
+                } else {
+                    Block internalBlock = checkNotNull(ctx.getLine().getInternalBlock(), "This line has no internal block");
+                    internalBlock.toRunnable(scriptInstance).execute();
+                    return Result.builder().success().result(true).build();
                 }
             } else {
-                scriptInstance.setSkipLines(true); // Skip lines if previously one was true
-                return Result.builder().success().result(true).build(); // Also build this one as true
+                return Result.builder().success().result(true).build(); // Build this one as true
             }
         }
 

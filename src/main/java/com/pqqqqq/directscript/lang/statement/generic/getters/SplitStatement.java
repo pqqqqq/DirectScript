@@ -19,6 +19,6 @@ public class SplitStatement extends Statement<String[]> {
     @Override
     public Result<String[]> run(Context ctx) {
         String[] split = ctx.getLiteral("String").getString().split(ctx.getLiteral("SplitString").getString());
-        return Result.<String[]>builder().success().result(split).literal(split).build();
+        return Result.<String[]>builder().success().result(split).build();
     }
 }

@@ -1,7 +1,10 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
+import com.pqqqqq.directscript.lang.reader.Block;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by Kevin on 2015-06-04.
@@ -19,9 +22,11 @@ public class IfStatement extends Statement<Boolean> {
 
     @Override
     public Result<Boolean> run(Context ctx) {
+        Block internalBlock = checkNotNull(ctx.getLine().getInternalBlock(), "This line has no internal block");
         boolean result = ctx.getLiteral("Condition").getBoolean();
-        if (!result) {
-            ctx.getScriptInstance().setSkipLines(true);
+
+        if (result) {
+            internalBlock.toRunnable(ctx.getScriptInstance()).execute();
         }
 
         return Result.<Boolean>builder().success().result(result).build();

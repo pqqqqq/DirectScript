@@ -29,6 +29,6 @@ public class PermissionStatement extends Statement<Boolean> {
         }
 
         boolean result = player.get().hasPermission(permission);
-        return Result.<Boolean>builder().success().result(result).literal(result).build();
+        return Result.<Boolean>builder().success().result(result).build();
     }
 }

@@ -28,13 +28,13 @@ public class EntityStatement extends Statement<Object> {
 
         String getter = ctx.getLiteral("Getter").getString();
         if (getter.equalsIgnoreCase("location") || getter.equalsIgnoreCase("loc")) {
-            return Result.builder().success().result(entityOptional.get().getLocation()).literal(entityOptional.get().getLocation()).build();
+            return Result.builder().success().result(entityOptional.get().getLocation()).build();
         } else if (getter.equalsIgnoreCase("world")) {
-            return Result.builder().success().result(entityOptional.get().getWorld()).literal(entityOptional.get().getWorld()).build();
+            return Result.builder().success().result(entityOptional.get().getWorld()).build();
         } else if (getter.equalsIgnoreCase("type")) {
-            return Result.builder().success().result(entityOptional.get().getType().getName()).literal(entityOptional.get().getType().getName()).build();
+            return Result.builder().success().result(entityOptional.get().getType().getName()).build();
         } else if (getter.equalsIgnoreCase("uuid")) {
-            return Result.builder().success().result(entityOptional.get().getUniqueId().toString()).literal(entityOptional.get().getUniqueId().toString()).build();
+            return Result.builder().success().result(entityOptional.get().getUniqueId().toString()).build();
         }
 
         return Result.failure();

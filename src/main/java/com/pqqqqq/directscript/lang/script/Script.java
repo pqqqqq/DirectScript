@@ -14,7 +14,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * A piece of code that runs or does something when {@link Trigger}ed
  */
 public class Script extends Block {
-    private static final Predicate<Line> COMPILETIME_PREDICATE = new Predicate<Line>() {
+    private static final Predicate<Line> COMPILE_TIME_PREDICATE = new Predicate<Line>() {
 
         @Override
         public boolean apply(Line input) {
@@ -44,7 +44,7 @@ public class Script extends Block {
      * @param name        the name of the script
      */
     public Script(ScriptsFile scriptsFile, String name) {
-        super(); // Constructs an empty block with no parent
+        super(0); // Scripts are always 0 block
         this.scriptsFile = checkNotNull(scriptsFile, "ScriptsFile");
         this.name = checkNotNull(name, "Name");
     }
@@ -55,7 +55,7 @@ public class Script extends Block {
      * @return the predicate
      */
     public static Predicate<Line> compileTimePredicate() {
-        return COMPILETIME_PREDICATE;
+        return COMPILE_TIME_PREDICATE;
     }
 
     /**

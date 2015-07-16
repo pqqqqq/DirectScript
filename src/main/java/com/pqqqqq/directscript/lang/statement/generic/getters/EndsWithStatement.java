@@ -22,6 +22,6 @@ public class EndsWithStatement extends Statement<Boolean> {
         String contains = ctx.getLiteral("EndsWithString").getString();
         boolean check = string.endsWith(contains);
 
-        return Result.<Boolean>builder().success().result(check).literal(check).build();
+        return Result.<Boolean>builder().success().result(check).build();
     }
 }

@@ -24,9 +24,7 @@ public class WhileStatement extends Statement {
 
     @Override
     public Result run(Context ctx) {
-        Block internalBlock = ctx.getLine().getInternalBlock();
-        checkNotNull(internalBlock, "This line has no internal block");
-
+        Block internalBlock = checkNotNull(ctx.getLine().getInternalBlock(), "This line has no internal block");
         while (Lang.instance().sequencer().parse(ctx.getLine(), ctx.getLiteral("Condition").getString()).resolve(ctx.getScriptInstance()).getBoolean()) { // This needs to be re-parsed every time
             ScriptInstance.Result result = ctx.getScriptInstance().execute(internalBlock);
 
@@ -39,7 +37,6 @@ public class WhileStatement extends Statement {
             }
         }
 
-        ctx.getScriptInstance().setSkipToLine(ctx.getLine().getClosingBrace()); // Skip lines since we've already run the code block
         return Result.success();
     }
 }

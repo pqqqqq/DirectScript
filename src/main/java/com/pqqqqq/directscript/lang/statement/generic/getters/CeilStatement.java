@@ -19,6 +19,6 @@ public class CeilStatement extends Statement<Double> {
     @Override
     public Result<Double> run(Context ctx) {
         double ceil = Math.ceil(ctx.getLiteral("Number").getNumber());
-        return Result.<Double>builder().success().result(ceil).literal(ceil).build();
+        return Result.<Double>builder().success().result(ceil).build();
     }
 }

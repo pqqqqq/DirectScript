@@ -47,9 +47,7 @@ public class Sequencer {
      * @return the new data container
      */
     public DataContainer parse(Line line, String sequence) {
-        checkNotNull(sequence, "Sequence cannot be null");
-
-        sequence = sequence.trim();
+        sequence = checkNotNull(sequence, "Sequence cannot be null").trim();
         if (sequence.isEmpty()) {
             return Literal.Literals.EMPTY;
         }
@@ -80,7 +78,11 @@ public class Sequencer {
         if (triple == null || triple.getDelimiter() == null) { // Check if there's no split string
             // Check if it's a statement
             if (Statements.getStatement(sequence).isPresent()) {
-                return new StatementContainer(new Line(line.getAbsoluteNumber(), line.getScriptNumber(), sequence));
+                Line statement = new Line(line.getAbsoluteNumber(), line.getScriptNumber(), sequence);
+                statement.setDepth(line.getDepth());
+                statement.setInternalBlock(line.getInternalBlock());
+
+                return new StatementContainer(statement);
             }
 
             // Check leading exclamation points (negation)

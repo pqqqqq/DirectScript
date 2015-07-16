@@ -111,7 +111,7 @@ public class Statements {
     }
 
     /**
-     * Gets an {@link Optional} {@link Statement} for the {@link Line}, such that {@link com.pqqqqq.directscript.lang.statement.Statement.Syntax#matches(String)} is true
+     * Gets an {@link Optional} {@link Statement} for the {@link Line}, such that {@link Statement.Syntax#matches(String)} is true
      *
      * @param line the line
      * @return the statement

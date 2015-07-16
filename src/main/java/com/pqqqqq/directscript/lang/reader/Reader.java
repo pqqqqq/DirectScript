@@ -155,6 +155,8 @@ public class Reader {
                             startLine.generateInternalBlock(currentScript);
                         }
 
+                        lineInst.setDepth(bracesLineList.size() - 1); // Depth is set after closing braces but before opening braces. 1 is subtracted because the script braces do not count
+
                         if (lineInst.getStatement().getSyntax().getSuffix().equals("{") || lineInst.getLine().endsWith("{")) { // Necessary for else and else if statements
                             bracesLineList.add(0, lineInst);
                         }

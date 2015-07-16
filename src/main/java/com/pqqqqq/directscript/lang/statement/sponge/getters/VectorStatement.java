@@ -27,15 +27,17 @@ public class VectorStatement extends Statement<Object> {
         }
 
         String getter = ctx.getLiteral("Getter").getString();
-        if (getter.equalsIgnoreCase("string")) {
+        if (getter.equalsIgnoreCase("array")) {
             Double[] result = new Double[]{vectorOptional.get().getX(), vectorOptional.get().getY(), vectorOptional.get().getZ()};
-            return Result.builder().success().result(result).literal(result).build();
+            return Result.builder().success().result(result).build();
+        } else if (getter.equalsIgnoreCase("string")) {
+            return Result.builder().success().result("{" + vectorOptional.get().getX() + ", " + vectorOptional.get().getY() + ", " + vectorOptional.get().getZ() + "}").build();
         } else if (getter.equalsIgnoreCase("x")) {
-            return Result.builder().success().result(vectorOptional.get().getX()).literal(vectorOptional.get().getX()).build();
+            return Result.builder().success().result(vectorOptional.get().getX()).build();
         } else if (getter.equalsIgnoreCase("y")) {
-            return Result.builder().success().result(vectorOptional.get().getY()).literal(vectorOptional.get().getY()).build();
+            return Result.builder().success().result(vectorOptional.get().getY()).build();
         } else if (getter.equalsIgnoreCase("z")) {
-            return Result.builder().success().result(vectorOptional.get().getZ()).literal(vectorOptional.get().getZ()).build();
+            return Result.builder().success().result(vectorOptional.get().getZ()).build();
         }
 
         return Result.failure();

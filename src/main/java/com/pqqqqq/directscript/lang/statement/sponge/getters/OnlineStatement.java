@@ -22,6 +22,6 @@ public class OnlineStatement extends Statement<Boolean> {
     @Override
     public Result<Boolean> run(Context ctx) {
         Optional<Player> player = ctx.getLiteral("User").getAs(Player.class);
-        return Result.<Boolean>builder().result(player.isPresent()).literal(player.isPresent()).build();
+        return Result.<Boolean>builder().result(player.isPresent()).build();
     }
 }

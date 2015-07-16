@@ -9,6 +9,7 @@ import org.spongepowered.api.event.Subscribe;
 import org.spongepowered.api.event.entity.EntitySpawnEvent;
 import org.spongepowered.api.event.entity.player.*;
 import org.spongepowered.api.event.message.CommandEvent;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.util.command.CommandSource;
 
@@ -22,33 +23,59 @@ public class TriggerEvents {
         this.plugin = plugin;
     }
 
-    @Subscribe
+    @Subscribe(order = Order.LAST)
     public void join(PlayerJoinEvent event) {
         Causes.PLAYER_JOIN.activate(ScriptInstance.builder()
                 .event(event)
                 .eventVar(event.getEntity()));
     }
 
-    @Subscribe
+    @Subscribe(order = Order.LAST)
     public void quit(PlayerQuitEvent event) {
+        Text message = event.getNewMessage() != null ? event.getNewMessage() : event.getMessage();
         Causes.PLAYER_QUIT.activate(ScriptInstance.builder()
                 .event(event)
-                .eventVar(event.getEntity()));
+                .eventVar(event.getEntity())
+                .eventVar("QuitMessage", Texts.toPlain(message)));
     }
 
-    @Subscribe
+    @Subscribe(order = Order.LAST)
     public void death(PlayerDeathEvent event) {
+        Text message = event.getNewMessage() != null ? event.getNewMessage() : event.getMessage();
         Causes.PLAYER_DEATH.activate(ScriptInstance.builder()
                 .event(event)
-                .eventVar(event.getEntity()));
+                .eventVar(event.getEntity())
+                .eventVar("KeepInventory", event.keepsInventory())
+                .eventVar("KeepsLevel", event.keepsLevel())
+                .eventVar("NewExp", event.getNewExperience())
+                .eventVar("NewLevel", event.getNewLevel())
+                .eventVar("DeathMessage", Texts.toPlain(message)));
+    }
+
+    @Subscribe(order = Order.LAST)
+    public void respawn(PlayerRespawnEvent event) {
+        Causes.PLAYER_RESPAWN.activate(ScriptInstance.builder()
+                .event(event)
+                .eventVar(event.getUser())
+                .eventVar(event.getNewRespawnLocation())
+                .eventVar("Bed", event.isBedSpawn()));
     }
 
     @Subscribe
     public void chat(PlayerChatEvent event) {
+        Text message = event.getNewMessage() != null ? event.getNewMessage() : event.getMessage();
         Causes.PLAYER_CHAT.activate(ScriptInstance.builder()
                 .event(event)
                 .eventVar(event.getEntity())
-                .eventVar("Message", Texts.toPlain(event.getNewMessage())));
+                .eventVar("Message", Texts.toPlain(message)));
+    }
+
+    @Subscribe
+    public void consume(PlayerItemConsumeEvent event) {
+        Causes.PLAYER_CONSUME.activate(ScriptInstance.builder()
+                .event(event)
+                .eventVar(event.getUser())
+                .eventVar("ItemStack", event.getConsumedItem()));
     }
 
     @Subscribe
@@ -57,7 +84,7 @@ public class TriggerEvents {
                 .event(event)
                 .eventVar(event.getEntity())
                 .eventVar("Old", event.getOldData().getHealth())
-                .eventVar("New", event.getNewData().getHealth()));
+                .eventVar("New", event.getNewData().getHealth())); // TODO: Causation
     }
 
     @Subscribe
@@ -66,7 +93,7 @@ public class TriggerEvents {
                 .event(event)
                 .eventVar(event.getEntity())
                 .eventVar(event.getBlock())
-                .eventVar("Interaction", event.getInteractionType().getId())); // TODO: Any scenarios where getName is needed over getId?
+                .eventVar("Interaction", event.getInteractionType().getId())); // TODO: Any scenarios where getName is needed over getId? .. // TODO: Causation
     }
 
     @Subscribe
@@ -91,7 +118,7 @@ public class TriggerEvents {
         Causes.ITEM_DROP.activate(ScriptInstance.builder()
                 .event(event)
                 .eventVar(event.getEntity())
-                .eventVar("ItemStacks", event.getDroppedItems()));
+                .eventVar("ItemStacks", event.getDroppedItems())); // TODO: Causation
     }
 
     @Subscribe
@@ -100,7 +127,7 @@ public class TriggerEvents {
                 .event(event)
                 .eventVar(event.getUser())
                 .eventVar(event.getBlock())
-                .eventVar("Replaced", event.getReplacementBlock()));
+                .eventVar("Replaced", event.getReplacementBlock())); // TODO: Causation
     }
 
     @Subscribe
@@ -110,7 +137,18 @@ public class TriggerEvents {
                 .eventVar(event.getUser())
                 .eventVar(event.getBlock())
                 .eventVar("Replaced", event.getReplacementBlock())
-                .eventVar("Exp", event.getExp()));
+                .eventVar("Exp", event.getExp())); // TODO: Causation
+    }
+
+    @Subscribe
+    public void blockHarvest(PlayerHarvestBlockEvent event) {
+        Causes.BLOCK_HARVEST.activate(ScriptInstance.builder()
+                .event(event)
+                .eventVar(event.getUser())
+                .eventVar(event.getBlock())
+                .eventVar("DroppedItems", event.getDroppedItems())
+                .eventVar("DropChance", event.getDropChance())
+                .eventVar("SilkTouch", event.isSilkTouch())); // TODO: Causation
     }
 
     @Subscribe
