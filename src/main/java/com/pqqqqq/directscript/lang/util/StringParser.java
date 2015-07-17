@@ -164,39 +164,31 @@ public class StringParser {
 
         for (int count = 0; count < string.length(); count++) {
             char c = string.charAt(count);
+            builder += c;
+
+            if (!quotes && roundBrackets == 0 && squareBrackets == 0 && curlyBrackets == 0) {
+                if (builder.endsWith(find)) {
+                    return builder.length() - find.length();
+                }
+            }
 
             if (c == '"') {
                 if (!builder.endsWith("\\") || builder.endsWith("\\\\")) {
                     quotes = !quotes;
                 }
             } else if (!quotes && !allowBrackets) {
-                if (!find.equals("(") && !find.equals(")")) {
-                    if (c == '(') {
-                        roundBrackets++;
-                    } else if (c == ')') {
-                        roundBrackets--;
-                    }
-                }
-                if (!find.equals("[") && !find.equals("]")) {
-                    if (c == '[') {
-                        squareBrackets++;
-                    } else if (c == ']') {
-                        squareBrackets--;
-                    }
-                }
-                if (!find.equals("{") && !find.equals("}")) {
-                    if (c == '{') {
-                        curlyBrackets++;
-                    } else if (c == '}') {
-                        curlyBrackets--;
-                    }
-                }
-            }
-
-            builder += c;
-            if (!quotes && roundBrackets == 0 && squareBrackets == 0 && curlyBrackets == 0) {
-                if (builder.endsWith(find)) {
-                    return builder.length() - find.length();
+                if (c == '(') {
+                    roundBrackets++;
+                } else if (c == ')') {
+                    roundBrackets--;
+                } else if (c == '[') {
+                    squareBrackets++;
+                } else if (c == ']') {
+                    squareBrackets--;
+                } else if (c == '{') {
+                    curlyBrackets++;
+                } else if (c == '}') {
+                    curlyBrackets--;
                 }
             }
         }
@@ -231,39 +223,31 @@ public class StringParser {
 
         for (int count = 0; count < string.length(); count++) {
             char c = string.charAt(count);
+            builder += c;
+
+            if (!quotes && roundBrackets == 0 && squareBrackets == 0 && curlyBrackets == 0) {
+                if (builder.endsWith(find)) {
+                    lastIndex = builder.length() - find.length();
+                }
+            }
 
             if (c == '"') {
                 if (!builder.endsWith("\\") || builder.endsWith("\\\\")) {
                     quotes = !quotes;
                 }
             } else if (!quotes && !allowBrackets) {
-                if (!find.equals("(") && !find.equals(")")) {
-                    if (c == '(') {
-                        roundBrackets++;
-                    } else if (c == ')') {
-                        roundBrackets--;
-                    }
-                }
-                if (!find.equals("[") && !find.equals("]")) {
-                    if (c == '[') {
-                        squareBrackets++;
-                    } else if (c == ']') {
-                        squareBrackets--;
-                    }
-                }
-                if (!find.equals("{") && !find.equals("}")) {
-                    if (c == '{') {
-                        curlyBrackets++;
-                    } else if (c == '}') {
-                        curlyBrackets--;
-                    }
-                }
-            }
-
-            builder += c;
-            if (!quotes && roundBrackets == 0 && squareBrackets == 0 && curlyBrackets == 0) {
-                if (builder.endsWith(find)) {
-                    lastIndex = builder.length() - find.length();
+                if (c == '(') {
+                    roundBrackets++;
+                } else if (c == ')') {
+                    roundBrackets--;
+                } else if (c == '[') {
+                    squareBrackets++;
+                } else if (c == ']') {
+                    squareBrackets--;
+                } else if (c == '{') {
+                    curlyBrackets++;
+                } else if (c == '}') {
+                    curlyBrackets--;
                 }
             }
         }
