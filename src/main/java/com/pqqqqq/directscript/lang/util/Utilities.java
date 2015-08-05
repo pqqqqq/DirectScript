@@ -7,6 +7,7 @@ import org.spongepowered.api.text.Texts;
 
 import java.io.File;
 import java.util.List;
+import java.util.Random;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -15,6 +16,7 @@ import static com.google.common.base.Preconditions.checkState;
  * A generic static utility class
  */
 public class Utilities {
+    static Random random = new Random();
 
     /**
      * Gets a double from a string, or null if none
@@ -112,5 +114,29 @@ public class Utilities {
         }
 
         return Optional.absent();
+    }
+
+    /**
+     * Produces a random integer between the bounds
+     *
+     * @param min the minimum bound
+     * @param max the maximum bound
+     * @return the random integer
+     */
+    public static int randomInt(int min, int max) {
+        checkState(max >= min, "Max must be larger than min");
+        return min + random.nextInt(max - min + 1);
+    }
+
+    /**
+     * Produces a random double between the bounds
+     *
+     * @param min the minimum bound
+     * @param max the maximum bound
+     * @return the random integer
+     */
+    public static double randomDouble(double min, double max) {
+        checkState(max >= min, "Max must be larger than min");
+        return min + (max - min) * random.nextDouble();
     }
 }

@@ -30,6 +30,7 @@ public class Causes {
     public static final Cause PLAYER_QUIT = new Cause("Quit", "PlayerQuit");
     public static final Cause PLAYER_DEATH = new Cause("Death", "PlayerDeath");
     public static final Cause PLAYER_RESPAWN = new Cause("Respawn", "PlayerRespawn");
+    public static final Cause PLAYER_MOVE = new Cause("Move", "PlayerMove");
     public static final Cause PLAYER_CHAT = new Cause("Chat", "PlayerChat");
     public static final Cause PLAYER_CONSUME = new Cause("Consume", "PlayerConsume");
     public static final Cause PLAYER_CHANGE_HEALTH = new Cause("ChangeHealth", "PlayerChangeHealth");

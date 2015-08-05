@@ -96,6 +96,11 @@ public class Sequencer {
                 return new NegateContainer(parse(line, sequence));
             }
 
+            // Check for $ (which means the value of the array)
+            if (sequence.startsWith("$")) {
+                return new VariableContainer(parse(line, sequence.substring(1)));
+            }
+
             // Check trailing array/map index values
             if (sequence.endsWith("]")) {
                 int index = Lang.instance().stringParser().lastIndexOf(sequence, "[");
@@ -132,7 +137,7 @@ public class Sequencer {
                 return literal.get();
             }
 
-            return new VariableContainer(sequence); // Worst comes to worst, assume its a variable container
+            return new VariableContainer(Literal.fromObject(sequence)); // Worst comes to worst, assume its a variable container
         }
 
         return new ArithmeticContainer(parse(line, triple.getBeforeSegment()), parse(line, triple.getAfterSegment()), triple.getDelimiter());

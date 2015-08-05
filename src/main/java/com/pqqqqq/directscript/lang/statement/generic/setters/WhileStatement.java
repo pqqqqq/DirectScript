@@ -1,6 +1,6 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
-import com.pqqqqq.directscript.lang.Lang;
+import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.reader.Block;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
@@ -18,14 +18,16 @@ public class WhileStatement extends Statement {
         super(Syntax.builder()
                 .identifiers("while")
                 .suffix("{")
-                .arguments(Arguments.of(Argument.builder().name("Condition").parse().build()))
+                .arguments(Arguments.of(Argument.from("Condition", Argument.NO_RESOLVE)))
                 .build());
     }
 
     @Override
     public Result run(Context ctx) {
         Block internalBlock = checkNotNull(ctx.getLine().getInternalBlock(), "This line has no internal block");
-        while (Lang.instance().sequencer().parse(ctx.getLine(), ctx.getLiteral("Condition").getString()).resolve(ctx.getScriptInstance()).getBoolean()) { // This needs to be re-parsed every time
+        DataContainer container = ctx.getContainer("Condition");
+
+        while (container.resolve(ctx.getScriptInstance()).getBoolean()) { // This needs to be re-parsed every time
             ScriptInstance.Result result = ctx.getScriptInstance().execute(internalBlock);
 
             if (result == ScriptInstance.Result.FAILURE_BREAK) {

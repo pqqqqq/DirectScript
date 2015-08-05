@@ -21,6 +21,7 @@ import org.spongepowered.api.world.World;
  * <li>{@link Literal#isBoolean()}
  * <li>{@link Literal#isNumber()}
  * <li>{@link Literal#isArray()}
+ * <li>{@link Literal#isMap()}
  * </ul>
  */
 public abstract class ObjectiveLiteral<T> extends Literal<T> {
@@ -83,6 +84,11 @@ public abstract class ObjectiveLiteral<T> extends Literal<T> {
     }
 
     @Override
+    public boolean isMap() {
+        return false;
+    }
+
+    @Override
     public ObjectiveLiteral<T> copy() {
         return this;
     }
@@ -100,6 +106,32 @@ public abstract class ObjectiveLiteral<T> extends Literal<T> {
         public <T> Optional<T> getAs(Class<T> type) {
             if (type.equals(Player.class)) {
                 return (Optional<T>) getValue();
+            }
+            return super.getAs(type);
+        }
+    }
+
+    /**
+     * An {@link ObjectiveLiteral} pertaining to a {@link Entity}
+     */
+    public static class EntityLiteral extends ObjectiveLiteral<Entity> {
+
+        EntityLiteral(Entity value) {
+            super(value);
+        }
+
+        @Override
+        public <T> Optional<T> getAs(Class<T> type) {
+            if (type.equals(Entity.class)) {
+                return (Optional<T>) getValue();
+            } else if (type.equals(World.class)) {
+                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getWorld());
+            } else if (type.equals(Location.class)) {
+                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getLocation());
+            } else if (type.equals(Vector3d.class)) {
+                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getLocation().getPosition());
+            } else if (type.equals(BlockSnapshot.class)) {
+                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getLocation().getBlockSnapshot());
             }
             return super.getAs(type);
         }
@@ -200,32 +232,6 @@ public abstract class ObjectiveLiteral<T> extends Literal<T> {
                 return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getPosition());
             } else if (type.equals(BlockSnapshot.class)) {
                 return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getBlockSnapshot());
-            }
-            return super.getAs(type);
-        }
-    }
-
-    /**
-     * An {@link ObjectiveLiteral} pertaining to a {@link Entity}
-     */
-    public static class EntityLiteral extends ObjectiveLiteral<Entity> {
-
-        EntityLiteral(Entity value) {
-            super(value);
-        }
-
-        @Override
-        public <T> Optional<T> getAs(Class<T> type) {
-            if (type.equals(Entity.class)) {
-                return (Optional<T>) getValue();
-            } else if (type.equals(World.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getWorld());
-            } else if (type.equals(Location.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getLocation());
-            } else if (type.equals(Vector3d.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getLocation().getPosition());
-            } else if (type.equals(BlockSnapshot.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getLocation().getBlockSnapshot());
             }
             return super.getAs(type);
         }

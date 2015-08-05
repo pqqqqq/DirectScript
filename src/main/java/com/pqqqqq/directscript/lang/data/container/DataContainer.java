@@ -16,7 +16,6 @@ public interface DataContainer<T> {
      *
      * @param scriptInstance the script instance to resolve this container in
      * @return the {@link Literal}
-     * @throws IllegalStateException if no literal can be resolved
      */
     Literal<T> resolve(ScriptInstance scriptInstance);
 }

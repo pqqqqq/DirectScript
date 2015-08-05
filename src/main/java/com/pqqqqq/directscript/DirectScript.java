@@ -49,24 +49,24 @@ public class DirectScript extends Environment {
     @DefaultConfig(sharedRoot = false)
     private ConfigurationLoader<CommentedConfigurationNode> configLoader;
 
+    @SuppressWarnings("deprecation")
     @Inject
     public DirectScript(Logger logger) {
         INSTANCE = this;
         this.logger = logger;
+        new Lang(); // Create a new lang here
     }
 
     public static DirectScript instance() {
         return INSTANCE;
     }
 
-    @SuppressWarnings("deprecation")
     @Subscribe
     public void init(InitializationEvent event) {
         cfg = new Config(configFile, configLoader);
         cfg.init();
         cfg.load();
 
-        new Lang(); // Create a new lang here
         Lang.instance().reloadScripts(); // Register all scripts
 
         // Register commands

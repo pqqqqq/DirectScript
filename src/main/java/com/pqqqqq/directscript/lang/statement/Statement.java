@@ -1,9 +1,11 @@
 package com.pqqqqq.directscript.lang.statement;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.reader.Line;
+import com.pqqqqq.directscript.lang.script.ScriptInstance;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -88,22 +90,31 @@ public abstract class Statement<T> {
         private final String[] identifiers;
         private final String prefix;
         private final String suffix;
+
         private final boolean doesUseBrackets;
+
+        private final Optional<Predicate<String>> customPredicate;
+
         private final ExecutionTime executionTime;
         private final Arguments[] arguments;
 
         // Generated
         private final Pattern matchPattern;
 
-        Syntax(String[] identifiers, String prefix, String suffix, boolean doesUseBrackets, ExecutionTime executionTime, Arguments[] arguments) {
+        Syntax(String[] identifiers, String prefix, String suffix, boolean doesUseBrackets, ExecutionTime executionTime, Predicate<String> customPredicate, Arguments[] arguments) {
             this.identifiers = identifiers;
             this.prefix = prefix;
             this.suffix = suffix;
             this.doesUseBrackets = doesUseBrackets;
             this.executionTime = executionTime;
+            this.customPredicate = Optional.fromNullable(customPredicate);
             this.arguments = arguments;
 
-            this.matchPattern = genMatchPattern();
+            if (!this.customPredicate.isPresent()) { // No need to generate this if it's never used
+                this.matchPattern = genMatchPattern();
+            } else {
+                this.matchPattern = null;
+            }
         }
 
         /**
@@ -161,6 +172,15 @@ public abstract class Statement<T> {
         }
 
         /**
+         * <p>Gets the {@link Optional} String {@link Predicate} for this syntax.</p>
+         * <p>If this value is present, all other matching utilities will be ignored, and this used instead.</p>
+         * @return the predicate
+         */
+        public Optional<Predicate<String>> getCustomPredicate() {
+            return customPredicate;
+        }
+
+        /**
          * Gets the array of {@link Arguments} for this statement
          *
          * @return the argument syntaxes
@@ -170,13 +190,17 @@ public abstract class Statement<T> {
         }
 
         /**
-         * Gets whether a given line is applicable to this statement. This is analogous to: <code>getMatchPattern().matcher(line).matches()</code>
+         * Gets whether a given line is applicable to this statement.
          *
-         * @param line
-         * @return
+         * @param line the line
+         * @return true if the line matches
          */
         public boolean matches(String line) {
-            return matchPattern.matcher(line).matches();
+            if (customPredicate.isPresent()) { // Check custom predicate first
+                return customPredicate.get().apply(line);
+            } else {
+                return matchPattern.matcher(line).matches();
+            }
         }
 
         private String genIdentifierPatternString() {
@@ -203,9 +227,10 @@ public abstract class Statement<T> {
 
         private Pattern genMatchPattern() {
             if (!doesUseBrackets()) {
-                return Pattern.compile("^(\\s*?)" + genPrefixPatternString() + genIdentifierPatternString() + "(.*?)" + genSuffixPatternString() + "(\\s*?)$");
+                return Pattern.compile("^(\\s*?)" + genPrefixPatternString() + genIdentifierPatternString() + "(.*?)" + genSuffixPatternString() + "(\\s*?)$", Pattern.CASE_INSENSITIVE); // DS is case insensitive to statements
+            } else {
+                return Pattern.compile("^(\\s*?)" + genPrefixPatternString() + genIdentifierPatternString() + "(\\s*?)\\((.*?)\\)(\\s*?)" + genSuffixPatternString() + "(\\s*?)$", Pattern.CASE_INSENSITIVE); // DS is case insensitive to statements
             }
-            return Pattern.compile("^(\\s*?)" + genPrefixPatternString() + genIdentifierPatternString() + "(\\s*?)\\((.*?)\\)(\\s*?)" + genSuffixPatternString() + "(\\s*?)$");
         }
 
         /**
@@ -217,6 +242,7 @@ public abstract class Statement<T> {
          * <li>Suffix: Empty
          * <li>Brackets: Yes
          * <li>Execution time: RUNTIME
+         * <li>Custom regex: null
          * <li>Argument syntaxes: Empty (no arguments)
          * </ul>
          */
@@ -226,6 +252,7 @@ public abstract class Statement<T> {
             private String suffix = "";
             private boolean doesUseBrackets = true;
             private ExecutionTime executionTime = ExecutionTime.RUNTIME;
+            private Predicate<String> customPredicate = null;
             private List<Arguments> arguments = new ArrayList<Arguments>();
 
             Builder() { // Default visibility
@@ -301,6 +328,17 @@ public abstract class Statement<T> {
             }
 
             /**
+             * Sets the custom {@link Predicate} for this {@link Builder}
+             * @param customPredicate the new custom predicate
+             * @return this builder, for fluency
+             * @see Syntax#getCustomPredicate()
+             */
+            public Builder customPredicate(Predicate<String> customPredicate) {
+                this.customPredicate = customPredicate;
+                return this;
+            }
+
+            /**
              * Adds the array of {@link Arguments}es to this {@link Builder}
              *
              * @param arguments the new argument syntaxes
@@ -323,7 +361,7 @@ public abstract class Statement<T> {
                 }
 
                 Collections.sort(this.arguments);
-                return new Syntax(identifiers.toArray(new String[identifiers.size()]), prefix, suffix, doesUseBrackets, executionTime, arguments.toArray(new Arguments[arguments.size()]));
+                return new Syntax(identifiers.toArray(new String[identifiers.size()]), prefix, suffix, doesUseBrackets, executionTime, customPredicate, arguments.toArray(new Arguments[arguments.size()]));
             }
         }
     }
@@ -412,31 +450,41 @@ public abstract class Statement<T> {
      * Represents an immutable argument for a {@link Statement} that has different properties
      */
     public static class Argument {
-        private final String name;
-        private final boolean parse;
+        /**
+         * Denotes an argument that does not parse
+         */
+        public static final int NO_PARSE = 0x01;
 
-        Argument(String name, boolean parse) {
+        /**
+         * Denotes an argument that does not resolve (this must be present if the {@link #NO_PARSE} flag is present)
+         */
+        public static final int NO_RESOLVE = 0x02;
+
+        private final String name;
+        private final int flags;
+
+        Argument(String name, int flags) {
             this.name = name;
-            this.parse = parse;
+            this.flags = flags;
         }
 
         /**
-         * <p>Creates a generic {@link Argument} with default options with the given name.</p>
-         * <p>This method is analogous to: Statement.builder().name(String).build()</p>
+         * Creates a new {@link Argument} with the given name and no flags
          * @param name the name of the argument
          * @return the new argument instance
          */
         public static Argument from(String name) {
-            return builder().name(name).build();
+            return from(name, 0);
         }
 
         /**
-         * Gets the {@link Argument} {@link Builder}
-         *
-         * @return the builder
+         * <p>Creates a new {@link Argument} with the given name and flags.</p>
+         * @param name the name of the argument
+         * @param flags the integer flags for the Argument
+         * @return the new argument instance
          */
-        public static Builder builder() {
-            return new Builder();
+        public static Argument from(String name, int flags) {
+            return new Argument(name, flags);
         }
 
         /**
@@ -454,62 +502,19 @@ public abstract class Statement<T> {
          * @return whether to parse this argument
          */
         public boolean doParse() {
-            return parse;
+            return !has(NO_PARSE);
         }
 
         /**
-         * The builder for {@link Argument}s
+         * Gets if this argument should be resolved by {@link com.pqqqqq.directscript.lang.data.container.DataContainer#resolve(ScriptInstance)}
+         * @return true if the argument should be resolved
          */
-        public static class Builder {
-            private String name = null;
-            private boolean parse = true;
-            private boolean modifier = false;
+        public boolean doResolve() {
+            return !has(NO_RESOLVE);
+        }
 
-            Builder() { // Default view
-            }
-
-            /**
-             * Sets the name of the argument
-             *
-             * @param name the new name
-             * @return this builder, for fluency
-             * @see Argument#getName()
-             */
-            public Builder name(String name) {
-                this.name = name;
-                return this;
-            }
-
-            /**
-             * Sets the parse value of the argument
-             *
-             * @param parse the new parse value
-             * @return this builder, for fluency
-             * @see Argument#doParse()
-             */
-            public Builder parse(boolean parse) {
-                this.parse = parse;
-                return this;
-            }
-
-            /**
-             * Toggles the parse value of the argument
-             *
-             * @return this builder, for fluency
-             * @see Argument#doParse()
-             */
-            public Builder parse() {
-                return parse(!parse);
-            }
-
-            /**
-             * Builds the current builder data into a {@link Argument}
-             *
-             * @return the new argument instance
-             */
-            public Argument build() {
-                return new Argument(checkNotNull(name, "Name"), parse);
-            }
+        private boolean has(int flag) {
+            return (flags & flag) != 0;
         }
     }
 

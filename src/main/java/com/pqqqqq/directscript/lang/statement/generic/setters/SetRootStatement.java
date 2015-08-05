@@ -11,22 +11,22 @@ import com.pqqqqq.directscript.lang.util.StringParser;
 
 /**
  * Created by Kevin on 2015-06-08.
- * A statement that sets the value of an existing {@link Variable}
+ * A statement that sets the value of an existing {@link Variable} by raising a root by its current value
  */
-public class SetStatement extends Statement<Object> {
+public class SetRootStatement extends Statement<Object> {
 
-    public SetStatement() {
+    public SetRootStatement() {
         super(Syntax.builder()
                 .customPredicate(new Predicate<String>() {
 
                     @Override
                     public boolean apply(String input) {
-                        String[] split = StringParser.instance().parseSplit(input, " = ");
+                        String[] split = StringParser.instance().parseSplit(input, " `= ");
                         return split.length == 2 && !split[0].trim().isEmpty() && !split[1].trim().isEmpty(); // Basically just check if something exists on both sides of an operator
                     }
                 })
                 .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_RESOLVE)))
-                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_RESOLVE), "=", Argument.from("Value")))
+                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_RESOLVE), "`=", Argument.from("Value")))
                 .build());
     }
 
@@ -35,7 +35,7 @@ public class SetStatement extends Statement<Object> {
         LiteralHolder literalHolder = ((HolderContainer) ctx.getContainer("VariableName")).resolveHolder(ctx.getScriptInstance());
         Literal value = ctx.getLiteral("Value").copy(); // We want a copied version
 
-        literalHolder.setData(value);
-        return Result.builder().success().result(value.getValue().orNull()).build();
+        literalHolder.setData(literalHolder.getData().root(value));
+        return Result.builder().success().result(literalHolder.getData()).build();
     }
 }

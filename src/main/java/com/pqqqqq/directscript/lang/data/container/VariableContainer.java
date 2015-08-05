@@ -13,23 +13,23 @@ import static com.google.common.base.Preconditions.checkState;
  * Represents a {@link Variable} {@link HolderContainer} which resolves the {@link Literal} value of a variable at runtime
  */
 public class VariableContainer implements HolderContainer {
-    private final String variableName;
+    private final DataContainer variableName;
 
     /**
      * Creates a new {@link VariableContainer} with the given {@link Variable}'s name
      *
      * @param variableName the variable's name
      */
-    public VariableContainer(String variableName) {
+    public VariableContainer(DataContainer variableName) {
         this.variableName = variableName;
     }
 
     /**
-     * Gets the name of the variable for this container
+     * Gets the {@link DataContainer} name of the variable for this container
      *
      * @return the variable name
      */
-    public String getVariableName() {
+    public DataContainer getVariableName() {
         return variableName;
     }
 
@@ -40,7 +40,7 @@ public class VariableContainer implements HolderContainer {
 
     @Override
     public LiteralHolder resolveHolder(ScriptInstance scriptInstance) {
-        Optional<Variable> variableOptional = scriptInstance.getVariable(getVariableName());
+        Optional<Variable> variableOptional = scriptInstance.getVariable(getVariableName().resolve(scriptInstance).getString());
         checkState(variableOptional.isPresent(), "Could not resolve symbol: " + variableName);
 
         return variableOptional.get();

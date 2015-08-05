@@ -12,6 +12,7 @@ import org.spongepowered.api.event.message.CommandEvent;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.util.command.CommandSource;
+import org.spongepowered.api.world.Location;
 
 /**
  * Created by Kevin on 2015-06-03.
@@ -59,6 +60,20 @@ public class TriggerEvents {
                 .eventVar(event.getUser())
                 .eventVar(event.getNewRespawnLocation())
                 .eventVar("Bed", event.isBedSpawn()));
+    }
+
+    @Subscribe(order = Order.LAST)
+    public void move(PlayerMoveEvent event) {
+        Location oldLoc = event.getOldLocation(), newLoc = event.getNewLocation();
+        if (oldLoc.getBlockX() != newLoc.getBlockX() || oldLoc.getBlockY() != newLoc.getBlockY() || oldLoc.getBlockZ() != newLoc.getBlockZ()) { // We only want when the block is changed
+            Causes.PLAYER_MOVE.activate(ScriptInstance.builder()
+                    .event(event)
+                    .eventVar(event.getUser())
+                    .eventVar("New", newLoc)
+                    .eventVar(newLoc.getBlockSnapshot())
+                    .eventVar("Old", oldLoc)
+                    .eventVar("Rotation", event.getRotation()));
+        }
     }
 
     @Subscribe

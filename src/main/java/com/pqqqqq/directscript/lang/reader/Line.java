@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
+import com.pqqqqq.directscript.lang.data.container.UnresolvableContainer;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.statement.Statements;
@@ -188,21 +189,25 @@ public class Line {
         Statement.Argument[] arguments = null;
 
         String trimmedLine;
-        if (syntax.doesUseBrackets()) {
-            trimmedLine = this.line.substring(this.line.indexOf('(') + 1, this.line.lastIndexOf(')')); // Trim to what's inside brackets
+        if (syntax.getCustomPredicate().isPresent()) {
+            trimmedLine = this.line;
         } else {
-            trimmedLine = StringUtils.removeStart(this.line, syntax.getPrefix()); // Trim prefix
+            if (syntax.doesUseBrackets()) {
+                trimmedLine = this.line.substring(this.line.indexOf('(') + 1, this.line.lastIndexOf(')')); // Trim to what's inside brackets
+            } else {
+                trimmedLine = StringUtils.removeStart(this.line, syntax.getPrefix()); // Trim prefix
 
-            if (syntax.getIdentifiers() != null && syntax.getIdentifiers().length > 0) {
-                for (String identifier : syntax.getIdentifiers()) {
-                    if (trimmedLine.startsWith(identifier)) {
-                        trimmedLine = StringUtils.removeStart(trimmedLine, identifier); // Trim identifier
-                        break;
+                if (syntax.getIdentifiers() != null && syntax.getIdentifiers().length > 0) {
+                    for (String identifier : syntax.getIdentifiers()) {
+                        if (trimmedLine.startsWith(identifier)) {
+                            trimmedLine = StringUtils.removeStart(trimmedLine, identifier); // Trim identifier
+                            break;
+                        }
                     }
                 }
-            }
 
-            trimmedLine = StringUtils.removeEnd(trimmedLine, syntax.getSuffix()); // Trim suffix
+                trimmedLine = StringUtils.removeEnd(trimmedLine, syntax.getSuffix()); // Trim suffix
+            }
         }
 
         argumentLoop:
@@ -237,7 +242,13 @@ public class Line {
 
         for (Statement.Argument argument : arguments) {
             String strarg = strargs[containers.size()];
-            containers.put(argument.getName(), (argument.doParse() ? Lang.instance().sequencer().parse(this, strarg) : Literal.fromObject(strarg))); // Use doParse boolean
+
+            DataContainer dataContainer = (argument.doParse() ? Lang.instance().sequencer().parse(this, strarg) : Literal.fromObject(strarg)); // Use doParse boolean
+            if (!argument.doResolve()) {
+                dataContainer = new UnresolvableContainer(dataContainer); // Use doResolve boolean
+            }
+
+            containers.put(argument.getName(), dataContainer);
         }
     }
 

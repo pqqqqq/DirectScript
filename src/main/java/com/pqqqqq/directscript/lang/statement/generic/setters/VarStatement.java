@@ -8,7 +8,7 @@ import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-02.
@@ -20,21 +20,23 @@ public class VarStatement extends Statement<Object> {
         super(Syntax.builder()
                 .identifiers("var")
                 .brackets()
-                .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build()))
-                .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build(), "=", Argument.from("Value")))
+                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_PARSE)))
+                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_PARSE), "=", Argument.from("Value")))
                 .build());
     }
 
     @Override
     public Result<Object> run(Context ctx) {
-        boolean isFinal = false;
+        boolean isFinal = false, parse = false;
         Environment environment = ctx.getScriptInstance().getTop();
-        String name = null;
+        String name = "";
 
         String[] words = Lang.instance().stringParser().parseSplit(ctx.getLiteral("VariableName").getString(), " ");
         for (String word : words) {
             if (word.equals("final")) {
                 isFinal = true;
+            } else if (word.equals("parse")) {
+                parse = true;
 
                 // TODO: Variable visibility masking fixes?
             } else if (word.equals("local")) {
@@ -44,9 +46,18 @@ public class VarStatement extends Statement<Object> {
             } else if (word.equals("public")) {
                 environment = DirectScript.instance();
             } else {
-                name = checkNotNull(word, "Improper variable declaration");
-                break;
+                name += word + " ";
+                if (!parse) {
+                    break;
+                }
             }
+        }
+
+        name = name.trim();
+
+        checkState(!name.isEmpty(), "Improper variable declaration");
+        if (parse) {
+            name = Lang.instance().sequencer().parse(ctx.getLine(), name).resolve(ctx.getScriptInstance()).getString();
         }
 
         Literal value = ctx.getLiteral("Value").copy();

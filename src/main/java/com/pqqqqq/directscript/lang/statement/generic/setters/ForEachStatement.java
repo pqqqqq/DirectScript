@@ -21,7 +21,7 @@ public class ForEachStatement extends Statement {
         super(Syntax.builder()
                 .identifiers("foreach")
                 .suffix("{")
-                .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build(), " in ", Argument.from("IterableArray")))
+                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_PARSE), " in ", Argument.from("IterableArray")))
                 .build());
     }
 

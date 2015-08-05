@@ -19,8 +19,8 @@ public class ForStatement extends Statement {
         super(Syntax.builder()
                 .identifiers("for")
                 .suffix("{")
-                .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build(), "=", Argument.from("StartValue"), ",", Argument.from("EndValue")))
-                .arguments(Arguments.of(Argument.builder().name("VariableName").parse().build(), "=", Argument.from("StartValue"), ",", Argument.from("EndValue"), ",", Argument.from("IncrementValue")))
+                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_PARSE), "=", Argument.from("StartValue"), ",", Argument.from("EndValue")))
+                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_PARSE), "=", Argument.from("StartValue"), ",", Argument.from("EndValue"), ",", Argument.from("IncrementValue")))
                 .build());
     }
 

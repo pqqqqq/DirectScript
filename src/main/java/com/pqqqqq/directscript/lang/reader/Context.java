@@ -3,6 +3,7 @@ package com.pqqqqq.directscript.lang.reader;
 import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
+import com.pqqqqq.directscript.lang.data.container.UnresolvableContainer;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
@@ -90,7 +91,13 @@ public class Context {
      * @return the data argument, or null if none
      */
     public DataContainer getContainer(String name) {
-        return this.containers.get(name);
+        DataContainer container = this.containers.get(name);
+
+        if (container != null && container instanceof UnresolvableContainer) {
+            return ((UnresolvableContainer) container).getDataContainer(); // Get the actual container here
+        }
+
+        return container;
     }
 
     /**

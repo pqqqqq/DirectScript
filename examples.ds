@@ -58,7 +58,7 @@ script("LoopCheck") {
 		var x = 1
 		while (x < 10) {
 			@send(x)
-			set x = x + 1
+			x += 1
 		}
 	} else {
 		@send("&cUnknown argument: " + arguments[1] + ", expected for, foreach or while")

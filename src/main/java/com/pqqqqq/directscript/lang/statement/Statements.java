@@ -29,7 +29,16 @@ public class Statements {
     // Generic statements
     public static final Statement PRINT = new PrintStatement();
     public static final Statement<Object> VAR_DECLARATION = new VarStatement();
+
+    // Sets
     public static final Statement<Object> SET = new SetStatement();
+    public static final Statement<Object> SET_ADD = new SetAddStatement();
+    public static final Statement<Object> SET_SUB = new SetSubStatement();
+    public static final Statement<Object> SET_MULT = new SetMultStatement();
+    public static final Statement<Object> SET_DIV = new SetDivStatement();
+    public static final Statement<Object> SET_POW = new SetPowStatement();
+    public static final Statement<Object> SET_ROOT = new SetRootStatement();
+
     public static final Statement CALL = new CallStatement();
     public static final Statement<Boolean> IF = new IfStatement();
     public static final Statement WHILE = new WhileStatement();
@@ -39,6 +48,7 @@ public class Statements {
     public static final Statement BREAK = new BreakStatement();
     public static final Statement CONTINUE = new ContinueStatement();
     public static final Statement REMOVE = new RemoveStatement();
+    public static final Statement WRITE_FILE = new WriteFileStatement();
 
     public static final Statement<String[]> SPLIT = new SplitStatement();
     public static final Statement<Integer> SIZE = new SizeStatement();
@@ -66,6 +76,10 @@ public class Statements {
     public static final Statement<Double> POSTFIX_INCREMENT = new PostfixIncrementStatement();
     public static final Statement<Double> POSTFIX_DECREMENT = new PostfixDecrementStatement();
     public static final Statement<Object> EVENT_VAR = new EventVarStatement();
+    public static final Statement<Integer> RANDOM_INTEGER = new RandomIntStatement();
+    public static final Statement<Double> RANDOM_DOUBLE = new RandomDoubleStatement();
+    public static final Statement<Long> MILLIS = new MillisStatement();
+    public static final Statement<String[]> READ_FILE = new ReadFileStatement();
 
     // Sponge statements
     public static final Statement SEND = new SendStatement();
@@ -82,6 +96,7 @@ public class Statements {
     public static final Statement SET_BLOCK = new SetBlockStatement();
     public static final Statement SPAWN = new SpawnStatement();
     public static final Statement GIVE = new GiveStatement();
+    public static final Statement EQUIP = new EquipStatement();
 
     public static final Statement<Boolean> PERMISSION = new PermissionStatement();
     public static final Statement<Boolean> ONLINE = new OnlineStatement();
