@@ -15,6 +15,7 @@ import java.io.File;
 public class Config {
     private File file;
     private ConfigurationLoader<CommentedConfigurationNode> cfg;
+    private DirectScript plugin = DirectScript.instance();
 
     Config(File file, ConfigurationLoader<CommentedConfigurationNode> cfg) {
         this.file = file;
@@ -35,10 +36,12 @@ public class Config {
             CommentedConfigurationNode root = cfg.load();
             CommentedConfigurationNode publicNode = root.getNode("public");
 
+            plugin.suppressNotifications(true); // Suppress notifications to save temporarily
             for (CommentedConfigurationNode variableNode : publicNode.getChildrenMap().values()) {
-                Literal literal = Sequencer.instance().parse(null, variableNode.getString()).resolve(null);
-                DirectScript.instance().addVariable(new Variable(variableNode.getKey().toString(), literal));
+                Literal literal = Sequencer.instance().parse(variableNode.getString()).resolve(null).get();
+                plugin.addVariable(new Variable(variableNode.getKey().toString(), plugin, literal));
             }
+            plugin.suppressNotifications(false); // Unsuppress them
 
             cfg.save(root);
         } catch (Exception e) {
@@ -46,13 +49,13 @@ public class Config {
         }
     }
 
-    public void save() {
+    protected void saveAll() {
         try {
             CommentedConfigurationNode root = cfg.createEmptyNode(ConfigurationOptions.defaults());
             CommentedConfigurationNode publicNode = root.getNode("public");
 
-            for (Variable publicVariable : DirectScript.instance()) {
-                publicNode.getNode(publicVariable.getName()).setValue(publicVariable.getData().toSequence());
+            for (Variable publicVariable : plugin) {
+                publicNode.getNode(publicVariable.getName()).setValue(publicVariable.getDatum().get().toSequence());
             }
 
             cfg.save(root);

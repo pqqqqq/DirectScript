@@ -2,7 +2,7 @@ package com.pqqqqq.directscript.lang.data.container.expression;
 
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.reader.Context;
 
 /**
  * Created by Kevin on 2015-06-17.
@@ -40,19 +40,43 @@ public class ConditionalExpressionContainer extends ExpressionContainer<Boolean>
     }
 
     @Override
-    public Literal<Boolean> resolve(ScriptInstance scriptInstance) {
-        Literal firstTerm = getFirstTerm().resolve(scriptInstance);
-        Literal secondTerm = getSecondTerm().resolve(scriptInstance);
+    public Literal<Boolean> resolve(Context ctx) {
+        Literal firstTerm = getFirstTerm().resolve(ctx).get();
+        Literal secondTerm = getSecondTerm().resolve(ctx).get();
         ComparativeOperator comparator = getOperator();
 
         switch (comparator) {
             case EQUALS:
+                if (firstTerm.isEmpty() && secondTerm.isEmpty()) {
+                    return Literal.Literals.TRUE;
+                } else if (firstTerm.isEmpty() && !secondTerm.isEmpty() || secondTerm.isEmpty() && !firstTerm.isEmpty()) {
+                    return Literal.Literals.FALSE;
+                }
+
                 return Literal.fromObject(firstTerm.getValue().equals(secondTerm.getValue()));
             case NOT_EQUALS:
+                if (firstTerm.isEmpty() && secondTerm.isEmpty()) {
+                    return Literal.Literals.FALSE;
+                } else if (firstTerm.isEmpty() && !secondTerm.isEmpty() || secondTerm.isEmpty() && !firstTerm.isEmpty()) {
+                    return Literal.Literals.TRUE;
+                }
+
                 return Literal.fromObject(!firstTerm.getValue().equals(secondTerm.getValue()));
             case SIMILAR:
+                if (firstTerm.isEmpty() && secondTerm.isEmpty()) {
+                    return Literal.Literals.TRUE;
+                } else if (firstTerm.isEmpty() && !secondTerm.isEmpty() || secondTerm.isEmpty() && !firstTerm.isEmpty()) {
+                    return Literal.Literals.FALSE;
+                }
+
                 return Literal.fromObject(firstTerm.getString().equalsIgnoreCase(secondTerm.getString()));
             case DISSIMILAR:
+                if (firstTerm.isEmpty() && secondTerm.isEmpty()) {
+                    return Literal.Literals.FALSE;
+                } else if (firstTerm.isEmpty() && !secondTerm.isEmpty() || secondTerm.isEmpty() && !firstTerm.isEmpty()) {
+                    return Literal.Literals.TRUE;
+                }
+
                 return Literal.fromObject(!firstTerm.getString().equalsIgnoreCase(secondTerm.getString()));
             case LESS_THAN:
                 return Literal.fromObject(firstTerm.getNumber() < secondTerm.getNumber());

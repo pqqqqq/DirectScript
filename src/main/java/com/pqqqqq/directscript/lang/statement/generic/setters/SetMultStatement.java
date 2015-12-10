@@ -2,9 +2,9 @@ package com.pqqqqq.directscript.lang.statement.generic.setters;
 
 import com.google.common.base.Predicate;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.LiteralHolder;
-import com.pqqqqq.directscript.lang.data.container.HolderContainer;
+import com.pqqqqq.directscript.lang.data.container.ValueContainer;
 import com.pqqqqq.directscript.lang.data.env.Variable;
+import com.pqqqqq.directscript.lang.data.mutable.MutableValue;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.util.StringParser;
@@ -32,10 +32,10 @@ public class SetMultStatement extends Statement<Object> {
 
     @Override
     public Result<Object> run(Context ctx) {
-        LiteralHolder literalHolder = ((HolderContainer) ctx.getContainer("VariableName")).resolveHolder(ctx.getScriptInstance());
-        Literal value = ctx.getLiteral("Value").copy(); // We want a copied version
+        MutableValue mutableValue = ((ValueContainer) ctx.getContainer("VariableName")).resolveValue(ctx);
+        Literal value = ctx.getLiteral("Value");
 
-        literalHolder.setData(literalHolder.getData().mult(value));
-        return Result.builder().success().result(literalHolder.getData()).build();
+        mutableValue.setDatum(mutableValue.getDatum().get().or(0D).mult(value)); // Null values will just be 0
+        return Result.builder().success().result(mutableValue.getDatum()).build();
     }
 }

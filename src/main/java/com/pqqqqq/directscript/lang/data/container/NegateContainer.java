@@ -1,11 +1,11 @@
 package com.pqqqqq.directscript.lang.data.container;
 
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.reader.Context;
 
 /**
  * Created by Kevin on 2015-06-17.
- * A simple {@link DataContainer} that negates {@link Literal}s, according to {@link Literal#negative()}
+ * A simple {@link DataContainer} that negates {@link Literal}s, according to {@link Literal#negate()}
  */
 public class NegateContainer implements DataContainer<Boolean> {
     private final DataContainer container;
@@ -29,7 +29,7 @@ public class NegateContainer implements DataContainer<Boolean> {
     }
 
     @Override
-    public Literal<Boolean> resolve(ScriptInstance scriptInstance) {
-        return getContainer().resolve(scriptInstance).negative();
+    public Literal<Boolean> resolve(Context ctx) {
+        return getContainer().resolve(ctx).get().negate();
     }
 }

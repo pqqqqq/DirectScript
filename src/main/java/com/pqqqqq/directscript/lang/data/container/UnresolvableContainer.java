@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.data.container;
 
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.reader.Context;
 
 /**
  * Created by Kevin on 2015-07-21.
@@ -29,7 +29,7 @@ public class UnresolvableContainer<T> implements DataContainer<T> {
     }
 
     @Override
-    public Literal<T> resolve(ScriptInstance scriptInstance) {
+    public Literal<T> resolve(Context ctx) {
         return Literal.Literals.EMPTY;
     }
 }

@@ -1,8 +1,9 @@
 package com.pqqqqq.directscript.lang.data.env;
 
 import com.google.common.base.Objects;
+import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.LiteralHolder;
+import com.pqqqqq.directscript.lang.data.mutable.DataHolder;
 
 import java.util.regex.Pattern;
 
@@ -13,46 +14,47 @@ import static com.google.common.base.Preconditions.checkState;
  * Created by Kevin on 2015-06-02.
  * Represents a memory section that contains a {@link Literal} and is read by a specific name
  */
-public class Variable extends LiteralHolder {
+public class Variable extends DataHolder {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z]([A-Za-z0-9]|\\.|\\_|\\:)*$");
     private static final Pattern ILLEGAL_NAMES = Pattern.compile("/^(local|global|public|final|parse|in|and|or)$/");
 
     private final String name;
+    private final Environment environment;
     private final boolean isFinal;
 
     /**
      * Creates a new variable with the corresponding name that has a value of {@link Literal.Literals#EMPTY} and is not final
      *
      * @param name the name
+     * @param environment the environment
      */
-    public Variable(String name) {
-        super();
-        this.name = name;
-        this.isFinal = false;
+    public Variable(String name, Environment environment) {
+        this(name, environment, Literal.Literals.EMPTY);
     }
 
     /**
-     * Creates a new variable with the corresponding name and {@link Literal} data, and is not final
+     * Creates a new variable with the corresponding name and {@link Datum}, and is not final
      *
      * @param name the name
+     * @param environment the environment
      * @param data the data
      */
-    public Variable(String name, Literal data) {
-        super(data);
-        this.name = name;
-        this.isFinal = false;
+    public Variable(String name, Environment environment, Datum data) {
+        this(name, environment, data, false);
     }
 
     /**
-     * Creates a new variable with the corresponding name, {@link Literal} data and finality
+     * Creates a new variable with the corresponding name, {@link Datum} and finality
      *
      * @param name    the name
      * @param data    the data
+     * @param environment the environment
      * @param isFinal whether this variable is final
      */
-    public Variable(String name, Literal data, boolean isFinal) {
+    public Variable(String name, Environment environment, Datum data, boolean isFinal) {
         super(data);
-        this.name = name;
+        this.name = checkNotNull(name, "Name cannot be null.");
+        this.environment = checkNotNull(environment, "Environment cannot be null.");
         this.isFinal = isFinal;
     }
 
@@ -61,8 +63,8 @@ public class Variable extends LiteralHolder {
      *
      * @return an empty variable
      */
-    public static Variable empty() {
-        return new Variable(null);
+    public static Variable empty(Environment environment) {
+        return new Variable(null, environment);
     }
 
     /**
@@ -91,14 +93,31 @@ public class Variable extends LiteralHolder {
         return name;
     }
 
+    /**
+     * Gets the {@link Environment} of this variable
+     *
+     * @return the environment
+     */
+    public Environment getEnvironment() {
+        return environment;
+    }
+
     @Override
-    public void setData(Literal data) {
-        checkState(!isFinal, "You cannot change the value of a finalized vaiable");
+    public void setDatum(Datum data) {
+        checkState(!isFinal, "You cannot change the value of a finalized variable");
         forceSetData(data);
     }
 
-    private void forceSetData(Literal data) {
-        super.setData(checkNotNull(data, "Data itself cannot be null. Use Literal#empty for null data"));
+    private void forceSetData(Datum data) {
+        boolean unequal = !checkNotNull(data, "Data itself cannot be null. Use Literal#empty for null data").equals(getDatum());
+
+        try {
+            super.setDatum(data);
+        } finally {
+            if (unequal && !this.environment.suppressNotifications) {
+                this.environment.notifyChange();
+            }
+        }
     }
 
     /**
@@ -110,21 +129,12 @@ public class Variable extends LiteralHolder {
         return isFinal;
     }
 
-    /**
-     * Copies this variable into a new instance
-     *
-     * @return the copied variable
-     */
-    @Override
-    public Variable copy() {
-        return new Variable(name, super.copy().getData(), isFinal);
-    }
-
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
                 .add("name", name)
-                .add("data", getData())
+                .add("environment", environment)
+                .add("data", getDatum())
                 .add("isFinal", isFinal).toString();
     }
 

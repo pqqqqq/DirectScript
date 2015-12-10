@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
-import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.Lang;
+import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.data.env.Variable;
@@ -43,8 +43,8 @@ public class VarStatement extends Statement<Object> {
                 environment = ctx.getScript().getScriptsFile();
             } else if (word.equals("global")) {
                 environment = Lang.instance();
-            } else if (word.equals("public")) {
-                environment = DirectScript.instance();
+                //} else if (word.equals("public")) {
+                //    environment = DirectScript.instance();
             } else {
                 name += word + " ";
                 if (!parse) {
@@ -57,11 +57,11 @@ public class VarStatement extends Statement<Object> {
 
         checkState(!name.isEmpty(), "Improper variable declaration");
         if (parse) {
-            name = Lang.instance().sequencer().parse(ctx.getLine(), name).resolve(ctx.getScriptInstance()).getString();
+            name = Lang.instance().sequencer().parse(name).resolve(ctx).get().getString();
         }
 
-        Literal value = ctx.getLiteral("Value").copy();
-        environment.addVariable(new Variable(name, value, isFinal));
-        return Result.builder().success().result(value.getValue().orNull()).build();
+        Datum value = ctx.getDatum("Value");
+        environment.addVariable(new Variable(name, environment, value, isFinal));
+        return Result.builder().success().result(value instanceof Literal ? ((Literal) value).getValue().orElse(null) : null).build();// We don't use get here because because we don't want to disturb non-literal data
     }
 }

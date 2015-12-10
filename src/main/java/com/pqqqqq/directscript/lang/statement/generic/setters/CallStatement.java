@@ -1,10 +1,8 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 import com.pqqqqq.directscript.lang.Lang;
+import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
@@ -12,6 +10,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -38,13 +37,13 @@ public class CallStatement extends Statement {
         Script script = scriptOptional.get();
         checkState(script.getTrigger().get().hasCause(Causes.CALL), "This script cannot be called");
 
-        List<LiteralHolder> arguments = ctx.getLiteral("ArgumentArray", Lists.newArrayList()).getArray();
+        List<Datum> arguments = ctx.getLiteral("ArgumentArray", Literal.Literals.EMPTY_ARRAY).getArray();
 
         ScriptInstance scriptInstanceNew = ScriptInstance.builder().script(script).cause(Causes.CALL).eventVar(ctx.getScriptInstance().getEventVars()).eventVar("Arguments", arguments).build();
         scriptInstanceNew.execute();
 
-        Literal returnLiteral = scriptInstanceNew.getReturnValue().orNull();
-        Object returnValue = (returnLiteral == null ? null : returnLiteral.getValue().orNull());
+        Literal returnLiteral = scriptInstanceNew.getReturnValue().orElse(null);
+        Object returnValue = (returnLiteral == null ? null : returnLiteral.getValue().orElse(null));
         return Result.builder().success().result(returnValue).build();
     }
 }

@@ -1,6 +1,5 @@
 package com.pqqqqq.directscript.lang.script;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.env.Environment;
@@ -13,14 +12,11 @@ import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import com.pqqqqq.directscript.lang.util.ICopyable;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.entity.Item;
-import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.world.Location;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -40,8 +36,8 @@ public class ScriptInstance extends Environment {
 
     private final Set<Context> contextSet = new HashSet<Context>();
 
-    private Optional<Literal> returnValue = Optional.absent();
-    private Optional<Block.BlockRunnable> currentRunnable = Optional.absent();
+    private Optional<Literal> returnValue = Optional.empty();
+    private Optional<Block.BlockRunnable> currentRunnable = Optional.empty();
 
     ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Event event, Map<String, Object> eventVars) {
         super((script == null ? null : script.getScriptsFile())); // The parent is the file
@@ -49,7 +45,7 @@ public class ScriptInstance extends Environment {
         this.cause = cause;
         this.linePredicate = linePredicate;
 
-        this.event = Optional.fromNullable(event);
+        this.event = Optional.ofNullable(event);
         this.eventVars = eventVars;
     }
 
@@ -367,7 +363,7 @@ public class ScriptInstance extends Environment {
         public Builder eventVar(BlockSnapshot block) {
             if (block != null) {
                 this.eventVars.put("Block", block);
-                this.eventVars.put("Vector", block.getLocation().toDouble());
+                this.eventVars.put("Vector", block.getLocation().get().getPosition());
             }
             return this;
         }
@@ -382,7 +378,10 @@ public class ScriptInstance extends Environment {
             if (location != null) {
                 this.eventVars.put("Location", location);
                 this.eventVars.put("World", location.getExtent());
-                eventVar(location.getBlockSnapshot());
+
+                if (location.hasBlock()) {
+                    eventVar(location.createSnapshot());
+                }
             }
             return this;
         }

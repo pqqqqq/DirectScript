@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.data.container;
 
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.reader.Context;
 
 /**
  * Created by Kevin on 2015-06-17.
@@ -53,8 +53,8 @@ public class TernaryOperatorContainer implements DataContainer {
     }
 
     @Override
-    public Literal resolve(ScriptInstance scriptInstance) {
-        Literal condition = getConditionContainer().resolve(scriptInstance);
-        return condition.getBoolean() ? getTrueContainer().resolve(scriptInstance) : getFalseContainer().resolve(scriptInstance); // Use a ternary operator for the ternary operator... inception
+    public Literal resolve(Context ctx) {
+        Literal condition = getConditionContainer().resolve(ctx).get();
+        return condition.getBoolean() ? getTrueContainer().resolve(ctx).get() : getFalseContainer().resolve(ctx).get(); // Use a ternary operator for the ternary operator... inception
     }
 }

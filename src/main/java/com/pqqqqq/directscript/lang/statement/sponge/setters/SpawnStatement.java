@@ -1,13 +1,16 @@
 package com.pqqqqq.directscript.lang.statement.sponge.setters;
 
-import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
-import com.pqqqqq.directscript.lang.util.Utilities;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityType;
+import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.extent.Extent;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by Kevin on 2015-06-24.
@@ -34,18 +37,22 @@ public class SpawnStatement extends Statement {
 
         Extent extent = locationOptional.get().getExtent();
 
-        String entityType = ctx.getLiteral("EntityType").getString();
-        Optional<EntityType> entityTypeOptional = Utilities.getType(EntityType.class, entityType);
+        Optional<EntityType> entityTypeOptional = ctx.getLiteral("EntityType", EntityType.class).getAs(EntityType.class);
         if (!entityTypeOptional.isPresent()) {
             return Result.failure();
         }
 
         int amount = ctx.getLiteral("Amount", 1).getNumber().intValue();
+        List<Entity> entityList = new ArrayList<>();
+
         for (int i = 0; i < amount; i++) {
             Entity newEntity = extent.createEntity(entityTypeOptional.get(), locationOptional.get().getBlockPosition()).get();
-            extent.spawnEntity(newEntity);
+            extent.spawnEntity(newEntity, Cause.of());
+
+            entityList.add(newEntity);
         }
 
-        return Result.success();
+        Object result = (entityList.isEmpty() ? null : entityList.size() == 1 ? entityList.get(0) : entityList);
+        return Result.builder().success().result(result).build();
     }
 }

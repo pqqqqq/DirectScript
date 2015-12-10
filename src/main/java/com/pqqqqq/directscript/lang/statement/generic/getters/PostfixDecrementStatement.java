@@ -2,8 +2,8 @@ package com.pqqqqq.directscript.lang.statement.generic.getters;
 
 import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.LiteralHolder;
-import com.pqqqqq.directscript.lang.data.container.HolderContainer;
+import com.pqqqqq.directscript.lang.data.container.ValueContainer;
+import com.pqqqqq.directscript.lang.data.mutable.MutableValue;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
@@ -17,15 +17,15 @@ public class PostfixDecrementStatement extends Statement<Double> {
         super(Syntax.builder()
                 .suffix("--")
                 .brackets()
-                .arguments(Arguments.of(Argument.from("VariableName")))
+                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_PARSE)))
                 .build());
     }
 
     @Override
     public Result<Double> run(Context ctx) {
-        LiteralHolder literalHolder = ((HolderContainer) Lang.instance().sequencer().parse(ctx.getLine(), ctx.getLiteral("VariableName").getString())).resolveHolder(ctx.getScriptInstance());
-        Literal before = literalHolder.getData();
-        literalHolder.setData(before.sub(Literal.Literals.ONE));
+        MutableValue mutableValue = ((ValueContainer) Lang.instance().sequencer().parse(ctx.getLiteral("VariableName").getString())).resolveValue(ctx);
+        Literal before = mutableValue.getDatum().get().or(0D); // Null values will just be 0
+        mutableValue.setDatum(before.sub(Literal.Literals.ONE));
 
         return Result.<Double>builder().success().result(before.getNumber()).build();
     }

@@ -1,9 +1,8 @@
 package com.pqqqqq.directscript.lang.data.env;
 
-import com.google.common.base.Optional;
-
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -14,8 +13,8 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public abstract class Environment implements Iterable<Variable> {
     private final Environment parent;
-    private final Set<Variable> variables = new HashSet<Variable>();
-
+    private final Set<Variable> variables = new HashSet<>();
+    boolean suppressNotifications = false;
     private Environment daughter = null;
 
     protected Environment() {
@@ -62,11 +61,15 @@ public abstract class Environment implements Iterable<Variable> {
             checkState(Variable.namePattern().matcher(variable.getName()).matches(), "This variable name (" + variable.getName() + ") has illegal characters (only alphanumeric/period and must start with alphabetic).");
             checkState(!Variable.illegalNames().matcher(variable.getName()).matches(), variable.getName() + " is an illegal name.");
 
-            if (getVariableHere(variable.getName()).isPresent()) {
-                return null;
-            }
+            //if (getVariableHere(variable.getName()).isPresent()) {
+            //    return null;
+            //}
 
             this.variables.add(variable);
+            if (!suppressNotifications) {
+                notifyChange();
+            }
+
             return variable;
         }
     }
@@ -99,7 +102,7 @@ public abstract class Environment implements Iterable<Variable> {
                 }
             }
 
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 
@@ -115,13 +118,11 @@ public abstract class Environment implements Iterable<Variable> {
 
     boolean removeVariableLoad(String name) {
         synchronized (variables) {
-            for (Iterator<Variable> i = iterator(); i.hasNext(); ) {
-                Variable variable = i.next();
-
-                if (variable.getName().equals(name)) {
-                    i.remove();
-                    return true;
+            if (variables.removeIf((variable) -> variable.getName().equals(name))) {
+                if (!suppressNotifications) {
+                    notifyChange();
                 }
+                return true;
             }
 
             if (getParent() != null) {
@@ -163,6 +164,13 @@ public abstract class Environment implements Iterable<Variable> {
             return parent.getBottom();
         }
         return this;
+    }
+
+    protected void notifyChange() {
+    }
+
+    protected void suppressNotifications(boolean suppressNotifications) {
+        this.suppressNotifications = suppressNotifications;
     }
 
     @Override

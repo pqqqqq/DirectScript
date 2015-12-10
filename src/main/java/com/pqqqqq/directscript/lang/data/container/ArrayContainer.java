@@ -1,8 +1,8 @@
 package com.pqqqqq.directscript.lang.data.container;
 
+import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.LiteralHolder;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.reader.Context;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +13,7 @@ import java.util.List;
  * An array statement that is a {@link List} of {@link DataContainer}s
  */
 public class ArrayContainer implements DataContainer {
-    private final List<DataContainer> list = new ArrayList<DataContainer>();
+    private final List<DataContainer> list = new ArrayList<>();
 
     /**
      * Creates an empty {@link ArrayContainer}
@@ -40,12 +40,9 @@ public class ArrayContainer implements DataContainer {
     }
 
     @Override
-    public Literal<List<LiteralHolder>> resolve(ScriptInstance scriptInstance) {
-        List<LiteralHolder> list = new ArrayList<LiteralHolder>();
-        for (DataContainer dataContainer : getList()) {
-            list.add(dataContainer.resolve(scriptInstance).toHolder());
-        }
-
+    public Literal<List<Datum>> resolve(Context ctx) {
+        List<Datum> list = new ArrayList<>();
+        getList().forEach((container) -> list.add(container.resolve(ctx).get()));
         return Literal.fromObject(list);
     }
 }

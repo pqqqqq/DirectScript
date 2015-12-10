@@ -1,19 +1,16 @@
 package com.pqqqqq.directscript.lang.data;
 
-import com.flowpowered.math.vector.Vector3d;
-import com.google.common.base.Optional;
-import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.entity.Entity;
-import org.spongepowered.api.entity.Item;
-import org.spongepowered.api.entity.living.Living;
-import org.spongepowered.api.entity.player.Player;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.World;
+import com.pqqqqq.directscript.lang.data.converter.Converter;
+import com.pqqqqq.directscript.lang.data.converter.Converters;
+
+import java.util.List;
+import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-26.
- * <p>An abstract {@link Literal} that has an objective {@link com.google.common.base.Optional Optional} value and not a primitive one</p>
+ * <p>A {@link Literal} that has an objective {@link Optional} value and not a primitive one</p>
  * <p>This class abstractedly inherits {@link Literal#getString()} and nullifies other key methods</p>
  * <p>Overidden methods of Literal:</p>
  * <ul>
@@ -22,12 +19,16 @@ import org.spongepowered.api.world.World;
  * <li>{@link Literal#isNumber()}
  * <li>{@link Literal#isArray()}
  * <li>{@link Literal#isMap()}
+ * <li>{@link Literal#isObjective()}
+ * <li>{@link Literal#getAs(Class)}
  * </ul>
  */
-public abstract class ObjectiveLiteral<T> extends Literal<T> {
+public class ObjectiveLiteral<T> extends Literal<T> {
+    private final Converter<T> objective;
 
-    ObjectiveLiteral(T value) {
+    ObjectiveLiteral(T value, Converter<T> objective) {
         super(value);
+        this.objective = objective;
     }
 
     /**
@@ -42,23 +43,56 @@ public abstract class ObjectiveLiteral<T> extends Literal<T> {
             return null;
         }
 
-        if (value instanceof Player) {
-            return (ObjectiveLiteral<T>) new PlayerLiteral((Player) value);
-        } else if (value instanceof World) {
-            return (ObjectiveLiteral<T>) new WorldLiteral((World) value);
-        } else if (value instanceof Item) {
-            return (ObjectiveLiteral<T>) new ItemLiteral((Item) value);
-        } else if (value instanceof ItemStack) {
-            return (ObjectiveLiteral<T>) new ItemStackLiteral((ItemStack) value);
-        } else if (value instanceof BlockSnapshot) {
-            return (ObjectiveLiteral<T>) new BlockSnapshotLiteral((BlockSnapshot) value);
-        } else if (value instanceof Location) {
-            return (ObjectiveLiteral<T>) new LocationLiteral((Location) value);
-        } else if (value instanceof Living) {
-            return (ObjectiveLiteral<T>) new LivingLiteral((Living) value);
-        } else if (value instanceof Entity) {
-            return (ObjectiveLiteral<T>) new EntityLiteral((Entity) value);
+        // We have to do this in reverse order, since converters are eligible if they are instances of the type
+        // And superclasses are first in the registry (eg. entity converter is before player converter)
+
+        List<Converter> registry = Converters.getRegistry();
+        for (int i = (registry.size() - 1); i >= 0; i--) {
+            Converter<?> converter = registry.get(i);
+            if (converter.isEligible(value)) {
+                return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, converter);
+            }
         }
+
+        /*if (value instanceof Player) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, PlayerConverter.instance());
+        } else if (value instanceof World) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, WorldConverter.instance());
+        } else if (value instanceof Item) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, EntityConverter.ITEM_OBJECTIVE);
+        } else if (value instanceof ItemStack) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, ItemStackConverter.instance());
+        } else if (value instanceof Location) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, LocationConverter.instance());
+        } else if (value instanceof Transform) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, TransformConverter.instance());
+        } else if (value instanceof Living) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, LivingConverter.instance());
+        } else if (value instanceof Entity) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, EntityConverter.instance());
+        } else if (value instanceof UUID) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, Converter.UUID_OBJECTIVE);
+        } else if (value instanceof BlockSnapshot) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, BlockSnapshotConverter.instance());
+        } else if (value instanceof ItemStackSnapshot) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, ItemStackSnapshotConverter.instance());
+        } else if (value instanceof BlockState) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, BlockStateConverter.instance());
+        } else if (value instanceof EntitySnapshot) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, EntitySnapshotConverter.instance());
+        } else if (value instanceof LocateableSnapshot) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, LocateableSnapshotConverter.instance());
+        } else if (value instanceof DataHolder) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, DataSerializableConverter.DATA_HOLDER_OBJECTIVE);
+        } else if (value instanceof DataSerializable) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, DataSerializableConverter.instance());
+        } else if (value instanceof DataContainer) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, DataContainerConverter.instance());
+        } else if (value instanceof CatalogType) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, CatalogTypeConverter.instance());
+        } else if (value instanceof Text) {
+            return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, TextConverter.instance());
+        }*/
 
         return null;
     }
@@ -89,169 +123,15 @@ public abstract class ObjectiveLiteral<T> extends Literal<T> {
     }
 
     @Override
-    public ObjectiveLiteral<T> copy() {
-        return this;
+    public boolean isObjective() {
+        return true;
     }
 
-    /**
-     * An {@link ObjectiveLiteral} pertaining to a {@link Player}
-     */
-    public static class PlayerLiteral extends LivingLiteral {
+    @Override
+    public <R> Optional<R> getAs(Class<R> type) {
+        checkState(getValue().isPresent(), "Value is not present");
 
-        PlayerLiteral(Player player) {
-            super(player);
-        }
-
-        @Override
-        public <T> Optional<T> getAs(Class<T> type) {
-            if (type.equals(Player.class)) {
-                return (Optional<T>) getValue();
-            }
-            return super.getAs(type);
-        }
-    }
-
-    /**
-     * An {@link ObjectiveLiteral} pertaining to a {@link Entity}
-     */
-    public static class EntityLiteral extends ObjectiveLiteral<Entity> {
-
-        EntityLiteral(Entity value) {
-            super(value);
-        }
-
-        @Override
-        public <T> Optional<T> getAs(Class<T> type) {
-            if (type.equals(Entity.class)) {
-                return (Optional<T>) getValue();
-            } else if (type.equals(World.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getWorld());
-            } else if (type.equals(Location.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getLocation());
-            } else if (type.equals(Vector3d.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getLocation().getPosition());
-            } else if (type.equals(BlockSnapshot.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getLocation().getBlockSnapshot());
-            }
-            return super.getAs(type);
-        }
-    }
-
-    /**
-     * An {@link ObjectiveLiteral} pertaining to a {@link World}
-     */
-    public static class WorldLiteral extends ObjectiveLiteral<World> {
-
-        WorldLiteral(World world) {
-            super(world);
-        }
-
-        @Override
-        public <T> Optional<T> getAs(Class<T> type) {
-            if (type.equals(World.class)) {
-                return (Optional<T>) getValue();
-            }
-            return super.getAs(type);
-        }
-    }
-
-    /**
-     * An {@link ObjectiveLiteral} pertaining to a {@link Item}
-     */
-    public static class ItemLiteral extends EntityLiteral {
-
-        ItemLiteral(Item item) {
-            super(item);
-        }
-
-        @Override
-        public <T> Optional<T> getAs(Class<T> type) {
-            if (type.equals(Item.class)) {
-                return (Optional<T>) getValue();
-            } else if (type.equals(ItemStack.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(((Item) getValue().get()).getItemData().getValue());
-            }
-            return super.getAs(type);
-        }
-    }
-
-    /**
-     * An {@link ObjectiveLiteral} pertaining to a {@link ItemStack}
-     */
-    public static class ItemStackLiteral extends ObjectiveLiteral<ItemStack> {
-
-        ItemStackLiteral(ItemStack itemStack) {
-            super(itemStack);
-        }
-
-        @Override
-        public <T> Optional<T> getAs(Class<T> type) {
-            if (type.equals(ItemStack.class)) {
-                return (Optional<T>) getValue();
-            }
-            return super.getAs(type);
-        }
-    }
-
-    /**
-     * An {@link ObjectiveLiteral} pertaining to a {@link BlockSnapshot}
-     */
-    public static class BlockSnapshotLiteral extends ObjectiveLiteral<BlockSnapshot> {
-
-        BlockSnapshotLiteral(BlockSnapshot blockSnapshot) {
-            super(blockSnapshot);
-        }
-
-        @Override
-        public <T> Optional<T> getAs(Class<T> type) {
-            if (type.equals(BlockSnapshot.class)) {
-                return (Optional<T>) getValue();
-            } else if (type.equals(Vector3d.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getLocation().toDouble());
-            }
-            return super.getAs(type);
-        }
-    }
-
-    /**
-     * An {@link ObjectiveLiteral} pertaining to a {@link Location}
-     */
-    public static class LocationLiteral extends ObjectiveLiteral<Location> {
-
-        LocationLiteral(Location location) {
-            super(location);
-        }
-
-        @Override
-        public <T> Optional<T> getAs(Class<T> type) {
-            if (type.equals(Location.class)) {
-                return (Optional<T>) getValue();
-            } else if (type.equals(World.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of((World) getValue().get().getExtent());
-            } else if (type.equals(Vector3d.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getPosition());
-            } else if (type.equals(BlockSnapshot.class)) {
-                return isEmpty() ? Optional.<T>absent() : (Optional<T>) Optional.of(getValue().get().getBlockSnapshot());
-            }
-            return super.getAs(type);
-        }
-    }
-
-    /**
-     * An {@link ObjectiveLiteral} pertaining to a {@link Living}
-     */
-    public static class LivingLiteral extends EntityLiteral {
-
-        LivingLiteral(Living value) {
-            super(value);
-        }
-
-        @Override
-        public <T> Optional<T> getAs(Class<T> type) {
-            if (type.equals(Living.class)) {
-                return (Optional<T>) getValue();
-            }
-            return super.getAs(type);
-        }
+        // TODO List -> object?
+        return objective.<R>convert(getValue().get(), type);
     }
 }

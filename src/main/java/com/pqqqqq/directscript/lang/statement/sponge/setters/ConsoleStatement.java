@@ -21,7 +21,7 @@ public class ConsoleStatement extends Statement {
     @Override
     public Result run(Context ctx) {
         String command = ctx.getLiteral("Command").getString();
-        DirectScript.instance().getGame().getCommandDispatcher().process(DirectScript.instance().getGame().getServer().getConsole(), command);
+        DirectScript.instance().getGame().getCommandManager().process(DirectScript.instance().getGame().getServer().getConsole(), command);
         return Result.success();
     }
 }

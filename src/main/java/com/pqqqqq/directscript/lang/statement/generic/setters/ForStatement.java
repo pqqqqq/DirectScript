@@ -34,10 +34,10 @@ public class ForStatement extends Statement {
 
         Block internalBlock = checkNotNull(ctx.getLine().getInternalBlock(), "This line has no internal block");
         Block.BlockRunnable blockRunnable = internalBlock.toRunnable(ctx.getScriptInstance());
-        Variable var = blockRunnable.addVariable(new Variable(varName));
+        Variable var = blockRunnable.addVariable(new Variable(varName, blockRunnable));
 
         for (double x = startValue; (startValue <= endValue ? x <= endValue : x >= endValue); x += increment) {
-            var.setData(Literal.fromObject(x));
+            var.setDatum(Literal.fromObject(x));
             ScriptInstance.Result result = blockRunnable.execute();
 
             if (result == ScriptInstance.Result.FAILURE_BREAK) {

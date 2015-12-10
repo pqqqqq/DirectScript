@@ -1,8 +1,8 @@
 package com.pqqqqq.directscript.lang.data.container;
 
+import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.LiteralHolder;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.reader.Context;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +12,7 @@ import java.util.Map;
  * A map statement that is a {@link Map} of {@link DataContainer} K-V pairs
  */
 public class MapContainer implements DataContainer {
-    private final Map<DataContainer, DataContainer> map = new HashMap<DataContainer, DataContainer>();
+    private final Map<DataContainer, DataContainer> map = new HashMap<>();
 
     /**
      * Creates an empty {@link MapContainer}
@@ -39,12 +39,9 @@ public class MapContainer implements DataContainer {
     }
 
     @Override
-    public Literal resolve(ScriptInstance scriptInstance) {
-        Map<LiteralHolder, LiteralHolder> map = new HashMap<LiteralHolder, LiteralHolder>();
-        for (Map.Entry<DataContainer, DataContainer> entry : getMap().entrySet()) {
-            map.put(entry.getKey().resolve(scriptInstance).toHolder(), entry.getValue().resolve(scriptInstance).toHolder());
-        }
-
+    public Literal<Map<Datum, Datum>> resolve(Context ctx) {
+        Map<Datum, Datum> map = new HashMap<>();
+        getMap().entrySet().forEach((entry) -> map.put(entry.getKey().resolve(ctx).get(), entry.getValue().resolve(ctx).get()));
         return Literal.fromObject(map);
     }
 }

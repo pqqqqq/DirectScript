@@ -27,7 +27,7 @@ public class WhileStatement extends Statement {
         Block internalBlock = checkNotNull(ctx.getLine().getInternalBlock(), "This line has no internal block");
         DataContainer container = ctx.getContainer("Condition");
 
-        while (container.resolve(ctx.getScriptInstance()).getBoolean()) { // This needs to be re-parsed every time
+        while (container.resolve(ctx).get().getBoolean()) { // This needs to be re-parsed every time
             ScriptInstance.Result result = ctx.getScriptInstance().execute(internalBlock);
 
             if (result == ScriptInstance.Result.FAILURE_BREAK) {

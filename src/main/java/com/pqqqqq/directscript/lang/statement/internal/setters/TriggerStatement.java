@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.statement.internal.setters;
 
 import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.data.LiteralHolder;
+import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
@@ -29,10 +29,10 @@ public class TriggerStatement extends Statement<Trigger> {
     @Override
     public Result<Trigger> run(Context ctx) {
         Trigger.Builder triggerBuilder = Trigger.builder().script(ctx.getScriptInstance().getScript());
-        List<LiteralHolder> triggers = ctx.getLiteral("TriggerArray").getArray();
+        List<Datum> triggers = ctx.getLiteral("TriggerArray").getArray();
 
-        for (LiteralHolder trigger : triggers) {
-            String causeString = trigger.getData().getString();
+        for (Datum trigger : triggers) {
+            String causeString = trigger.get().getString();
             Optional<Cause> cause = Causes.getCause(causeString);
 
             checkState(cause.isPresent(), "Unknown cause: " + causeString);

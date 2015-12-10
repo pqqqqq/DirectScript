@@ -1,8 +1,10 @@
 package com.pqqqqq.directscript.lang.data.container.expression;
 
-import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.data.Data;
+import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.reader.Context;
+
 
 /**
  * Created by Kevin on 2015-06-17.
@@ -38,24 +40,25 @@ public class ArithmeticContainer extends ExpressionContainer {
     }
 
     @Override
-    public Literal resolve(ScriptInstance scriptInstance) {
-        Literal firstLiteral = getFirstTerm().resolve(scriptInstance);
-        Literal secondLiteral = getSecondTerm().resolve(scriptInstance);
+    public Datum resolve(Context ctx) {
+        Datum firstDatum = getFirstTerm().resolve(ctx);
+        Datum secondDatum = getSecondTerm().resolve(ctx);
+
         ArithmeticOperator operator = getOperator();
 
         switch (operator) {
             case ADDITION:
-                return firstLiteral.add(secondLiteral);
+                return new Data(firstDatum, secondDatum);
             case SUBTRACTION:
-                return firstLiteral.sub(secondLiteral);
+                return firstDatum.get().sub(secondDatum.get());
             case MULTIPLICATION:
-                return firstLiteral.mult(secondLiteral);
+                return firstDatum.get().mult(secondDatum.get());
             case DIVISION:
-                return firstLiteral.div(secondLiteral);
+                return firstDatum.get().div(secondDatum.get());
             case EXPONENTIAL:
-                return firstLiteral.pow(secondLiteral);
+                return firstDatum.get().pow(secondDatum.get());
             case ROOT:
-                return firstLiteral.root(secondLiteral);
+                return firstDatum.get().root(secondDatum.get());
             default:
                 throw new IllegalStateException("Unknown arithmetic operator: " + operator);
         }

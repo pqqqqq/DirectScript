@@ -2,7 +2,7 @@ package com.pqqqqq.directscript.lang.data.container;
 
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.container.expression.ConditionalExpressionContainer;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.reader.Context;
 
 import java.util.List;
 
@@ -49,7 +49,7 @@ public class ConditionContainer implements DataContainer<Boolean> {
     }
 
     @Override
-    public Literal<Boolean> resolve(ScriptInstance scriptInstance) {
+    public Literal<Boolean> resolve(Context ctx) {
         andArray:
         for (ConditionalExpressionContainer[] andArray : getConditionExpressions()) {
             if (andArray.length == 0) {
@@ -57,7 +57,7 @@ public class ConditionContainer implements DataContainer<Boolean> {
             }
 
             for (ConditionalExpressionContainer expression : andArray) {
-                if (!expression.resolve(scriptInstance).getBoolean()) {
+                if (!expression.resolve(ctx).getBoolean()) {
                     continue andArray; // Expression was unsuccessful, move on to the next array
                 }
             }

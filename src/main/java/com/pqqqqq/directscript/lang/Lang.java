@@ -1,6 +1,5 @@
 package com.pqqqqq.directscript.lang;
 
-import com.google.common.base.Optional;
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.data.Sequencer;
 import com.pqqqqq.directscript.lang.data.env.Environment;
@@ -10,6 +9,7 @@ import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptsFile;
 import com.pqqqqq.directscript.lang.util.StringParser;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -106,13 +106,13 @@ public class Lang extends Environment {
      * <p><code>goodbye/hello:test</code></p>
      *
      * @param str the script name
-     * @return the script, or {@link Optional#absent()}
+     * @return the script, or {@link Optional#empty()} ()}
      */
     public Optional<Script> getScript(String str) {
         String[] split = str.split(":");
 
         if (split.length < 2) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         for (ScriptsFile scriptsFile : getScriptsFiles()) {
@@ -121,6 +121,6 @@ public class Lang extends Environment {
             }
         }
 
-        return Optional.absent();
+        return Optional.empty();
     }
 }

@@ -1,6 +1,5 @@
 package com.pqqqqq.directscript.lang.reader;
 
-import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
@@ -8,10 +7,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.statement.generic.setters.BreakStatement;
 import com.pqqqqq.directscript.lang.statement.generic.setters.ContinueStatement;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -82,9 +78,19 @@ public class Block implements Iterable<Line> {
     public class BlockRunnable extends Environment implements Runnable {
         private final ScriptInstance scriptInstance;
 
+        private Line currentLine = null;
+
         BlockRunnable(ScriptInstance scriptInstance) {
             super((scriptInstance.getCurrentRunnable().isPresent() ? scriptInstance.getCurrentRunnable().get() : scriptInstance));
             this.scriptInstance = scriptInstance;
+        }
+
+        /**
+         * Gets the current {@link Line} in this runnable
+         * @return the context
+         */
+        public Line getCurrentLine() {
+            return currentLine;
         }
 
         /**
@@ -98,13 +104,14 @@ public class Block implements Iterable<Line> {
             try {
                 scriptInstance.setCurrentRunnable(Optional.of(this));
                 for (Line line : Block.this) {
+                    currentLine = line;
                     try {
                         if (scriptInstance.getReturnValue().isPresent()) {
                             return ScriptInstance.Result.SUCCESS; // Return if execution is halted
                         }
 
                         if (line.getDepth() == getDepthOffset() && scriptInstance.getLinePredicate().apply(line)) {
-                            Statement statement = line.getStatement();
+                            Statement<?> statement = line.getStatement();
 
                             // Break and continue get special treatment
                             if (statement instanceof BreakStatement) {

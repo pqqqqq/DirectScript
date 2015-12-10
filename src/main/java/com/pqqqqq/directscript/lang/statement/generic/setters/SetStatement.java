@@ -1,10 +1,11 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
 import com.google.common.base.Predicate;
+import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.LiteralHolder;
-import com.pqqqqq.directscript.lang.data.container.HolderContainer;
+import com.pqqqqq.directscript.lang.data.container.ValueContainer;
 import com.pqqqqq.directscript.lang.data.env.Variable;
+import com.pqqqqq.directscript.lang.data.mutable.MutableValue;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.util.StringParser;
@@ -32,10 +33,10 @@ public class SetStatement extends Statement<Object> {
 
     @Override
     public Result<Object> run(Context ctx) {
-        LiteralHolder literalHolder = ((HolderContainer) ctx.getContainer("VariableName")).resolveHolder(ctx.getScriptInstance());
-        Literal value = ctx.getLiteral("Value").copy(); // We want a copied version
+        MutableValue mutableValue = ((ValueContainer) ctx.getContainer("VariableName")).resolveValue(ctx);
+        Datum value = ctx.getDatum("Value"); // We want a copied version
 
-        literalHolder.setData(value);
-        return Result.builder().success().result(value.getValue().orNull()).build();
+        mutableValue.setDatum(value);
+        return Result.builder().success().result(value instanceof Literal ? ((Literal) value).getValue().orElse(null) : null).build();// We don't use get here because because we don't want to disturb non-literal data
     }
 }

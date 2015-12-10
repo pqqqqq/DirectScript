@@ -1,12 +1,12 @@
 package com.pqqqqq.directscript.lang.script;
 
-import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.util.Utilities;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -72,7 +72,7 @@ public class ScriptsFile extends Environment {
             }
         }
 
-        return Optional.absent();
+        return Optional.empty();
     }
 
     /**

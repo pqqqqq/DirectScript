@@ -1,20 +1,15 @@
 package com.pqqqqq.directscript.lang.statement;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.reader.Line;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -107,7 +102,7 @@ public abstract class Statement<T> {
             this.suffix = suffix;
             this.doesUseBrackets = doesUseBrackets;
             this.executionTime = executionTime;
-            this.customPredicate = Optional.fromNullable(customPredicate);
+            this.customPredicate = Optional.ofNullable(customPredicate);
             this.arguments = arguments;
 
             if (!this.customPredicate.isPresent()) { // No need to generate this if it's never used
@@ -460,12 +455,19 @@ public abstract class Statement<T> {
          */
         public static final int NO_RESOLVE = 0x02;
 
+        /**
+         * Denotes an argument that takes the rest of the provided arguments as a list
+         */
+        public static final int REST_AS_LIST = 0x04;
+
         private final String name;
         private final int flags;
+        private Optional<Literal.Types> requiredType;
 
-        Argument(String name, int flags) {
+        Argument(String name, int flags, Literal.Types requiredType) {
             this.name = name;
             this.flags = flags;
+            this.requiredType = Optional.ofNullable(requiredType);
         }
 
         /**
@@ -474,7 +476,17 @@ public abstract class Statement<T> {
          * @return the new argument instance
          */
         public static Argument from(String name) {
-            return from(name, 0);
+            return from(name, 0, null);
+        }
+
+        /**
+         * Creates a new {@link Argument} with the given name and {@link com.pqqqqq.directscript.lang.data.Literal.Types required type}
+         * @param name the name
+         * @param requiredType the required type
+         * @return the new argument instance
+         */
+        public static Argument from(String name, Literal.Types requiredType) {
+            return from(name, 0, requiredType);
         }
 
         /**
@@ -484,7 +496,18 @@ public abstract class Statement<T> {
          * @return the new argument instance
          */
         public static Argument from(String name, int flags) {
-            return new Argument(name, flags);
+            return from(name, flags, null);
+        }
+
+        /**
+         * Creates a new {@link Argument} with the given name, flags and {@link com.pqqqqq.directscript.lang.data.Literal.Types required type}
+         * @param name the name
+         * @param flags the integer flags for the Argument
+         * @param requiredType the required type
+         * @return the new argument instance
+         */
+        public static Argument from(String name, int flags, Literal.Types requiredType) {
+            return new Argument(name, flags, requiredType);
         }
 
         /**
@@ -497,7 +520,7 @@ public abstract class Statement<T> {
         }
 
         /**
-         * Gets if this argument should be parsed by {@link com.pqqqqq.directscript.lang.data.Sequencer#parse(Line, String)}
+         * Gets if this argument should be parsed by {@link com.pqqqqq.directscript.lang.data.Sequencer#parse(String)}
          *
          * @return whether to parse this argument
          */
@@ -506,16 +529,54 @@ public abstract class Statement<T> {
         }
 
         /**
-         * Gets if this argument should be resolved by {@link com.pqqqqq.directscript.lang.data.container.DataContainer#resolve(ScriptInstance)}
+         * Gets if this argument should be resolved by {@link com.pqqqqq.directscript.lang.data.container.DataContainer#resolve(Context)}
          * @return true if the argument should be resolved
          */
         public boolean doResolve() {
             return !has(NO_RESOLVE);
         }
 
+        /**
+         * Gets if this argument should conjugate trailing arguments into a list
+         *
+         * @return true if conjugation should occur
+         */
+        public boolean doConjugateToList() {
+            return has(REST_AS_LIST);
+        }
+
+        /**
+         * Gets the required {@link com.pqqqqq.directscript.lang.data.Literal.Types Literal Type} for this argument to persist
+         *
+         * @return the required type
+         */
+        public Optional<Literal.Types> getRequiredType() {
+            return requiredType;
+        }
+
         private boolean has(int flag) {
             return (flags & flag) != 0;
         }
+    }
+
+    /**
+     * A class pertaining to a list of generic {@link Argument}s
+     */
+    public static class GenericArguments {
+        /**
+         * A getter argument with the key "Getter" and who has a string required type
+         */
+        public static final Argument GETTER = Argument.from("Getter", Literal.Types.STRING);
+
+        /**
+         * A generic Object argument with the key "Object"
+         */
+        public static final Argument OBJECT = Argument.from("Object");
+
+        /**
+         * A generic arguments argument with the key "Arguments" which uses conjugates trailing arguments (vaargs) and requires an array type.
+         */
+        public static final Argument ARGUMENTS = Argument.from("Arguments", Argument.REST_AS_LIST, Literal.Types.ARRAY);
     }
 
     /**
@@ -530,7 +591,7 @@ public abstract class Statement<T> {
         private final boolean success;
 
         Result(T result, boolean success) {
-            this.result = Optional.fromNullable(result);
+            this.result = Optional.ofNullable(result);
             this.success = success;
         }
 
@@ -578,11 +639,11 @@ public abstract class Statement<T> {
          *
          * @return the literal result
          */
-        public Optional<Literal> getLiteralResult() {
+        public <T> Optional<Literal<T>> getLiteralResult() {
             if (getResult().isPresent()) {
                 return Optional.of(Literal.fromObject(getResult().get()));
             }
-            return Optional.absent();
+            return Optional.empty();
         }
 
         /**

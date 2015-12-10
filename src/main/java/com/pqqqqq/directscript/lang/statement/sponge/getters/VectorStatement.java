@@ -1,9 +1,15 @@
 package com.pqqqqq.directscript.lang.statement.sponge.getters;
 
 import com.flowpowered.math.vector.Vector3d;
-import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
+import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
+
+import java.util.List;
+import java.util.Optional;
+
+import static com.pqqqqq.directscript.lang.statement.Statement.GenericArguments.*;
 
 /**
  * Created by Kevin on 2015-06-10.
@@ -15,17 +21,19 @@ public class VectorStatement extends Statement<Object> {
         super(Syntax.builder()
                 .identifiers("vector", "vec")
                 .prefix("@")
-                .arguments(Arguments.of(Argument.from("Getter")), Arguments.of(Argument.from("Getter"), ",", Argument.from("Vector")))
+                .arguments(Arguments.of(GETTER), Arguments.of(OBJECT, ",", GETTER), Arguments.of(GETTER, ",", ARGUMENTS))
+                .arguments(Arguments.of(OBJECT, ",", GETTER, ",", ARGUMENTS))
                 .build());
     }
 
     @Override
     public Result<Object> run(Context ctx) {
-        Optional<Vector3d> vectorOptional = ctx.getLiteral("Vector", Vector3d.class).getAs(Vector3d.class);
+        Optional<Vector3d> vectorOptional = ctx.getLiteral("Object", Vector3d.class).getAs(Vector3d.class);
         if (!vectorOptional.isPresent()) {
-            return Result.failure();
+            return Result.builder().failure().result("Vector object not found").build();
         }
 
+        // Getter
         String getter = ctx.getLiteral("Getter").getString();
         if (getter.equalsIgnoreCase("array")) {
             Double[] result = new Double[]{vectorOptional.get().getX(), vectorOptional.get().getY(), vectorOptional.get().getZ()};
@@ -40,6 +48,10 @@ public class VectorStatement extends Statement<Object> {
             return Result.builder().success().result(vectorOptional.get().getZ()).build();
         }
 
-        return Result.failure();
+        // Extra args
+        List<Datum> extraArguments = ctx.getLiteral("Arguments", Lists::newArrayList).getArray();
+        // TODO: shitload of vector stuff
+
+        return Result.builder().failure().result("Unknown getter: " + getter).build();
     }
 }

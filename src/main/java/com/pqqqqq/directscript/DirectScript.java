@@ -10,16 +10,17 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
-import org.spongepowered.api.event.Subscribe;
-import org.spongepowered.api.event.state.InitializationEvent;
-import org.spongepowered.api.event.state.ServerStartingEvent;
-import org.spongepowered.api.event.state.ServerStoppingEvent;
+import org.spongepowered.api.command.CommandManager;
+import org.spongepowered.api.config.DefaultConfig;
+import org.spongepowered.api.event.EventManager;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GameInitializationEvent;
+import org.spongepowered.api.event.game.state.GameStartingServerEvent;
+import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.service.command.CommandService;
-import org.spongepowered.api.service.config.DefaultConfig;
-import org.spongepowered.api.service.event.EventManager;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Kevin on 2015-06-02.
@@ -28,7 +29,7 @@ import java.io.File;
 public class DirectScript extends Environment {
     public static final String ID = "directscript";
     public static final String NAME = "DirectScript";
-    public static final String VERSION = "1.0-SNAPSHOT";
+    public static final String VERSION = "2.0-SNAPSHOT";
     public static final String AUTHORS = "Pqqqqq";
 
     private static DirectScript INSTANCE;
@@ -61,8 +62,8 @@ public class DirectScript extends Environment {
         return INSTANCE;
     }
 
-    @Subscribe
-    public void init(InitializationEvent event) {
+    @Listener
+    public void init(GameInitializationEvent event) {
         cfg = new Config(configFile, configLoader);
         cfg.init();
         cfg.load();
@@ -70,27 +71,26 @@ public class DirectScript extends Environment {
         Lang.instance().reloadScripts(); // Register all scripts
 
         // Register commands
-        CommandService commandService = game.getCommandDispatcher();
-        commandService.register(this, CommandDirectScript.build(this), "script", "directscript", "scr");
+        CommandManager commandService = game.getCommandManager();
+        commandService.register(this, CommandDirectScript.build(this), "script", "directscript", "scr", "scripts");
 
         // Register events
         EventManager eventManager = game.getEventManager();
-        eventManager.register(this, new TriggerEvents(this));
+        eventManager.registerListeners(this, new TriggerEvents(this));
 
         // Schedule events
-        game.getScheduler().getTaskBuilder().delay(5L).interval(5L).execute(new InternalTimer()).name("ScriptTimer").submit(this);
+        game.getScheduler().createTaskBuilder().delay(200L, TimeUnit.MILLISECONDS).interval(200L, TimeUnit.MILLISECONDS).execute(new InternalTimer()).name("ScriptTimer").submit(this);
     }
 
-    @Subscribe
-    public void serverStarting(ServerStartingEvent event) {
+    @Listener
+    public void serverStarting(GameStartingServerEvent event) {
         Causes.SERVER_STARTING.activate(); // Trigger server starting cause
     }
 
-    @Subscribe
-    public void serverStopping(ServerStoppingEvent event) {
+    @Listener
+    public void serverStopping(GameStoppingServerEvent event) {
         Causes.SERVER_STOPPING.activate(); // Trigger server stopping cause
         Lang.instance().errorHandler().close(); // Close error handler stream
-        cfg.save();
     }
 
     public Logger getLogger() {
@@ -103,6 +103,17 @@ public class DirectScript extends Environment {
 
     public Config getConfig() {
         return cfg;
+    }
+
+    // Environment override
+    @Override
+    public void notifyChange() {
+        cfg.saveAll();
+    }
+
+    @Override
+    protected void suppressNotifications(boolean suppressNotifications) {
+        super.suppressNotifications(suppressNotifications);
     }
 
     /**

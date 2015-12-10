@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.statement.generic.getters;
 
+import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.data.LiteralHolder;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
@@ -26,11 +26,11 @@ public class ContainsStatement extends Statement<Boolean> {
 
         boolean result = false;
         if (container.isArray() || container.isMap()) {
-            Collection<LiteralHolder> array = (container.isArray() ? container.getArray() : container.getMap().keySet());
+            Collection<Datum> array = (container.isArray() ? container.getArray() : container.getMap().keySet());
             Literal check = ctx.getLiteral("Check");
 
-            for (LiteralHolder literalHolder : array) {
-                if (literalHolder.getData().equals(check)) {
+            for (Datum datum : array) {
+                if (datum.get().getString().equals(check.getString())) {
                     result = true;
                     break;
                 }

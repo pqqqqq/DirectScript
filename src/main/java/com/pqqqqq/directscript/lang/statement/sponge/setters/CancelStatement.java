@@ -1,12 +1,13 @@
 package com.pqqqqq.directscript.lang.statement.sponge.setters;
 
-import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
+import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.Event;
-import org.spongepowered.api.event.message.CommandEvent;
-import org.spongepowered.api.util.command.CommandResult;
+import org.spongepowered.api.event.command.SendCommandEvent;
+
+import java.util.Optional;
 
 /**
  * Created by Kevin on 2015-06-09.
@@ -37,8 +38,8 @@ public class CancelStatement extends Statement {
         ((Cancellable) event).setCancelled(ctx.getLiteral("CancelCondition", true).getBoolean()); // Default true
 
         // Specific cancel stuff
-        if (event instanceof CommandEvent) {
-            ((CommandEvent) event).setResult(CommandResult.success());
+        if (event instanceof SendCommandEvent) {
+            ((SendCommandEvent) event).setResult(CommandResult.success());
         }
 
         return Result.success();

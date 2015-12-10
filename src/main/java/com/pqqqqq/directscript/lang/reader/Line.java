@@ -3,6 +3,7 @@ package com.pqqqqq.directscript.lang.reader;
 import com.google.common.base.Objects;
 import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.data.container.ArrayContainer;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.data.container.UnresolvableContainer;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
@@ -11,8 +12,7 @@ import com.pqqqqq.directscript.lang.statement.Statements;
 import com.pqqqqq.directscript.lang.util.StringParser;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -32,8 +32,7 @@ public class Line {
     private Block internalBlock = null;
     private int depth = 0;
 
-    private String[] strargs = null;
-    private Map<String, DataContainer> containers = null;
+    private List<ContextPossibility> contextPossibilities = null;
 
     /**
      * Creates a new line with the corresponding absolute and script number, the string representation of the line
@@ -173,20 +172,18 @@ public class Line {
      * @return the context
      */
     public Context toContext(ScriptInstance scriptInstance) {
-        if (strargs == null || containers == null) {
+        if (contextPossibilities == null) {
             parse();
         }
 
-        return new Context(scriptInstance, this, checkNotNull(strargs, "Strargs"), checkNotNull(containers, "Containers"));
+        return new Context(scriptInstance, this, checkNotNull(this.contextPossibilities, "Possibilities"));
     }
 
     private void parse() {
         checkState(isRunnable(), "Unknown line statement: " + this.line);
-        this.strargs = null;
-        this.containers = null;
+        this.contextPossibilities = new ArrayList<>();
 
         Statement.Syntax syntax = this.statement.getSyntax();
-        Statement.Argument[] arguments = null;
 
         String trimmedLine;
         if (syntax.getCustomPredicate().isPresent()) {
@@ -213,43 +210,71 @@ public class Line {
         argumentLoop:
         for (Statement.Arguments args : syntax.getArguments()) {
             String trimmedLineClone = trimmedLine;
-            String[] strargs = new String[args.getArguments().length];
             String[] delimiters = args.getDelimiters();
+            List<String> strargs = new ArrayList<>();
 
-            for (int i = 0; i < delimiters.length; i++) {
-                String delimiter = delimiters[i];
+            for (String delimiter : delimiters) {
                 int index = Lang.instance().stringParser().indexOf(trimmedLineClone, delimiter);
-
                 if (index == -1) {
                     continue argumentLoop;
                 } else {
-                    strargs[i] = trimmedLineClone.substring(0, index).trim();
+                    strargs.add(trimmedLineClone.substring(0, index).trim());
                     trimmedLineClone = trimmedLineClone.substring(index + delimiter.length());
                 }
             }
 
-            if (strargs.length > 0) {
-                strargs[strargs.length - 1] = trimmedLineClone.trim();
+            if (!trimmedLineClone.trim().isEmpty()) {
+                String[] split = Lang.instance().stringParser().parseSplit(trimmedLineClone.trim(), ","); // Account for conjugated lists
+                if (split != null) {
+                    strargs.addAll(Arrays.asList(split));
+                }
             }
 
-            this.strargs = strargs;
-            arguments = args.getArguments();
-            break;
+            if (strargs.size() >= args.getArguments().length) {
+                this.contextPossibilities.add(new ContextPossibility().setArgumentSet(args).setStrargs(strargs));
+            }
         }
 
-        checkState(this.strargs != null && arguments != null, "Invalid argument syntax");
-        containers = new HashMap<String, DataContainer>();
+        List<ContextPossibility> persist = new ArrayList<>();
+        for (ContextPossibility contextPossibility : this.contextPossibilities) {
+            String[] strargs = contextPossibility.getStrargs();
 
-        for (Statement.Argument argument : arguments) {
-            String strarg = strargs[containers.size()];
+            checkState(contextPossibility.getArgumentSet() != null && strargs != null, "Invalid argument syntax");
+            Map<Statement.Argument, DataContainer> containers = new HashMap<>();
 
-            DataContainer dataContainer = (argument.doParse() ? Lang.instance().sequencer().parse(this, strarg) : Literal.fromObject(strarg)); // Use doParse boolean
-            if (!argument.doResolve()) {
-                dataContainer = new UnresolvableContainer(dataContainer); // Use doResolve boolean
+            boolean conjugation = false;
+            for (Statement.Argument argument : contextPossibility.getArgumentSet().getArguments()) {
+                int currentIndex = containers.size();
+                if (!argument.doConjugateToList()/* || currentIndex == (strargs.length - 1)*/) { // Conjugation is irrelevant if there's only one argument left
+                    containers.put(argument, getDataContainer(argument, strargs[currentIndex]));
+                } else {
+                    conjugation = true;
+                    List<DataContainer> dataContainerList = new ArrayList<>();
+                    for (int i = currentIndex; i < strargs.length; i++) { // From current position to the end
+                        dataContainerList.add(getDataContainer(argument, strargs[i]));
+                    }
+
+                    containers.put(argument, new ArrayContainer(dataContainerList)); // Put an array container
+                    break;
+                }
             }
 
-            containers.put(argument.getName(), dataContainer);
+            contextPossibility.setContainers(containers); // Set new containers
+            if (!(!conjugation && contextPossibility.getStrargs().length != contextPossibility.getContainers().size())) {
+                persist.add(contextPossibility);
+            }
         }
+
+        this.contextPossibilities = persist;
+    }
+
+    private DataContainer getDataContainer(Statement.Argument argument, String strarg) { // Method to avoid duplicate code
+        DataContainer dataContainer = (argument.doParse() ? Lang.instance().sequencer().parse(strarg) : Literal.fromObject(strarg)); // Use doParse boolean
+        if (!argument.doResolve()) {
+            dataContainer = new UnresolvableContainer(dataContainer); // Use doResolve boolean
+        }
+
+        return dataContainer;
     }
 
     @Override
@@ -273,5 +298,46 @@ public class Line {
             return hashCode() == obj.hashCode();
         }
         return false;
+    }
+
+    protected static class ContextPossibility { // This class is hidden completely
+        private Statement.Arguments argumentSet = null;
+        private String[] strargs = null;
+        private Map<Statement.Argument, DataContainer> containers = null;
+
+        protected ContextPossibility() {
+        }
+
+        protected Statement.Arguments getArgumentSet() {
+            return argumentSet;
+        }
+
+        protected ContextPossibility setArgumentSet(Statement.Arguments argumentSet) {
+            this.argumentSet = argumentSet;
+            return this;
+        }
+
+        protected String[] getStrargs() {
+            return strargs;
+        }
+
+        protected ContextPossibility setStrargs(String[] strargs) {
+            this.strargs = strargs;
+            return this;
+        }
+
+        protected ContextPossibility setStrargs(Collection<String> strargs) {
+            this.strargs = strargs.toArray(new String[strargs.size()]);
+            return this;
+        }
+
+        protected Map<Statement.Argument, DataContainer> getContainers() {
+            return containers;
+        }
+
+        protected ContextPossibility setContainers(Map<Statement.Argument, DataContainer> containers) {
+            this.containers = containers;
+            return this;
+        }
     }
 }

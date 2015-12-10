@@ -1,9 +1,10 @@
 package com.pqqqqq.directscript.lang.statement.sponge.getters;
 
-import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
-import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.entity.living.player.Player;
+
+import java.util.Optional;
 
 /**
  * Created by Kevin on 2015-06-09.

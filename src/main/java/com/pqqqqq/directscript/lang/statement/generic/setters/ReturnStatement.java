@@ -1,9 +1,10 @@
 package com.pqqqqq.directscript.lang.statement.generic.setters;
 
-import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
+
+import java.util.Optional;
 
 /**
  * Created by Kevin on 2015-06-09.

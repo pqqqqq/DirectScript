@@ -2,21 +2,27 @@ package com.pqqqqq.directscript.lang.data;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.pqqqqq.directscript.DirectScript;
-import com.pqqqqq.directscript.lang.data.container.DataContainer;
-import com.pqqqqq.directscript.lang.script.ScriptInstance;
-import com.pqqqqq.directscript.lang.util.ICopyable;
 import com.pqqqqq.directscript.lang.util.Utilities;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.spongepowered.api.entity.player.Player;
+import org.spongepowered.api.CatalogType;
+import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -26,17 +32,17 @@ import static com.google.common.base.Preconditions.checkState;
  *
  * @param <T> the literal type
  */
-public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
+public class Literal<T> implements Datum<T> {
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.###");
 
     private final Optional<T> value;
 
-    Literal() {
+    protected Literal() {
         this(null);
     }
 
-    Literal(T value) {
-        this.value = Optional.fromNullable(value);
+    protected Literal(T value) {
+        this.value = Optional.ofNullable(value);
     }
 
     /**
@@ -45,7 +51,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @param value the value for the literal
      * @return the new literal instance
      */
-    public static Literal fromObject(Object value) {
+    public static <T> Literal<T> fromObject(Object value) {
         if (value == null) {
             return Literals.EMPTY;
         }
@@ -59,57 +65,73 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
             return objectiveLiteral;
         }
 
+        if (value instanceof String) {
+            String string = (String) value;
+            if (string.isEmpty()) {
+                return (Literal<T>) Literals.EMPTY_STRING;
+            } else {
+                return (Literal<T>) new Literal<>(string);
+            }
+        }
+
         if (value instanceof Boolean) {
-            return (Boolean) value ? Literals.TRUE : Literals.FALSE; // No need to create more immutable instances
+            return (Literal<T>) ((Boolean) value ? Literals.TRUE : Literals.FALSE); // No need to create more immutable instances
         }
 
         if (value instanceof Integer || value instanceof Long || value instanceof Float) {
-            return new Literal<Double>(Double.parseDouble(value.toString()));
+            double number = Double.parseDouble(value.toString());
+            if (number == 0D) {
+                return (Literal<T>) Literals.ZERO;
+            } else if (number == 1D) {
+                return (Literal<T>) Literals.ONE;
+            } else {
+                return (Literal<T>) new Literal<>(number);
+            }
         }
 
         if (value.getClass().isArray()) { // Special for arrays
-            List<LiteralHolder> array = new ArrayList<LiteralHolder>();
+            List<Datum> array = new ArrayList<Datum>();
             for (Object obj : (Object[]) value) {
-                array.add(obj instanceof LiteralHolder ? (LiteralHolder) obj : Literal.fromObject(obj).toHolder());
+                array.add(obj instanceof Datum ? (Datum) obj : Literal.fromObject(obj));
             }
 
             if (array.isEmpty()) {
-                return Literals.EMPTY_ARRAY;
+                return (Literal<T>) Literals.EMPTY_ARRAY;
             }
 
-            return new Literal<List<LiteralHolder>>(array);
+            return (Literal<T>) new Literal<>(ImmutableList.copyOf(array));
         }
 
         if (value instanceof Collection) { // Special for collections
-            List<LiteralHolder> array = new ArrayList<LiteralHolder>();
+            List<Datum> array = new ArrayList<Datum>();
             for (Object obj : (Collection) value) {
-                array.add(obj instanceof LiteralHolder ? (LiteralHolder) obj : Literal.fromObject(obj).toHolder());
+                array.add(obj instanceof Datum ? (Datum) obj : Literal.fromObject(obj));
             }
 
             if (array.isEmpty()) {
-                return Literals.EMPTY_ARRAY;
+                return (Literal<T>) Literals.EMPTY_ARRAY;
             }
 
-            return new Literal<List<LiteralHolder>>(array);
+            return (Literal<T>) new Literal<>(ImmutableList.copyOf(array));
         }
 
         if (value instanceof Map) { // Special for maps
-            Map<LiteralHolder, LiteralHolder> map = new HashMap<LiteralHolder, LiteralHolder>();
+            Map<Datum, Datum> map = new HashMap<>();
             for (Map.Entry entry : ((Map<Object, Object>) value).entrySet()) {
-                map.put(entry.getKey() instanceof LiteralHolder ? (LiteralHolder) entry.getKey() : Literal.fromObject(entry.getKey()).toHolder(), entry.getValue() instanceof LiteralHolder ? (LiteralHolder) entry.getValue() : Literal.fromObject(entry.getValue()).toHolder());
+                map.put(entry.getKey() instanceof Datum ? (Datum) entry.getKey() : Literal.fromObject(entry.getKey()), entry.getValue() instanceof Datum ? (Datum) entry.getValue() : Literal.fromObject(entry.getValue()));
             }
 
             if (map.isEmpty()) {
-                return Literals.EMPTY_MAP;
+                return (Literal<T>) Literals.EMPTY_MAP;
             }
 
-            return new Literal<Map<LiteralHolder, LiteralHolder>>(map);
+            return (Literal<T>) new Literal<>(ImmutableMap.copyOf(map));
         }
 
         return new Literal(value);
     }
 
-    protected static Optional<Literal> fromSequence(String literal) { // Only Sequencer should use this
+    protected static <T> Optional<Literal<T>> fromSequence(String literal) { // Only Sequencer should use this
         if (literal == null || literal.isEmpty() || literal.equals("null")) { // Null or empty values return an empty parse
             return Optional.of(Literals.EMPTY);
         }
@@ -121,11 +143,11 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
 
         // Literal booleans are only true or false
         if (literal.equals("true")) {
-            return Optional.<Literal>of(Literals.TRUE);
+            return Optional.of((Literal<T>) Literals.TRUE);
         }
 
         if (literal.equals("false")) {
-            return Optional.<Literal>of(Literals.FALSE);
+            return Optional.of((Literal<T>) Literals.FALSE);
         }
 
         // All numbers are doubles, just make them all doubles
@@ -134,11 +156,11 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
             return Optional.of(Literal.fromObject(doubleVal));
         }
 
-        return Optional.absent();
+        return Optional.empty();
     }
 
     /**
-     * Gets whether this literal is empty ({@link #getValue()} = {@link Optional#absent()})
+     * Gets whether this literal is empty ({@link #getValue()} = {@link Optional#empty()} ()})
      *
      * @return true if empty
      */
@@ -161,8 +183,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @return true if a String
      */
     public boolean isString() {
-        checkState(getValue().isPresent(), "This literal must be present to check this");
-        return getValue().get() instanceof String;
+        return getValue().isPresent() && getValue().get() instanceof String;
     }
 
     /**
@@ -171,8 +192,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @return true if a Boolean
      */
     public boolean isBoolean() {
-        checkState(getValue().isPresent(), "This literal must be present to check this");
-        return getValue().get() instanceof Boolean;
+        return getValue().isPresent() && getValue().get() instanceof Boolean;
     }
 
     /**
@@ -181,8 +201,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @return true if a Number
      */
     public boolean isNumber() {
-        checkState(getValue().isPresent(), "This literal must be present to check this");
-        return getValue().get() instanceof Double;
+        return getValue().isPresent() && getValue().get() instanceof Double;
     }
 
     /**
@@ -191,8 +210,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @return true if an Array
      */
     public boolean isArray() {
-        checkState(getValue().isPresent(), "This literal must be present to check this");
-        return getValue().get() instanceof List;
+        return getValue().isPresent() && getValue().get() instanceof List;
     }
 
     /**
@@ -200,8 +218,15 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @return true if a Map
      */
     public boolean isMap() {
-        checkState(getValue().isPresent(), "This literal must be present to check this");
-        return getValue().get() instanceof Map;
+        return getValue().isPresent() && getValue().get() instanceof Map;
+    }
+
+    /**
+     * Gets whether this {@link Literal} is objective, which is an instance of {@link ObjectiveLiteral}
+     * @return true if objective
+     */
+    public boolean isObjective() {
+        return false;
     }
 
     /**
@@ -232,61 +257,42 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
     }
 
     /**
-     * Gets the array ({@link LiteralHolder} {@link List}) value of this {@link Literal}
+     * Gets the array ({@link Datum} {@link List}) value of this {@link Literal}
      *
      * @return the array value
      */
-    public List<LiteralHolder> getArray() {
-        return isArray() ? (List<LiteralHolder>) getValue().get() : parseArray().getArray();
+    public List<Datum> getArray() {
+        return isArray() ? (List<Datum>) getValue().get() : parseArray().getArray();
     }
 
     /**
-     * Gets the map ({@link LiteralHolder} K-V {@link Map}) value of this {@link Literal}
+     * Gets the map ({@link Datum} K-V {@link Map}) value of this {@link Literal}
      * @return the map value
      */
-    public Map<LiteralHolder, LiteralHolder> getMap() {
-        return isMap() ? (Map<LiteralHolder, LiteralHolder>) getValue().get() : parseMap().getMap();
+    public Map<Datum, Datum> getMap() {
+        return isMap() ? (Map<Datum, Datum>) getValue().get() : parseMap().getMap();
     }
 
     /**
-     * Gets the specific {@link LiteralHolder} array data at the index
+     * Gets the specific {@link Datum} array data at the index
      *
      * @param index the index for the array (base 1)
      * @return the variable at this index
      */
-    public LiteralHolder getArrayValue(int index) {
+    public Datum getArrayValue(int index) {
         checkState(isArray(), "This literal is not an array");
-
-        List<LiteralHolder> literalHolders = getArray();
-        Utilities.buildToIndex(literalHolders, --index, Literals.EMPTY.toHolder()); // Base 1
-        return literalHolders.get(index);
+        return getArray().get(--index);
     }
 
     /**
-     * Gets a {@link LiteralHolder} map data from its key
+     * Gets a {@link Datum} map data from its key
      *
-     * @param literalHolder the key value holder
-     * @return the map value
+     * @param data the key value
+     * @return the map value, or null
      */
-    public LiteralHolder getMapValue(LiteralHolder literalHolder) {
-        return getMapValue(literalHolder.getData());
-    }
-
-    /**
-     * Gets a {@link LiteralHolder} map data from its key
-     *
-     * @param literal the key value
-     * @return the map value
-     */
-    public LiteralHolder getMapValue(Literal literal) {
+    public Datum getMapValue(Datum data) {
         checkState(isMap(), "This literal is not a map");
-        for (Map.Entry<LiteralHolder, LiteralHolder> entry : getMap().entrySet()) {
-            if (entry.getKey().getData().equals(literal)) {
-                return entry.getValue();
-            }
-        }
-
-        return null;
+        return getMap().get(data);
     }
 
     // Sponge casting
@@ -294,50 +300,62 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
     /**
      * Gets the {@link Literal} as a specific given type
      * @param type the type
-     * @param <T> the generic type parameter
+     * @param <R> the generic type parameter
      * @return the optional value of the type
      */
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> getAs(Class<T> type) {
+    public <R> Optional<R> getAs(Class<R> type) {
         try {
-            if (type.isAssignableFrom(Player.class)) {
+            if (Player.class.isAssignableFrom(type)) {
                 Optional<Player> playerOptional = DirectScript.instance().getGame().getServer().getPlayer(getString()); // Check name first
                 if (playerOptional.isPresent()) {
-                    return (Optional<T>) playerOptional;
+                    return (Optional<R>) playerOptional;
                 }
 
-                return (Optional<T>) DirectScript.instance().getGame().getServer().getPlayer(UUID.fromString(getString())); // Check uuid now
-            } else if (type.isAssignableFrom(World.class)) {
-                return (Optional<T>) DirectScript.instance().getGame().getServer().getWorld(getString());
-            } else if (type.isAssignableFrom(Vector3d.class)) {
-                List<LiteralHolder> array = getArray();
-                return (Optional<T>) Optional.of(new Vector3d(array.get(0).getData().getNumber(), array.get(1).getData().getNumber(), array.get(2).getData().getNumber()));
-            } else if (type.isAssignableFrom(Location.class)) {
-                List<LiteralHolder> array = getArray();
+                return (Optional<R>) DirectScript.instance().getGame().getServer().getPlayer(UUID.fromString(getString())); // Check uuid now
+            } else if (World.class.isAssignableFrom(type)) {
+                return (Optional<R>) DirectScript.instance().getGame().getServer().getWorld(getString());
+            } else if (Vector3d.class.isAssignableFrom(type)) {
+                List<Datum> array = getArray();
+                return (Optional<R>) Optional.of(new Vector3d(array.get(0).get().getNumber(), array.get(1).get().getNumber(), array.get(2).get().getNumber()));
+            } else if (Location.class.isAssignableFrom(type) || BlockSnapshot.class.isAssignableFrom(type) || BlockState.class.isAssignableFrom(type)) {
+                List<Datum> array = getArray();
 
-                World world = DirectScript.instance().getGame().getServer().getWorld(array.get(0).getData().getString()).get();
-                Vector3d vec = new Vector3d(array.get(1).getData().getNumber(), array.get(2).getData().getNumber(), array.get(3).getData().getNumber());
+                World world = DirectScript.instance().getGame().getServer().getWorld(array.get(0).get().getString()).get();
+                Vector3d vec = new Vector3d(array.get(1).get().getNumber(), array.get(2).get().getNumber(), array.get(3).get().getNumber());
 
-                return (Optional<T>) Optional.of(new Location(world, vec));
-            } else if (type.isAssignableFrom(ItemStack.class)) {
-                List<LiteralHolder> array = getArray();
-                ItemType itemType = Utilities.getType(ItemType.class, array.get(0).getData().getString()).get();
-                int quantity = array.size() >= 2 ? array.get(1).getData().getNumber().intValue() : 1;
+                if (Location.class.isAssignableFrom(type)) {
+                    return (Optional<R>) Optional.of(new Location(world, vec));
+                } else if (BlockState.class.isAssignableFrom(type)) {
+                    return (Optional<R>) Optional.of(new Location(world, vec).getBlock());
+                } else if (BlockSnapshot.class.isAssignableFrom(type)) {
+                    return (Optional<R>) Optional.of(new Location(world, vec).createSnapshot());
+                }
+            } else if (ItemStack.class.isAssignableFrom(type)) {
+                List<Datum> array = getArray();
+                ItemType itemType = Utilities.getType(ItemType.class, array.get(0).get().getString()).get();
+                int quantity = array.size() >= 2 ? array.get(1).get().getNumber().intValue() : 1;
 
-                return (Optional<T>) Optional.of(DirectScript.instance().getGame().getRegistry().getItemBuilder().itemType(itemType).quantity(quantity).build());
+                return (Optional<R>) Optional.of(DirectScript.instance().getGame().getRegistry().createBuilder(ItemStack.Builder.class).itemType(itemType).quantity(quantity).build());
+            } else if (CatalogType.class.isAssignableFrom(type)) {
+                String id = getString();
+                if (!id.contains(":")) {
+                    id = "minecraft:" + id;
+                }
+
+                for (CatalogType catalogType : DirectScript.instance().getGame().getRegistry().getAllOf((Class<? extends CatalogType>) type)) {
+                    if (catalogType.getId().equalsIgnoreCase(id)) {
+                        return (Optional<R>) Optional.of(catalogType);
+                    }
+                }
+
+                return Optional.empty();
+            } else if (Text.class.isAssignableFrom(type)) {
+                return (Optional<R>) Optional.of(Texts.of(getString()));
             }
         } catch (Throwable e) { // This stuff is all handled by individual statements by the result being absent, so no errors should be thrown
         }
-        return Optional.absent();
-    }
-
-    /**
-     * Converts this {@link Literal} into a {@link LiteralHolder}
-     *
-     * @return the enw literal holder
-     */
-    public LiteralHolder<T> toHolder() {
-        return new LiteralHolder<T>(this);
+        return Optional.empty();
     }
 
     /**
@@ -353,16 +371,16 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
         } else if (isArray()) {
             String str = "";
 
-            for (LiteralHolder literalHolder : getArray()) {
-                str += literalHolder.getData().toSequence() + ", ";
+            for (Datum datum : getArray()) {
+                str += datum.get().toSequence() + ", ";
             }
 
             return str.isEmpty() ? "{}" : "{" + str.substring(0, str.length() - 2) + "}";
         } else if (isMap()) {
             String str = "";
 
-            for (Map.Entry<LiteralHolder, LiteralHolder> entry : getMap().entrySet()) {
-                str += entry.getKey().getData().toSequence() + " : " + entry.getValue().getData().toSequence() + ", ";
+            for (Map.Entry<Datum, Datum> entry : getMap().entrySet()) {
+                str += entry.getKey().get().toSequence() + " : " + entry.getValue().get().toSequence() + ", ";
             }
 
             return str.isEmpty() ? "{}" : "{" + str.substring(0, str.length() - 2) + "}";
@@ -379,23 +397,27 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @param other the other literal
      * @return the sum literal
      */
-    public Literal add(Literal other) {
+    public <T> Literal<T> add(Literal<?> other) {
         if (isArray()) {
-            Literal copy = copy(); // We want a new literal for the sum literal
-            List<LiteralHolder> array = copy.getArray();
+            List<Datum> array = Lists.newArrayList();
+            array.addAll(getArray());
 
             if (other.isArray()) {
                 array.addAll(other.getArray());
             } else {
-                array.add(other.toHolder());
+                if (!other.isEmpty()) {
+                    array.add(other);
+                }
             }
-            return copy;
+            return Literal.fromObject(array);
         } else if (other.isArray()) {
             return other.add(this); // Just swap it around, no need to rewrite code
         } else if (isMap() && other.isMap()) {
-            Literal copy = copy();
-            copy.getMap().putAll(other.getMap());
-            return copy;
+            Map<Datum, Datum> map = Maps.newHashMap();
+            map.putAll(getMap());
+            map.putAll(other.getMap());
+
+            return Literal.fromObject(map);
         }
 
         if (isNumber() && other.isNumber()) {
@@ -411,7 +433,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @param other the other literal
      * @return the difference literal
      */
-    public Literal sub(Literal other) {
+    public Literal<Double> sub(Literal<?> other) {
         return Literal.fromObject(getNumber() - other.getNumber());
     }
 
@@ -421,7 +443,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @param other the other literal
      * @return the product literal
      */
-    public Literal mult(Literal other) {
+    public Literal<Double> mult(Literal other) {
         return Literal.fromObject(getNumber() * other.getNumber());
     }
 
@@ -431,7 +453,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @param other the other literal
      * @return the quotient literal
      */
-    public Literal div(Literal other) {
+    public Literal<Double> div(Literal other) {
         return Literal.fromObject(getNumber() / other.getNumber());
     }
 
@@ -441,7 +463,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @param other the other literal
      * @return the resultant literal
      */
-    public Literal pow(Literal other) {
+    public Literal<Double> pow(Literal other) {
         return Literal.fromObject(Math.pow(getNumber(), other.getNumber()));
     }
 
@@ -451,7 +473,7 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @param other the other literal
      * @return the resultant literal
      */
-    public Literal root(Literal other) {
+    public Literal<Double> root(Literal other) {
         return Literal.fromObject(Math.pow(getNumber(), (1D / other.getNumber())));
     }
 
@@ -460,9 +482,18 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      *
      * @return the negative boolean literal
      */
-    public Literal<Boolean> negative() {
+    public Literal<Boolean> negate() {
         checkState(isBoolean(), "Negation can only be done to booleans (" + getString() + ")");
         return Literal.fromObject(!getBoolean());
+    }
+
+    /**
+     * Gets the negative {@link Literal} number of this number
+     * @return the negative number
+     */
+    public Literal<Double> negative() {
+        checkState(isNumber(), "Negatives can only be retrieved from numbers (" + getString() + ")");
+        return Literal.fromObject(-getNumber());
     }
 
     /**
@@ -471,38 +502,28 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
      * @param newvalue the new value
      * @return this literal if not empty, or a literal with newvalue
      */
-    public Literal or(Object newvalue) {
+    public Literal<T> or(Object newvalue) {
         if (isEmpty()) {
             return Literal.fromObject(newvalue);
         }
         return this;
     }
 
-    @Override
-    public Literal<T> resolve(ScriptInstance scriptInstance) { // Override for DataContainer
+    /**
+     * Gets a {@link Literal} with the specified new value if this literal is {@link Literals#EMPTY}, or otherwise this literal
+     *
+     * @param newvalue the new value
+     * @return this literal if not empty, or the other literal
+     */
+    public Literal<T> or(Literal newvalue) {
+        if (isEmpty()) {
+            return newvalue;
+        }
         return this;
     }
 
     @Override
-    public Literal<T> copy() {
-        if (!isEmpty()) {
-            if (isArray()) {
-                List<LiteralHolder> newarray = new ArrayList<LiteralHolder>();
-                for (LiteralHolder literalHolder : getArray()) {
-                    newarray.add(literalHolder.copy());
-                }
-
-                return Literal.fromObject(newarray);
-            } else if (isMap()) {
-                Map<LiteralHolder, LiteralHolder> newmap = new HashMap<LiteralHolder, LiteralHolder>();
-                for (Map.Entry<LiteralHolder, LiteralHolder> entry : getMap().entrySet()) {
-                    newmap.put(entry.getKey().copy(), entry.getValue().copy());
-                }
-
-                return Literal.fromObject(newmap);
-            }
-        }
-
+    public Literal<T> get() {
         return this;
     }
 
@@ -526,7 +547,12 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
     // Parsing stuff for conversions
     private Literal<String> parseString() {
         if (!getValue().isPresent()) {
-            return Literals.EMPTY;
+            return Literals.EMPTY_STRING; // Empty string as default
+        }
+
+        // If it's objective, use getAs
+        if (isObjective()) {
+            return Literal.fromObject(getAs(String.class).get());
         }
 
         // Make integers not have the .0
@@ -536,11 +562,14 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
 
         // Format arrays
         if (isArray()) {
-            String string = "{";
-            List<LiteralHolder> array = getArray();
+            List<Datum> array = getArray();
+            if (array.size() == 1) {
+                return array.get(0).get();
+            }
 
-            for (LiteralHolder literalHolder : array) {
-                string += literalHolder.getData().getString() + ", ";
+            String string = "{";
+            for (Datum datum : array) {
+                string += datum.get().getString() + ", ";
             }
 
             return Literal.fromObject((array.isEmpty() ? string : string.substring(0, string.length() - 2)) + "}");
@@ -549,10 +578,10 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
         // Format maps
         if (isMap()) {
             String string = "{";
-            Map<LiteralHolder, LiteralHolder> map = getMap();
+            Map<Datum, Datum> map = getMap();
 
-            for (Map.Entry<LiteralHolder, LiteralHolder> entry : map.entrySet()) {
-                string += entry.getKey().getData().getString() + " : " + entry.getValue().getData().getString() + ", ";
+            for (Map.Entry<Datum, Datum> entry : map.entrySet()) {
+                string += entry.getKey().get().getString() + " : " + entry.getValue().get().getString() + ", ";
             }
 
             return Literal.fromObject((map.isEmpty() ? string : string.substring(0, string.length() - 2)) + "}");
@@ -562,33 +591,132 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
     }
 
     private Literal<Boolean> parseBoolean() {
-        checkState(isString(), "The value must be a string to use this method");
+        if (!getValue().isPresent()) {
+            return Literals.FALSE; // False as default
+        }
+
+        // If it's objective, use getAs
+        if (isObjective()) {
+            return Literal.fromObject(getAs(Boolean.class).get());
+        }
+
+        // If it's an array, check if it's a singleton
+        if (isArray()) {
+            List<Datum> array = getArray();
+            if (array.size() == 1) {
+                return array.get(0).get();
+            }
+        }
+
         return Literal.fromObject(Boolean.parseBoolean(getString()));
     }
 
     private Literal<Double> parseNumber() {
-        checkState(isString(), "The value must be a string to use this method");
+        if (!getValue().isPresent()) {
+            return Literals.ZERO; // Zero as default
+        }
+
+        // If it's objective, use getAs
+        if (isObjective()) {
+            return Literal.fromObject(getAs(Double.class).get());
+        }
+
+        // If it's an array, check if it's a singleton
+        if (isArray()) {
+            List<Datum> array = getArray();
+            if (array.size() == 1) {
+                return array.get(0).get();
+            }
+        }
+
         return Literal.fromObject(Double.parseDouble(getString()));
     }
 
-    private Literal<List<LiteralHolder>> parseArray() {
-        checkState(getValue().isPresent(), "This parse must be present to do this");
-
-        if (isMap() && getMap().isEmpty()) {
+    private Literal<List<Datum>> parseArray() {
+        if (!getValue().isPresent() || isMap() && getMap().isEmpty()) { // Empty array is default
             return Literals.EMPTY_ARRAY;
         }
 
         return Literal.fromObject(new Literal[]{this}); // Create a singleton of the data
     }
 
-    private Literal<Map<LiteralHolder, LiteralHolder>> parseMap() {
-        checkState(getValue().isPresent(), "This parse must be present to do this");
-
-        if (isArray() && getArray().isEmpty()) {
+    private Literal<Map<Datum, Datum>> parseMap() {
+        if (!getValue().isPresent() || isArray() && getArray().isEmpty()) { // Empty map is default
             return Literals.EMPTY_MAP;
         }
 
         throw new IllegalStateException("Maps cannot be casted to and fro'");
+    }
+
+    /**
+     * Anum enumeration of {@link Literal} types
+     */
+    public enum Types {
+        /**
+         * Represents a {@link String}
+         */
+        STRING((datum) -> {
+            return datum instanceof Literal && ((Literal) datum).isString();
+        }),
+
+        /**
+         * Represents a {@link Boolean}
+         */
+        BOOLEAN((datum) -> {
+            return datum instanceof Literal && ((Literal) datum).isBoolean();
+        }),
+
+        /**
+         * Represent a {@link Double} number
+         */
+        NUMBER((datum) -> {
+            return datum instanceof Literal && ((Literal) datum).isNumber();
+        }),
+
+        /**
+         * Represents a {@link List} array
+         */
+        ARRAY((datum) -> {
+            return datum instanceof Literal && ((Literal) datum).isArray();
+        }),
+
+        /**
+         * Represents a {@link Map}
+         */
+        MAP((datum) -> {
+            return datum instanceof Literal && ((Literal) datum).isMap();
+        }),
+
+        /**
+         * Represents an unclassified {@link Object}
+         */
+        OBJECT((datum) -> {
+            return datum instanceof Literal && ((Literal) datum).isObjective();
+        }),
+
+        /**
+         * Represents a {@link AmnesiacData}
+         */
+        AMNESIAC((datum) -> datum instanceof AmnesiacData),
+
+        /**
+         * Represents a {@link Data} set
+         */
+        DATA((datum) -> datum instanceof Data);
+
+        private Function<Datum, Boolean> consumer;
+
+        Types(Function<Datum, Boolean> consumer) {
+            this.consumer = consumer;
+        }
+
+        public Function<Datum, Boolean> getConsumer() {
+            return consumer;
+        }
+
+        public boolean isCompatible(Datum datum) {
+            return consumer.apply(datum);
+        }
     }
 
     /**
@@ -622,13 +750,18 @@ public class Literal<T> implements DataContainer<T>, ICopyable<Literal<T>> {
         public static final Literal<Double> ONE = new Literal(1D);
 
         /**
+         * A {@link Literal} whose value is an empty string <i>""</i>
+         */
+        public static final Literal<String> EMPTY_STRING = new Literal("");
+
+        /**
          * A {@link Literal} whose value is an empty array
          */
-        public static final Literal<List<LiteralHolder>> EMPTY_ARRAY = new Literal(new ArrayList<LiteralHolder>());
+        public static final Literal<List<Datum>> EMPTY_ARRAY = new Literal(ImmutableList.copyOf(new ArrayList<>()));
 
         /**
          * A {@link Literal} whose value is an empty map
          */
-        public static final Literal<Map<LiteralHolder, LiteralHolder>> EMPTY_MAP = new Literal(new HashMap<LiteralHolder, LiteralHolder>());
+        public static final Literal<Map<Datum, Datum>> EMPTY_MAP = new Literal(ImmutableMap.copyOf(new HashMap<>()));
     }
 }

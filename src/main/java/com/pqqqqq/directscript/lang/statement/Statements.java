@@ -9,6 +9,7 @@ import com.pqqqqq.directscript.lang.statement.sponge.getters.*;
 import com.pqqqqq.directscript.lang.statement.sponge.setters.*;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
 import com.pqqqqq.directscript.lang.util.RegistryUtil;
+import org.spongepowered.api.data.DataSerializable;
 
 import java.util.List;
 
@@ -17,6 +18,8 @@ import java.util.List;
  * Represents a registry of {@link Statement}s
  */
 public class Statements {
+
+    // WARNING: The order of these entries matters (top ones are first to be tested against)
 
     // Internal statements
     public static final Statement<String> SCRIPT_DECLARATION = new ScriptDeclaration();
@@ -44,10 +47,12 @@ public class Statements {
     public static final Statement WHILE = new WhileStatement();
     public static final Statement FOR = new ForStatement();
     public static final Statement FOREACH = new ForEachStatement();
+    public static final Statement FORKV = new ForKVStatement();
     public static final Statement RETURN = new ReturnStatement();
     public static final Statement BREAK = new BreakStatement();
     public static final Statement CONTINUE = new ContinueStatement();
     public static final Statement REMOVE = new RemoveStatement();
+    public static final Statement REMOVE_INDEX = new RemoveIndexStatement();
     public static final Statement WRITE_FILE = new WriteFileStatement();
 
     public static final Statement<String[]> SPLIT = new SplitStatement();
@@ -75,30 +80,20 @@ public class Statements {
     public static final Statement<Double> DECREMENT = new DecrementStatement();
     public static final Statement<Double> POSTFIX_INCREMENT = new PostfixIncrementStatement();
     public static final Statement<Double> POSTFIX_DECREMENT = new PostfixDecrementStatement();
-    public static final Statement<Object> EVENT_VAR = new EventVarStatement();
     public static final Statement<Integer> RANDOM_INTEGER = new RandomIntStatement();
     public static final Statement<Double> RANDOM_DOUBLE = new RandomDoubleStatement();
     public static final Statement<Long> MILLIS = new MillisStatement();
     public static final Statement<String[]> READ_FILE = new ReadFileStatement();
+    public static final Statement<Object> SCRIPT_GETTER = new ScriptStatement();
 
     // Sponge statements
     public static final Statement SEND = new SendStatement();
     public static final Statement BROADCAST = new BroadcastStatement();
     public static final Statement CANCEL = new CancelStatement();
-    public static final Statement KICK = new KickStatement();
-    public static final Statement TELEPORT = new TeleportStatement();
-    public static final Statement ROTATE = new RotateStatement();
-    public static final Statement CLOSE_INVENTORY = new CloseInventoryStatement();
     public static final Statement CONSOLE = new ConsoleStatement();
-    public static final Statement PLAYER_COMMAND = new PlayerCommandStatement();
-    public static final Statement SET_HEALTH = new SetHealthStatement();
-    public static final Statement SET_HUNGER = new SetHungerStatement();
-    public static final Statement SET_BLOCK = new SetBlockStatement();
     public static final Statement SPAWN = new SpawnStatement();
-    public static final Statement GIVE = new GiveStatement();
     public static final Statement EQUIP = new EquipStatement();
 
-    public static final Statement<Boolean> PERMISSION = new PermissionStatement();
     public static final Statement<Boolean> ONLINE = new OnlineStatement();
     public static final Statement<Object> LOCATION = new LocationStatement();
     public static final Statement<Object> VECTOR = new VectorStatement();
@@ -108,7 +103,9 @@ public class Statements {
     public static final Statement<Object> PLAYER = new PlayerStatement();
     public static final Statement<Object> LIVING = new LivingStatement();
     public static final Statement<Object> ENTITY = new EntityStatement();
-    public static final Statement<Double> DISTANCE = new DistanceStatement();
+    public static final Statement<Object> EXPLOSION = new ExplosionStatement();
+    public static final Statement<DataSerializable> TRANSACTION = new TransactionStatement();
+    public static final Statement<Object> BLOCK_TRAIT_STATEMENT = new TraitStatement();
 
     private static final List<Statement> REGISTRY;
 
