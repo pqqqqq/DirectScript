@@ -5,7 +5,7 @@ script("MessagePlayer") {
 	// Script starts here
 	@cancel()
 
-	var arguments = split(eventvar("Arguments"), " ")
+	arguments = split(<"Arguments">, " ")
 	if (size(arguments) < 2) {
 		@send("&cInvalid format: /sendmsg <player> <message ...>")
 	} else {
@@ -20,7 +20,7 @@ script("NullCheck") {
 	// Script starts here
 	@cancel()
 
-	var nullvar
+	nullvar = null
 	if (nullvar == null) {
 		@send("Nullvar is a null value")
 	} else {
@@ -35,7 +35,7 @@ script("LoopCheck") {
 	// Script starts here
 	@cancel()
 
-	var arguments = split(eventvar("Arguments"), " ")
+	arguments = split(<"Arguments">, " ")
 	if (arguments[1] == "") {
 		@send("&cInvalid format: /loopcheck <for|foreach|while>")
 	} else if (arguments[1] == "for") {
@@ -55,7 +55,7 @@ script("LoopCheck") {
 			@send(item)
 		}
 	} else if (arguments[1] == "while") {
-		var x = 1
+		x = 1
 		while (x < 10) {
 			@send(x)
 			x += 1
@@ -66,14 +66,6 @@ script("LoopCheck") {
 }
 
 script("BlockPlace") {
-	trigger("blockplace")
+	trigger("playerblockplace")
 	@broadcast(@player("name") + " placed a " + @block("id") + " at " + @location("string"))
-}
-
-script("ItemDrop") {
-	trigger("itemdrop")
-
-	foreach (item in eventvar("ItemStacks")) {
-		@broadcast(@player("name") + " dropped a " + @item("id", item))
-	}
 }
