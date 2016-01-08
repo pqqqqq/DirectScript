@@ -8,13 +8,15 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that terminates any blocked code
  */
 public class Termination extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("}")
+            .brackets()
+            .executionTime(ExecutionTime.ALWAYS)
+            .build();
 
-    public Termination() {
-        super(Syntax.builder()
-                .identifiers("}")
-                .brackets()
-                .executionTime(ExecutionTime.ALWAYS)
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

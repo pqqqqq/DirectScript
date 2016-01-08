@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that splits a string into an array by a certain split string
  */
 public class SplitStatement extends Statement<String[]> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("split")
+            .arguments(Arguments.of(GenericArguments.withName("String"), ",", GenericArguments.withName("SplitString")))
+            .build();
 
-    public SplitStatement() {
-        super(Syntax.builder()
-                .identifiers("split")
-                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("SplitString")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

@@ -14,12 +14,14 @@ import java.util.List;
  * Reads from a local file
  */
 public class ReadFileStatement extends Statement<String[]> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("readfile")
+            .arguments(Arguments.of(GenericArguments.withName("FileName")))
+            .build();
 
-    public ReadFileStatement() {
-        super(Syntax.builder()
-                .identifiers("readfile")
-                .arguments(Arguments.of(Argument.from("FileName")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

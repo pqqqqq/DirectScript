@@ -8,7 +8,7 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 /**
@@ -22,7 +22,7 @@ public class CommandReload implements CommandExecutor {
     }
 
     public static CommandSpec build(DirectScript plugin) {
-        return CommandSpec.builder().executor(new CommandReload(plugin)).description(Texts.of(TextColors.AQUA, "Reloads the config and scripts.")).permission("directscript.reload").build();
+        return CommandSpec.builder().executor(new CommandReload(plugin)).description(Text.of(TextColors.AQUA, "Reloads the config and scripts.")).permission("directscript.reload").build();
     }
 
     @Override
@@ -30,7 +30,7 @@ public class CommandReload implements CommandExecutor {
         plugin.getConfig().load();
         Lang.instance().reloadScripts();
 
-        commandSource.sendMessage(Texts.of(TextColors.AQUA, "Scripts/config reloaded."));
+        commandSource.sendMessage(Text.of(TextColors.AQUA, "Scripts/config reloaded."));
         return CommandResult.success();
     }
 }

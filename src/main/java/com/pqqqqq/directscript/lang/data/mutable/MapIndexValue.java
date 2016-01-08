@@ -1,7 +1,6 @@
 package com.pqqqqq.directscript.lang.data.mutable;
 
 import com.google.common.collect.Maps;
-import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
 
 import java.util.Map;
@@ -11,17 +10,17 @@ import java.util.Map;
  * <p>A {@link MutableValue} for a map entry.</p>
  * <p>A {@link DataHolder} containing a map must be given as it requires a field-membered variable.</p>
  */
-public class MapIndexValue implements MutableValue {
+public class MapIndexValue implements MutableValue<Literal<?>> {
     private final DataHolder mapHolder;
-    private final Datum key;
+    private final Literal key;
 
     /**
      * Creates the {@link MapIndexValue} from the given {@link DataHolder} and key
      *
      * @param mapHolder the map holder
-     * @param key       the {@link Datum} key
+     * @param key       the {@link Literal} key
      */
-    public MapIndexValue(DataHolder mapHolder, Datum key) {
+    public MapIndexValue(DataHolder mapHolder, Literal key) {
         this.mapHolder = mapHolder;
         this.key = key;
     }
@@ -36,19 +35,19 @@ public class MapIndexValue implements MutableValue {
     }
 
     /**
-     * Gets the map key's {@link Datum}
+     * Gets the map key's {@link Literal}
      *
      * @return the datum
      */
-    public Datum getKey() {
+    public Literal getKey() {
         return key;
     }
 
     @Override
-    public <T> Datum<T> getDatum() {
-        Literal mapLiteral = getMapHolder().getLiteral();
-        Map<Datum, Datum> map = Maps.newHashMap(mapLiteral.getMap());
-        Datum value = map.get(getKey());
+    public Literal<?> getDatum() {
+        Literal mapLiteral = getMapHolder().getDatum().tryLiteral();
+        Map<Literal, Literal> map = Maps.newHashMap(mapLiteral.getMap());
+        Literal value = map.get(getKey());
 
         if (value == null) {
             value = Literal.Literals.EMPTY;
@@ -60,11 +59,11 @@ public class MapIndexValue implements MutableValue {
     }
 
     @Override
-    public void setDatum(Datum datum) {
-        Literal mapLiteral = getMapHolder().getLiteral();
-        Map<Datum, Datum> map = Maps.newHashMap(mapLiteral.getMap());
+    public void setDatum(Literal<?> dataContainer) {
+        Literal mapLiteral = getMapHolder().getDatum().tryLiteral();
+        Map<Literal, Literal> map = Maps.newHashMap(mapLiteral.getMap());
 
-        map.put(getKey(), datum);
+        map.put(getKey(), dataContainer);
         getMapHolder().setDatum(Literal.fromObject(map)); // Update
     }
 }

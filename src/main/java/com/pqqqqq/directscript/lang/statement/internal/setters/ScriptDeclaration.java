@@ -8,14 +8,16 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that declares a new {@link com.pqqqqq.directscript.lang.script.Script}
  */
 public class ScriptDeclaration extends Statement<String> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("script")
+            .suffix("{")
+            .executionTime(ExecutionTime.COMPILE)
+            .arguments(Arguments.of(GenericArguments.withName("ScriptName")))
+            .build();
 
-    public ScriptDeclaration() {
-        super(Syntax.builder()
-                .identifiers("script")
-                .suffix("{")
-                .executionTime(ExecutionTime.COMPILE)
-                .arguments(Arguments.of(Argument.from("ScriptName")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that turns all letters in a literal to uppercase
  */
 public class UppercaseStatement extends Statement<String> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("uppercase")
+            .arguments(Arguments.of(GenericArguments.withName("String")))
+            .build();
 
-    public UppercaseStatement() {
-        super(Syntax.builder()
-                .identifiers("uppercase")
-                .arguments(Arguments.of(Argument.from("String")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

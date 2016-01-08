@@ -38,12 +38,10 @@ public class StatementContainer implements DataContainer {
         Optional<Block.BlockRunnable> blockRunnable = ctx.getScriptInstance().getCurrentRunnable();
         Line currentLine = (blockRunnable.isPresent() ? blockRunnable.get().getCurrentLine() : ctx.getLine());
 
-        Line line = new Line(currentLine.getAbsoluteNumber(), currentLine.getScriptNumber(), getStatement().resolve(ctx).get().getString());
-        line.setDepth(currentLine.getDepth());
-        line.setInternalBlock(currentLine.getInternalBlock());
+        Line line = Line.fromLine(currentLine, getStatement().resolve(ctx).getString());
 
         Statement.Result result = line.toContext(ctx.getScriptInstance()).run();
-        Optional<Literal> literalOptional = result.getLiteralResult();
-        return literalOptional.orElse(Literal.Literals.EMPTY);
+        Optional<Literal> datumOptional = result.getLiteralResult();
+        return datumOptional.orElse(Literal.Literals.EMPTY);
     }
 }

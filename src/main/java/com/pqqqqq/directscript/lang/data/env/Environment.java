@@ -65,6 +65,10 @@ public abstract class Environment implements Iterable<Variable> {
             //    return null;
             //}
 
+            suppressNotifications = true;
+            removeVariableHere(variable.getName()); // Remove the variable if it exists
+            suppressNotifications = false; // Suppress, because we'll be saving again in one second
+
             this.variables.add(variable);
             if (!suppressNotifications) {
                 notifyChange();
@@ -78,10 +82,25 @@ public abstract class Environment implements Iterable<Variable> {
      * Gets a {@link Optional} {@link Variable} by its corresponding name, or checks its parent and daughters
      *
      * @param name the name of the variable
-     * @return the variable
+     * @return the optional variable
      */
     public Optional<Variable> getVariable(String name) {
         return getTop().getVariableLoad(name);
+    }
+
+    /**
+     * Gets a {@link Variable}, or creates a new one if none exist
+     *
+     * @param name the name of the variable
+     * @return the variable
+     */
+    public Variable getOrCreate(String name) {
+        return getVariable(name).orElseGet(() -> {
+            // Supply new variable by default
+            Variable newVariable = new Variable(name, this);
+            addVariable(newVariable); // Add to environment
+            return newVariable;
+        });
     }
 
     Optional<Variable> getVariableLoad(String name) {
@@ -117,6 +136,18 @@ public abstract class Environment implements Iterable<Variable> {
     }
 
     boolean removeVariableLoad(String name) {
+        if (removeVariableHere(name)) {
+            return true;
+        }
+
+        if (getParent() != null) {
+            return getParent().removeVariableLoad(name);
+        }
+
+        return false;
+    }
+
+    boolean removeVariableHere(String name) {
         synchronized (variables) {
             if (variables.removeIf((variable) -> variable.getName().equals(name))) {
                 if (!suppressNotifications) {
@@ -124,13 +155,9 @@ public abstract class Environment implements Iterable<Variable> {
                 }
                 return true;
             }
-
-            if (getParent() != null) {
-                return getParent().removeVariableLoad(name);
-            }
-
-            return false;
         }
+
+        return false;
     }
 
     /**

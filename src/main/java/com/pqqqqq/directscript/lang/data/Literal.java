@@ -1,28 +1,35 @@
 package com.pqqqqq.directscript.lang.data;
 
 import com.flowpowered.math.vector.Vector3d;
+import com.flowpowered.math.vector.Vector3f;
+import com.flowpowered.math.vector.Vector3i;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.pqqqqq.directscript.DirectScript;
+import com.pqqqqq.directscript.lang.data.container.AmnesiacContainer;
+import com.pqqqqq.directscript.lang.data.container.DataContainer;
+import com.pqqqqq.directscript.lang.data.container.expression.ArithmeticContainer;
+import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.util.Utilities;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.Texts;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -70,7 +77,7 @@ public class Literal<T> implements Datum<T> {
             if (string.isEmpty()) {
                 return (Literal<T>) Literals.EMPTY_STRING;
             } else {
-                return (Literal<T>) new Literal<>(string);
+                return (Literal<T>) new Literal<>(Utilities.formatColour(string));
             }
         }
 
@@ -90,22 +97,22 @@ public class Literal<T> implements Datum<T> {
         }
 
         if (value.getClass().isArray()) { // Special for arrays
-            List<Datum> array = new ArrayList<Datum>();
+            List<Literal> array = new ArrayList<>();
             for (Object obj : (Object[]) value) {
-                array.add(obj instanceof Datum ? (Datum) obj : Literal.fromObject(obj));
+                array.add(obj instanceof Literal ? (Literal) obj : Literal.fromObject(obj));
             }
 
             if (array.isEmpty()) {
-                return (Literal<T>) Literals.EMPTY_ARRAY;
+                return (Literal<T>) Literals.EMPTY_MAP;
             }
 
             return (Literal<T>) new Literal<>(ImmutableList.copyOf(array));
         }
 
         if (value instanceof Collection) { // Special for collections
-            List<Datum> array = new ArrayList<Datum>();
+            List<Literal> array = new ArrayList<>();
             for (Object obj : (Collection) value) {
-                array.add(obj instanceof Datum ? (Datum) obj : Literal.fromObject(obj));
+                array.add(obj instanceof Literal ? (Literal) obj : Literal.fromObject(obj));
             }
 
             if (array.isEmpty()) {
@@ -116,9 +123,9 @@ public class Literal<T> implements Datum<T> {
         }
 
         if (value instanceof Map) { // Special for maps
-            Map<Datum, Datum> map = new HashMap<>();
+            Map<Literal, Literal> map = new HashMap<>();
             for (Map.Entry entry : ((Map<Object, Object>) value).entrySet()) {
-                map.put(entry.getKey() instanceof Datum ? (Datum) entry.getKey() : Literal.fromObject(entry.getKey()), entry.getValue() instanceof Datum ? (Datum) entry.getValue() : Literal.fromObject(entry.getValue()));
+                map.put(entry.getKey() instanceof Literal ? (Literal) entry.getKey() : Literal.fromObject(entry.getKey()), entry.getValue() instanceof Literal ? (Literal) entry.getValue() : Literal.fromObject(entry.getValue()));
             }
 
             if (map.isEmpty()) {
@@ -175,6 +182,14 @@ public class Literal<T> implements Datum<T> {
      */
     public Optional<T> getValue() {
         return value;
+    }
+
+    /**
+     * Gets the {@link Optional} {@link Datum} that this literal was resolved from, by {@link DataContainer#resolve(Context)}
+     * @return the value
+     */
+    public Optional<Datum> getResolvedFrom() {
+        return Optional.empty();
     }
 
     /**
@@ -257,40 +272,40 @@ public class Literal<T> implements Datum<T> {
     }
 
     /**
-     * Gets the array ({@link Datum} {@link List}) value of this {@link Literal}
+     * Gets the array ({@link Literal} {@link List}) value of this {@link Literal}
      *
      * @return the array value
      */
-    public List<Datum> getArray() {
-        return isArray() ? (List<Datum>) getValue().get() : parseArray().getArray();
+    public List<Literal> getArray() {
+        return isArray() ? (List<Literal>) getValue().get() : parseArray().getArray();
     }
 
     /**
-     * Gets the map ({@link Datum} K-V {@link Map}) value of this {@link Literal}
+     * Gets the map ({@link Literal} K-V {@link Map}) value of this {@link Literal}
      * @return the map value
      */
-    public Map<Datum, Datum> getMap() {
-        return isMap() ? (Map<Datum, Datum>) getValue().get() : parseMap().getMap();
+    public Map<Literal, Literal> getMap() {
+        return isMap() ? (Map<Literal, Literal>) getValue().get() : parseMap().getMap();
     }
 
     /**
-     * Gets the specific {@link Datum} array data at the index
+     * Gets the specific {@link Literal} array data at the index
      *
      * @param index the index for the array (base 1)
      * @return the variable at this index
      */
-    public Datum getArrayValue(int index) {
+    public Literal getArrayValue(int index) {
         checkState(isArray(), "This literal is not an array");
         return getArray().get(--index);
     }
 
     /**
-     * Gets a {@link Datum} map data from its key
+     * Gets a {@link Literal} map data from its key
      *
      * @param data the key value
      * @return the map value, or null
      */
-    public Datum getMapValue(Datum data) {
+    public Literal getMapValue(Literal data) {
         checkState(isMap(), "This literal is not a map");
         return getMap().get(data);
     }
@@ -306,7 +321,7 @@ public class Literal<T> implements Datum<T> {
     @SuppressWarnings("unchecked")
     public <R> Optional<R> getAs(Class<R> type) {
         try {
-            if (Player.class.isAssignableFrom(type)) {
+            if (Player.class.isAssignableFrom(type) || type.isAssignableFrom(Player.class)) {
                 Optional<Player> playerOptional = DirectScript.instance().getGame().getServer().getPlayer(getString()); // Check name first
                 if (playerOptional.isPresent()) {
                     return (Optional<R>) playerOptional;
@@ -316,27 +331,61 @@ public class Literal<T> implements Datum<T> {
             } else if (World.class.isAssignableFrom(type)) {
                 return (Optional<R>) DirectScript.instance().getGame().getServer().getWorld(getString());
             } else if (Vector3d.class.isAssignableFrom(type)) {
-                List<Datum> array = getArray();
-                return (Optional<R>) Optional.of(new Vector3d(array.get(0).get().getNumber(), array.get(1).get().getNumber(), array.get(2).get().getNumber()));
+                List<Literal> array = getArray();
+                return (Optional<R>) Optional.of(new Vector3d(array.get(0).getNumber(), array.get(1).getNumber(), array.get(2).getNumber()));
+            } else if (Vector3f.class.isAssignableFrom(type)) {
+                List<Literal> array = getArray();
+                return (Optional<R>) Optional.of(new Vector3f(array.get(0).getNumber(), array.get(1).getNumber(), array.get(2).getNumber()));
+            } else if (Vector3i.class.isAssignableFrom(type)) {
+                List<Literal> array = getArray();
+                return (Optional<R>) Optional.of(new Vector3i(array.get(0).getNumber(), array.get(1).getNumber(), array.get(2).getNumber()));
             } else if (Location.class.isAssignableFrom(type) || BlockSnapshot.class.isAssignableFrom(type) || BlockState.class.isAssignableFrom(type)) {
-                List<Datum> array = getArray();
+                Location loc;
 
-                World world = DirectScript.instance().getGame().getServer().getWorld(array.get(0).get().getString()).get();
-                Vector3d vec = new Vector3d(array.get(1).get().getNumber(), array.get(2).get().getNumber(), array.get(3).get().getNumber());
+                if (isMap()) {
+                    Map<Literal, Literal> map = getMap();
+
+                    World world = DirectScript.instance().getGame().getServer().getWorld(Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("world")).getString()).get();
+                    Vector3d vec = new Vector3d(Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("x")).getNumber(), Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("y")).getNumber(), Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("z")).getNumber());
+                    loc = new Location(world, vec);
+                } else {
+                    List<Literal> array = getArray();
+
+                    World world = DirectScript.instance().getGame().getServer().getWorld(array.get(0).getString()).get();
+                    Vector3d vec = new Vector3d(array.get(1).getNumber(), array.get(2).getNumber(), array.get(3).getNumber());
+                    loc = new Location(world, vec);
+                }
 
                 if (Location.class.isAssignableFrom(type)) {
-                    return (Optional<R>) Optional.of(new Location(world, vec));
+                    return (Optional<R>) Optional.of(loc);
                 } else if (BlockState.class.isAssignableFrom(type)) {
-                    return (Optional<R>) Optional.of(new Location(world, vec).getBlock());
+                    return (Optional<R>) Optional.of(loc.getBlock());
                 } else if (BlockSnapshot.class.isAssignableFrom(type)) {
-                    return (Optional<R>) Optional.of(new Location(world, vec).createSnapshot());
+                    return (Optional<R>) Optional.of(loc.createSnapshot());
                 }
             } else if (ItemStack.class.isAssignableFrom(type)) {
-                List<Datum> array = getArray();
-                ItemType itemType = Utilities.getType(ItemType.class, array.get(0).get().getString()).get();
-                int quantity = array.size() >= 2 ? array.get(1).get().getNumber().intValue() : 1;
+                Map<Literal, Literal> map = getMap();
+                ItemType itemType = Utilities.getType(ItemType.class, Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("type")).getString()).get();
+                int quantity = Optional.ofNullable(Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("amount"))).orElse(Literals.ONE).getNumber().intValue();
 
-                return (Optional<R>) Optional.of(DirectScript.instance().getGame().getRegistry().createBuilder(ItemStack.Builder.class).itemType(itemType).quantity(quantity).build());
+                ItemStack itemStack = DirectScript.instance().getGame().getRegistry().createBuilder(ItemStack.Builder.class).itemType(itemType).quantity(quantity).build();
+
+                Literal displayName = Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("displayName"));
+                Literal lore = Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("lore"));
+
+                if (displayName != null) {
+                    itemStack.offer(Keys.DISPLAY_NAME, Utilities.getText(displayName.getString()));
+                }
+
+                if (lore != null) {
+                    List<Text> loreList = new ArrayList<>();
+                    List<Literal> loreLiterals = lore.getArray();
+
+                    loreLiterals.forEach((literal) -> loreList.add(Utilities.getText(literal.getString())));
+                    itemStack.offer(Keys.ITEM_LORE, loreList);
+                }
+
+                return (Optional<R>) Optional.of(itemStack);
             } else if (CatalogType.class.isAssignableFrom(type)) {
                 String id = getString();
                 if (!id.contains(":")) {
@@ -351,19 +400,20 @@ public class Literal<T> implements Datum<T> {
 
                 return Optional.empty();
             } else if (Text.class.isAssignableFrom(type)) {
-                return (Optional<R>) Optional.of(Texts.of(getString()));
+                return (Optional<R>) Optional.of(Utilities.getText(getString()));
             }
-        } catch (Throwable e) { // This stuff is all handled by individual statements by the result being absent, so no errors should be thrown
+        } catch (Throwable e) {
+            //throw new LiteralCastException(e, "%s cannot be cast to %s", getValue().toString(), type.getName());
         }
         return Optional.empty();
     }
 
-    /**
-     * Converts this {@link Literal} into a sequence sequenceable by {@link Sequencer}
-     *
-     * @return the sequence
-     */
-    public String toSequence() {
+    @Override
+    public Object serialize() {
+        if (getResolvedFrom().isPresent()) {
+            return getResolvedFrom().get().serialize(); // If it was resolved from something, use that serialization
+        }
+
         if (isEmpty()) {
             return "null";
         } else if (isString()) {
@@ -371,16 +421,16 @@ public class Literal<T> implements Datum<T> {
         } else if (isArray()) {
             String str = "";
 
-            for (Datum datum : getArray()) {
-                str += datum.get().toSequence() + ", ";
+            for (Literal literal : getArray()) {
+                str += literal.serialize() + ", ";
             }
 
             return str.isEmpty() ? "{}" : "{" + str.substring(0, str.length() - 2) + "}";
         } else if (isMap()) {
             String str = "";
 
-            for (Map.Entry<Datum, Datum> entry : getMap().entrySet()) {
-                str += entry.getKey().get().toSequence() + " : " + entry.getValue().get().toSequence() + ", ";
+            for (Map.Entry<Literal, Literal> entry : getMap().entrySet()) {
+                str += entry.getKey().serialize() + " : " + entry.getValue().serialize() + ", ";
             }
 
             return str.isEmpty() ? "{}" : "{" + str.substring(0, str.length() - 2) + "}";
@@ -399,7 +449,7 @@ public class Literal<T> implements Datum<T> {
      */
     public <T> Literal<T> add(Literal<?> other) {
         if (isArray()) {
-            List<Datum> array = Lists.newArrayList();
+            List<Literal> array = Lists.newArrayList();
             array.addAll(getArray());
 
             if (other.isArray()) {
@@ -411,9 +461,11 @@ public class Literal<T> implements Datum<T> {
             }
             return Literal.fromObject(array);
         } else if (other.isArray()) {
-            return other.add(this); // Just swap it around, no need to rewrite code
+            if (isArray()) {
+                return other.add(this); // Just swap it around if they're both arrays, no need to rewrite code
+            }
         } else if (isMap() && other.isMap()) {
-            Map<Datum, Datum> map = Maps.newHashMap();
+            Map<Literal, Literal> map = Maps.newHashMap();
             map.putAll(getMap());
             map.putAll(other.getMap());
 
@@ -477,6 +529,25 @@ public class Literal<T> implements Datum<T> {
         return Literal.fromObject(Math.pow(getNumber(), (1D / other.getNumber())));
     }
 
+    public Literal arithmetic(Literal other, ArithmeticContainer.ArithmeticOperator operator) {
+        switch (operator) {
+            case ADDITION:
+                return add(other);
+            case SUBTRACTION:
+                return sub(other);
+            case MULTIPLICATION:
+                return mult(other);
+            case DIVISION:
+                return div(other);
+            case EXPONENTIAL:
+                return pow(other);
+            case ROOT:
+                return root(other);
+            default:
+                throw new IllegalStateException("Unknown arithmetic operator: " + operator);
+        }
+    }
+
     /**
      * Negates this {@link Literal} by switching the boolean value (true -> false, false -> true)
      *
@@ -510,6 +581,19 @@ public class Literal<T> implements Datum<T> {
     }
 
     /**
+     * Gets a {@link Literal} with the specified {@link Supplier} if this literal is {@link Literals#EMPTY}, or otherwise this literal
+     *
+     * @param supplier the supplier
+     * @return this literal if not empty, or a literal with newvalue
+     */
+    public Literal<T> or(Supplier supplier) {
+        if (isEmpty()) {
+            return Literal.fromObject(supplier.get());
+        }
+        return this;
+    }
+
+    /**
      * Gets a {@link Literal} with the specified new value if this literal is {@link Literals#EMPTY}, or otherwise this literal
      *
      * @param newvalue the new value
@@ -523,7 +607,7 @@ public class Literal<T> implements Datum<T> {
     }
 
     @Override
-    public Literal<T> get() {
+    public Literal<T> resolve(Context ctx) {
         return this;
     }
 
@@ -562,14 +646,14 @@ public class Literal<T> implements Datum<T> {
 
         // Format arrays
         if (isArray()) {
-            List<Datum> array = getArray();
+            List<Literal> array = getArray();
             if (array.size() == 1) {
-                return array.get(0).get();
+                return array.get(0);
             }
 
             String string = "{";
-            for (Datum datum : array) {
-                string += datum.get().getString() + ", ";
+            for (Literal literal : array) {
+                string += literal.getString() + ", ";
             }
 
             return Literal.fromObject((array.isEmpty() ? string : string.substring(0, string.length() - 2)) + "}");
@@ -578,10 +662,10 @@ public class Literal<T> implements Datum<T> {
         // Format maps
         if (isMap()) {
             String string = "{";
-            Map<Datum, Datum> map = getMap();
+            Map<Literal, Literal> map = getMap();
 
-            for (Map.Entry<Datum, Datum> entry : map.entrySet()) {
-                string += entry.getKey().get().getString() + " : " + entry.getValue().get().getString() + ", ";
+            for (Map.Entry<Literal, Literal> entry : map.entrySet()) {
+                string += entry.getKey().getString() + " : " + entry.getValue().getString() + ", ";
             }
 
             return Literal.fromObject((map.isEmpty() ? string : string.substring(0, string.length() - 2)) + "}");
@@ -602,9 +686,9 @@ public class Literal<T> implements Datum<T> {
 
         // If it's an array, check if it's a singleton
         if (isArray()) {
-            List<Datum> array = getArray();
+            List<Literal> array = getArray();
             if (array.size() == 1) {
-                return array.get(0).get();
+                return array.get(0);
             }
         }
 
@@ -623,16 +707,16 @@ public class Literal<T> implements Datum<T> {
 
         // If it's an array, check if it's a singleton
         if (isArray()) {
-            List<Datum> array = getArray();
+            List<Literal> array = getArray();
             if (array.size() == 1) {
-                return array.get(0).get();
+                return array.get(0);
             }
         }
 
         return Literal.fromObject(Double.parseDouble(getString()));
     }
 
-    private Literal<List<Datum>> parseArray() {
+    private Literal<List<Literal>> parseArray() {
         if (!getValue().isPresent() || isMap() && getMap().isEmpty()) { // Empty array is default
             return Literals.EMPTY_ARRAY;
         }
@@ -640,7 +724,7 @@ public class Literal<T> implements Datum<T> {
         return Literal.fromObject(new Literal[]{this}); // Create a singleton of the data
     }
 
-    private Literal<Map<Datum, Datum>> parseMap() {
+    private Literal<Map<Literal, Literal>> parseMap() {
         if (!getValue().isPresent() || isArray() && getArray().isEmpty()) { // Empty map is default
             return Literals.EMPTY_MAP;
         }
@@ -649,73 +733,125 @@ public class Literal<T> implements Datum<T> {
     }
 
     /**
-     * Anum enumeration of {@link Literal} types
+     * An enumeration of {@link Literal} types
      */
     public enum Types {
         /**
          * Represents a {@link String}
          */
-        STRING((datum) -> {
-            return datum instanceof Literal && ((Literal) datum).isString();
-        }),
+        STRING("string", Literals.EMPTY_STRING, (datum) -> datum instanceof Literal && ((Literal) datum).isString()),
 
         /**
          * Represents a {@link Boolean}
          */
-        BOOLEAN((datum) -> {
-            return datum instanceof Literal && ((Literal) datum).isBoolean();
-        }),
+        BOOLEAN("boolean", Literals.FALSE, (datum) -> datum instanceof Literal && ((Literal) datum).isBoolean()),
 
         /**
          * Represent a {@link Double} number
          */
-        NUMBER((datum) -> {
-            return datum instanceof Literal && ((Literal) datum).isNumber();
-        }),
+        NUMBER("number", Literals.ZERO, (datum) -> datum instanceof Literal && ((Literal) datum).isNumber()),
 
         /**
          * Represents a {@link List} array
          */
-        ARRAY((datum) -> {
-            return datum instanceof Literal && ((Literal) datum).isArray();
-        }),
+        ARRAY("array", Literals.EMPTY_ARRAY, (datum) -> datum instanceof Literal && ((Literal) datum).isArray()),
 
         /**
          * Represents a {@link Map}
          */
-        MAP((datum) -> {
-            return datum instanceof Literal && ((Literal) datum).isMap();
-        }),
+        MAP("map", Literals.EMPTY_MAP, (datum) -> datum instanceof Literal && ((Literal) datum).isMap()),
 
         /**
          * Represents an unclassified {@link Object}
          */
-        OBJECT((datum) -> {
-            return datum instanceof Literal && ((Literal) datum).isObjective();
-        }),
+        OBJECT("object", Literals.EMPTY, (datum) -> datum instanceof Literal && ((Literal) datum).isObjective()),
 
         /**
-         * Represents a {@link AmnesiacData}
+         * Represents an {@link AmnesiacContainer}
          */
-        AMNESIAC((datum) -> datum instanceof AmnesiacData),
+        AMNESIAC("amnesiac", Literals.EMPTY, (datum) -> datum instanceof AmnesiacContainer),
 
         /**
-         * Represents a {@link Data} set
+         * Represents an {@link ArithmeticContainer}
          */
-        DATA((datum) -> datum instanceof Data);
+        ARITHMETIC("arithmetic", Literals.EMPTY, (datum) -> datum instanceof ArithmeticContainer);
 
-        private Function<Datum, Boolean> consumer;
 
-        Types(Function<Datum, Boolean> consumer) {
-            this.consumer = consumer;
+        private String name;
+        private Literal empty;
+        private Function<? super Datum, Boolean> function;
+
+        Types(String name, Literal empty, Function<? super Datum, Boolean> function) {
+            this.name = name;
+            this.empty = empty;
+            this.function = function;
         }
 
-        public Function<Datum, Boolean> getConsumer() {
-            return consumer;
+        /**
+         * Gets the {@link Optional} type from the given name
+         *
+         * @param name the name
+         * @return the type, or empty if none
+         */
+        public static Optional<Types> fromName(String name) {
+            if (name == null || name.equalsIgnoreCase("null")) {
+                return Optional.empty();
+            }
+
+            for (Types type : values()) {
+                if (type.getName().equalsIgnoreCase(name)) {
+                    return Optional.of(type);
+                }
+            }
+
+            return Optional.empty();
         }
 
+        /**
+         * Gets the name of this type
+         *
+         * @return the name
+         */
+        public String getName() {
+            return name;
+        }
+
+        /**
+         * Gets the default empty {@link Literal} for this type
+         *
+         * @return the empty literal
+         */
+        public Literal getEmpty() {
+            return empty;
+        }
+
+        /**
+         * Gets the {@link Function} used to check compatibility
+         *
+         * @return the function
+         */
+        public Function<? super Datum, Boolean> getFunction() {
+            return function;
+        }
+
+        /**
+         * Gets if this type is compatible with the given {@link Datum}, or if it's empty
+         * @param datum the datum to check against
+         * @return true if compatible or empty
+         */
         public boolean isCompatible(Datum datum) {
-            return consumer.apply(datum);
+            return isCompatible(datum, true);
+        }
+
+        /**
+         * Gets if this type is compatible with the given {@link Datum}
+         *
+         * @param datum      the datum to check against
+         * @param allowEmpty whether this datum is compatible if its empty
+         * @return true if compatible
+         */
+        public boolean isCompatible(Datum datum, boolean allowEmpty) {
+            return allowEmpty && datum instanceof Literal && datum.tryLiteral().isEmpty() || function.apply(datum);
         }
     }
 
@@ -757,11 +893,53 @@ public class Literal<T> implements Datum<T> {
         /**
          * A {@link Literal} whose value is an empty array
          */
-        public static final Literal<List<Datum>> EMPTY_ARRAY = new Literal(ImmutableList.copyOf(new ArrayList<>()));
+        public static final Literal<List<Literal>> EMPTY_ARRAY = new Literal(ImmutableList.copyOf(new ArrayList<>()));
 
         /**
          * A {@link Literal} whose value is an empty map
          */
-        public static final Literal<Map<Datum, Datum>> EMPTY_MAP = new Literal(ImmutableMap.copyOf(new HashMap<>()));
+        public static final Literal<Map<Literal, Literal>> EMPTY_MAP = new Literal(ImmutableMap.copyOf(new HashMap<>()));
+    }
+
+    /**
+     * A resolved literal; a {@link Literal} that was resolved by {@link DataContainer#resolve(Context)} and has a {@link Datum} resolver
+     */
+    public static class Resolved<T> extends Literal<T> {
+        private final Optional<Datum> resolvedFrom;
+
+        protected Resolved(Datum resolvedFrom) {
+            this(null, resolvedFrom);
+        }
+
+        protected Resolved(T value, Datum resolvedFrom) {
+            super(value);
+            this.resolvedFrom = Optional.ofNullable(resolvedFrom);
+        }
+
+        /**
+         * Creates a {@link Literal.Resolved} without parsing through the {@link Sequencer} and using the plain object
+         *
+         * @param value        the value for the literal
+         * @param resolvedFrom the datum
+         * @return the new resolved literal instance
+         */
+        public static Resolved fromObject(Object value, Datum resolvedFrom) {
+            return fromObject(Literal.fromObject(value), resolvedFrom);
+        }
+
+        /**
+         * Creates a {@link Literal.Resolved} without parsing through the {@link Sequencer} and using the plain object
+         *
+         * @param literal the literal
+         * @return the new resolved literal instance
+         */
+        public static Resolved fromObject(Literal literal, Datum resolvedFrom) {
+            return new Resolved(literal.getValue().orElse(null), resolvedFrom);
+        }
+
+        @Override
+        public Optional<Datum> getResolvedFrom() {
+            return resolvedFrom;
+        }
     }
 }

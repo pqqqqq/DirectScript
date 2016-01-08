@@ -9,13 +9,15 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * @see com.pqqqqq.directscript.lang.trigger.cause.Cause.TimerCause
  */
 public class TimerStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("timer")
+            .executionTime(ExecutionTime.COMPILE)
+            .arguments(Arguments.of(GenericArguments.withName("TimerDelay")))
+            .build();
 
-    public TimerStatement() {
-        super(Syntax.builder()
-                .identifiers("timer")
-                .executionTime(ExecutionTime.COMPILE)
-                .arguments(Arguments.of(Argument.from("TimerDelay")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

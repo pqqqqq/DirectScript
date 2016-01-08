@@ -1,67 +1,86 @@
 package com.pqqqqq.directscript.lang.reader;
 
-import com.pqqqqq.directscript.lang.Lang;
-import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.data.container.UnresolvableContainer;
+import com.pqqqqq.directscript.lang.exception.FailedExecutionException;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
+import com.pqqqqq.directscript.lang.statement.Compartment;
 import com.pqqqqq.directscript.lang.statement.Statement;
+import com.pqqqqq.directscript.lang.util.Utilities;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
  * Created by Kevin on 2015-06-12.
- * The context class combines a {@link Line} with its {@link ScriptInstance} to create {@link Statement.Argument} {@link Datum}
+ * The context class combines a {@link Line} with its {@link ScriptInstance} to create {@link Statement.Argument} {@link Literal}
  */
 public class Context {
     private final ScriptInstance scriptInstance;
     private final Line line;
+    private final Line.Content content;
 
     private final String[] stringArguments;
     private final Statement.Arguments argumentsSet;
+    private final Compartment compartment;
     private final Map<String, DataContainer> containers;
-    private final Map<String, Datum> data;
+    private final Map<String, Literal> literals;
 
     private Statement.Result result = null;
 
     Context(ScriptInstance scriptInstance, Line line, List<Line.ContextPossibility> contextPossibilities) {
+        this(scriptInstance, line, line.getContent(), contextPossibilities);
+    }
+
+    Context(ScriptInstance scriptInstance, Line line, Line.Content content, List<Line.ContextPossibility> contextPossibilities) {
         this.scriptInstance = scriptInstance;
         this.line = line;
+        this.content = content;
 
         mainLoop:
         for (Line.ContextPossibility contextPossibility : contextPossibilities) {
             String[] stringArguments = contextPossibility.getStrargs();
             Statement.Arguments argumentSet = contextPossibility.getArgumentSet();
+            Compartment compartment = contextPossibility.getCompartment();
             Map<Statement.Argument, DataContainer> containers = contextPossibility.getContainers();
             Map<String, DataContainer> newContainers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER); // Case insensitive
-            Map<String, Datum> data = new TreeMap<>(String.CASE_INSENSITIVE_ORDER); // Case insensitive
+            Map<String, Literal> literals = new TreeMap<>(String.CASE_INSENSITIVE_ORDER); // Case insensitive
 
             for (Map.Entry<Statement.Argument, DataContainer> entry : containers.entrySet()) {
-                Datum datum = (entry.getValue() == null ? Literal.Literals.EMPTY : entry.getValue().resolve(this));
+                Literal literal = (entry.getValue() == null ? Literal.Literals.EMPTY : entry.getValue().resolve(this));
 
                 Optional<Literal.Types> requiredType = entry.getKey().getRequiredType();
-                if (requiredType.isPresent() && !requiredType.get().isCompatible(datum)) {
+                if (requiredType.isPresent() && !requiredType.get().isCompatible(literal, false)) {
                     continue mainLoop;
                 }
 
+                if (entry.getKey().isMainGetter()) {
+                    if (!compartment.containsGetter(Utilities.removeNonAlphanumeric(literal.getString()))) {
+                        continue mainLoop;
+                    }
+                }
+
                 newContainers.put(entry.getKey().getName(), entry.getValue());
-                data.put(entry.getKey().getName(), datum);
+                literals.put(entry.getKey().getName(), literal);
             }
 
-            if (newContainers.size() != data.size()) {
+            if (newContainers.size() != literals.size()) {
                 continue;
             }
 
             this.stringArguments = stringArguments;
             this.argumentsSet = argumentSet;
             this.containers = newContainers;
-            this.data = data;
+            this.literals = literals;
+            this.compartment = compartment;
             return;
         }
 
@@ -96,6 +115,14 @@ public class Context {
     }
 
     /**
+     * Gets the {@link Line.Content} for this context
+     * @return the content
+     */
+    public Line.Content getContent() {
+        return content;
+    }
+
+    /**
      * Gets the string argument array
      *
      * @return the string arguments
@@ -123,6 +150,14 @@ public class Context {
     }
 
     /**
+     * Gets the {@link Compartment} to run
+     * @return the compartment
+     */
+    public Compartment getCompartment() {
+        return compartment;
+    }
+
+    /**
      * Gets the {@link DataContainer} with the given name
      *
      * @param name the name
@@ -139,23 +174,28 @@ public class Context {
     }
 
     /**
-     * Gets the {@link Datum} with the given name
-     * @param name the name
-     * @return the data argument, or {@link Literal.Literals#EMPTY}
-     */
-    public Datum getDatum(String name) {
-        Datum data = this.data.get(name);
-        return data == null ? Literal.Literals.EMPTY : data;
-    }
-
-    /**
      * Gets the {@link Literal} with the given name
      *
      * @param name the name
      * @return the literal argument, or {@link Literal.Literals#EMPTY}
      */
     public Literal getLiteral(String name) {
-        return getDatum(name).get();
+        Literal literal = this.literals.get(name);
+        if (literal == null) {
+            literal = Literal.Literals.EMPTY;
+        }
+
+        if (!literal.isEmpty()) {
+            Statement.Argument argument = argumentsSet.getArgument(name);
+            Class<?> classType = literal.getValue().get().getClass();
+            Function<Object, Object> conversionFunction = argument.getConversionMap().get(classType);
+
+            if (conversionFunction != null) {
+                return Literal.fromObject(conversionFunction.apply(literal.getValue().get()));
+            }
+        }
+
+        return literal;
     }
 
     /**
@@ -172,7 +212,7 @@ public class Context {
             return literal; // Don't just use or because no need to iterate through this all
         }
 
-        return literal.or(scriptInstance.getEventVarWithType(type));
+        return (type == null ? literal : literal.or(() -> scriptInstance.getEventVarWithType(type)));
     }
 
     /**
@@ -209,12 +249,47 @@ public class Context {
     }
 
     /**
+     * Gets the getter literal, by {@link Statement.Argument#isMainGetter()}
+     * @return the main getter, or {@link Literal.Literals#EMPTY}
+     * @see #getLiteralByArgument(Predicate)
+     */
+    public Pair<Statement.Argument, Literal> getGetterLiteral() {
+        return getLiteralByArgument(Statement.Argument::isMainGetter);
+    }
+
+    /**
+     * Gets the object literal, by {@link Statement.Argument#isMainObject()}
+     *
+     * @return the main getter, or {@link Literal.Literals#EMPTY}
+     * @see #getLiteralByArgument(Predicate)
+     */
+    public Pair<Statement.Argument, Literal> getObjectLiteral() {
+        return getLiteralByArgument(Statement.Argument::isMainObject);
+    }
+
+    /**
+     * Gets a literal by properties of its corresponding {@link Statement.Argument}
+     *
+     * @param argumentPredicate the argument {@link Predicate}
+     * @return the returned literal, or {@link Literal.Literals#EMPTY}
+     */
+    public Pair<Statement.Argument, Literal> getLiteralByArgument(Predicate<Statement.Argument> argumentPredicate) {
+        for (Statement.Argument argument : argumentsSet.getArguments()) {
+            if (argumentPredicate.test(argument)) {
+                return Pair.of(argument, getLiteral(argument.getName(), argument.getObjectClass().orElse(null)));
+            }
+        }
+
+        return Pair.of(null, Literal.Literals.EMPTY);
+    }
+
+    /**
      * Gets the number of argument {@link Literal}s
      *
      * @return the size of the literal array
      */
     public int getLiteralCount() {
-        return data.size();
+        return literals.size();
     }
 
     /**
@@ -223,10 +298,21 @@ public class Context {
      * @return the {@link Statement.Result}
      */
     public Statement.Result run() {
-        result = line.getStatement().run(this);
-        if (scriptInstance.isRuntime() && result != null && !result.isSuccess()) { // We only want this at runtime
-            Lang.instance().errorHandler().log(String.format("Statement in script '%s' -> '%s' at line #%d (script line #%d) failed. Reason: %s. Continuing execution.", getScript().getScriptsFile().getStringRepresentation(), getScript().getName(), line.getAbsoluteNumber(), line.getScriptNumber(), result.getResult().orElse("")));
-            Lang.instance().errorHandler().flush();
+        Statement.Argument objectArgument = content.getStatement().getObjectArgument();
+        if (objectArgument == null) {
+            result = compartment.run(this, null);
+        } else {
+            Class clazz = objectArgument.getObjectClass().orElse(null);
+            Optional arg = getLiteral(objectArgument.getName(), clazz).getAs(clazz);
+            if (!arg.isPresent()) {
+                result = Statement.Result.NO_OBJECT_PRESENT;
+            } else {
+                result = compartment.run(this, arg.get());
+            }
+        }
+
+        if (line != null/* && scriptInstance.isRuntime()*/ && (result == null || !result.isSuccess())) { // We only want this at runtime
+            throw new FailedExecutionException("Statement in script '%s' -> '%s' at line #%d (script line #%d) failed. Reason: %s", getScript().getScriptsFile().getStringRepresentation(), getScript().getName(), line.getAbsoluteNumber(), line.getScriptNumber(), result.getError().orElse("Unknown"));
         }
 
         return result;
@@ -239,5 +325,30 @@ public class Context {
      */
     public Statement.Result getResult() {
         return result;
+    }
+
+    /**
+     * A default entity that can run a {@link Context}
+     */
+    public interface Runnable<T> {
+
+        /**
+         * The run command
+         *
+         * @param ctx the context
+         * @return the {@link Statement.Result} of the execution
+         */
+        Statement.Result<T> run(Context ctx);
+
+        interface Argumentative<T, R> {
+            /**
+             * The run command
+             *
+             * @param ctx      the context
+             * @param argument the argument
+             * @return the {@link Statement.Result} of the execution
+             */
+            Statement.Result<R> run(Context ctx, T argument);
+        }
     }
 }

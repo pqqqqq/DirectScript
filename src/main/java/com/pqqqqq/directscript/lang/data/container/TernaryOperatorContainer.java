@@ -54,7 +54,7 @@ public class TernaryOperatorContainer implements DataContainer {
 
     @Override
     public Literal resolve(Context ctx) {
-        Literal condition = getConditionContainer().resolve(ctx).get();
-        return condition.getBoolean() ? getTrueContainer().resolve(ctx).get() : getFalseContainer().resolve(ctx).get(); // Use a ternary operator for the ternary operator... inception
+        Literal condition = getConditionContainer().resolve(ctx);
+        return condition.getBoolean() ? getTrueContainer().resolve(ctx) : getFalseContainer().resolve(ctx); // Use a ternary operator for the ternary operator... inception
     }
 }

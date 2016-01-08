@@ -8,11 +8,13 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * Gets the current Unix time in milliseconds
  */
 public class MillisStatement extends Statement<Long> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("millis")
+            .build();
 
-    public MillisStatement() {
-        super(Syntax.builder()
-                .identifiers("millis")
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

@@ -4,58 +4,63 @@ import com.google.common.base.Objects;
 import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.mutable.DataHolder;
+import com.pqqqqq.directscript.lang.exception.IncompatibleTypeException;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Created by Kevin on 2015-06-02.
  * Represents a memory section that contains a {@link Literal} and is read by a specific name
  */
-public class Variable extends DataHolder {
+public class Variable<C extends Datum<?>> extends DataHolder<C> {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z]([A-Za-z0-9]|\\.|\\_|\\:)*$");
     private static final Pattern ILLEGAL_NAMES = Pattern.compile("/^(local|global|public|final|parse|in|and|or)$/");
 
     private final String name;
     private final Environment environment;
-    private final boolean isFinal;
+
+    private Optional<Literal.Types> typesOptional;
 
     /**
-     * Creates a new variable with the corresponding name that has a value of {@link Literal.Literals#EMPTY} and is not final
+     * Creates a new variable with the corresponding name that has a value of {@link Literal.Literals#EMPTY}
      *
      * @param name the name
      * @param environment the environment
      */
     public Variable(String name, Environment environment) {
-        this(name, environment, Literal.Literals.EMPTY);
+        this(name, environment, (C) Literal.Literals.EMPTY);
     }
 
     /**
-     * Creates a new variable with the corresponding name and {@link Datum}, and is not final
+     * Creates a new variable with the corresponding name and {@link Datum}
      *
      * @param name the name
      * @param environment the environment
-     * @param data the data
+     * @param dataContainer the data container
      */
-    public Variable(String name, Environment environment, Datum data) {
-        this(name, environment, data, false);
+    public Variable(String name, Environment environment, C dataContainer) {
+        this(name, environment, dataContainer, Optional.empty());
     }
 
     /**
-     * Creates a new variable with the corresponding name, {@link Datum} and finality
+     * Creates a new variable with the corresponding name and {@link Datum}, and the given type
      *
-     * @param name    the name
-     * @param data    the data
+     * @param name the name
      * @param environment the environment
-     * @param isFinal whether this variable is final
+     * @param dataContainer the data container
      */
-    public Variable(String name, Environment environment, Datum data, boolean isFinal) {
-        super(data);
+    public Variable(String name, Environment environment, C dataContainer, Optional<Literal.Types> type) {
+        super();
         this.name = checkNotNull(name, "Name cannot be null.");
         this.environment = checkNotNull(environment, "Environment cannot be null.");
-        this.isFinal = isFinal;
+        this.typesOptional = checkNotNull(type, "Type optional cannot be null");
+
+        // Type set before data
+        this.forceData(dataContainer);
     }
 
     /**
@@ -102,17 +107,24 @@ public class Variable extends DataHolder {
         return environment;
     }
 
-    @Override
-    public void setDatum(Datum data) {
-        checkState(!isFinal, "You cannot change the value of a finalized variable");
-        forceSetData(data);
+    /**
+     * <p>Gets the explicit {@link Literal.Types type} of this variable.</p>
+     * <p>Types in variables are used for explicit type casting, and are therefore not necessary ({@link Optional})</p>
+     * <p>Variable types can be changed as its set, and is not final.</p>
+     * <p>If the variable's type is not ambiguous (is present), its value must match its corresponding type, according to {@link Literal.Types#isCompatible(Datum)}</p>
+     *
+     * @return the variable's type
+     */
+    public Optional<Literal.Types> getType() {
+        return typesOptional;
     }
 
-    private void forceSetData(Datum data) {
-        boolean unequal = !checkNotNull(data, "Data itself cannot be null. Use Literal#empty for null data").equals(getDatum());
+    @Override
+    public void setDatum(C datum) {
+        boolean unequal = !checkNotNull(datum, "Data itself cannot be null. Use Literal#empty for null data").equals(getDatum());
 
         try {
-            super.setDatum(data);
+            forceData(datum);
         } finally {
             if (unequal && !this.environment.suppressNotifications) {
                 this.environment.notifyChange();
@@ -120,13 +132,32 @@ public class Variable extends DataHolder {
         }
     }
 
+    private void forceData(C datum) { // Used in constructor
+        // Ensure type consistency
+        if (getType().isPresent()) {
+            Literal.Types type = getType().get();
+
+            if (!type.isCompatible(datum)) {
+                throw new IncompatibleTypeException("The variable '%s', with the %s type is not compatible with the value: %s.", getName(), type.getName(), datum.toString());
+            } else {
+                // If it's empty, give it its respective empty type
+                Literal getOrNull = datum.tryLiteral();
+                if (getOrNull != null && getOrNull.isEmpty()) {
+                    datum = (C) type.getEmpty();
+                }
+            }
+        }
+
+        super.setDatum(datum);
+    }
+
     /**
-     * Gets whether this variable's {@link Literal} data is final, or cannot be changed
-     *
-     * @return true if constant
+     * Saves the variable to the config
+     * @param node the root node for the variable
      */
-    public boolean isFinal() {
-        return isFinal;
+    public void save(CommentedConfigurationNode node) {
+        node.getNode("type").setValue(getType().isPresent() ? getType().get().getName() : "null");
+        node.getNode("value").setValue(getDatum().serialize());
     }
 
     @Override
@@ -134,13 +165,12 @@ public class Variable extends DataHolder {
         return Objects.toStringHelper(this)
                 .add("name", name)
                 .add("environment", environment)
-                .add("data", getDatum())
-                .add("isFinal", isFinal).toString();
+                .add("data", getDatum()).toString();
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode(); // We just want the natural object hashCode here, since Environments' HashMap requires a static hashCode
+        return name.hashCode(); // We just want the natural object hashCode here, since Environments' HashMap requires a static hashCode
     }
 
     @Override

@@ -8,13 +8,15 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that takes the substring of a literal
  */
 public class SubstringStatement extends Statement<String> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("substring")
+            .arguments(Arguments.of(GenericArguments.withName("String"), ",", GenericArguments.withName("Start")))
+            .arguments(Arguments.of(GenericArguments.withName("String"), ",", GenericArguments.withName("Start"), ",", GenericArguments.withName("End")))
+            .build();
 
-    public SubstringStatement() {
-        super(Syntax.builder()
-                .identifiers("substring")
-                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("Start")))
-                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("Start"), ",", Argument.from("End")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

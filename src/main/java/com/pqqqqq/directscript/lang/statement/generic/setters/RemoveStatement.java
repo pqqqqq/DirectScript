@@ -2,7 +2,6 @@ package com.pqqqqq.directscript.lang.statement.generic.setters;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.container.ValueContainer;
 import com.pqqqqq.directscript.lang.data.mutable.MutableValue;
@@ -16,22 +15,24 @@ import java.util.Collection;
  * A statement that removes a KV pair from a map or a value from an array
  */
 public class RemoveStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("remove")
+            .arguments(Arguments.of(GenericArguments.withNameAndFlags("VariableName", Argument.NO_RESOLVE), ",", GenericArguments.withName("Key")))
+            .build();
 
-    public RemoveStatement() {
-        super(Syntax.builder()
-                .identifiers("remove")
-                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_RESOLVE), ",", Argument.from("Key")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override
     public Result run(Context ctx) {
         MutableValue mutableValue = ((ValueContainer) ctx.getContainer("VariableName")).resolveValue(ctx);
 
-        Literal container = mutableValue.getLiteral();
+        Literal container = mutableValue.resolve(ctx);
         Literal key = ctx.getLiteral("Key");
 
-        Collection<Datum> iterable;
+        Collection<Literal> iterable;
 
         if (container.isMap()) {
             iterable = Maps.newHashMap(container.getMap()).keySet(); // Remove unmodifiability
@@ -41,7 +42,7 @@ public class RemoveStatement extends Statement {
             return Result.failure();
         }
 
-        iterable.removeIf((datum) -> datum.get().getString().equals(key.getString()));
+        iterable.removeIf((literal) -> literal.getString().equals(key.getString()));
         mutableValue.setDatum(Literal.fromObject(iterable));
         return Result.success();
     }

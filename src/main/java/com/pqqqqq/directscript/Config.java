@@ -1,5 +1,6 @@
 package com.pqqqqq.directscript;
 
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.Sequencer;
 import com.pqqqqq.directscript.lang.data.env.Variable;
@@ -8,6 +9,7 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 
 import java.io.File;
+import java.util.Optional;
 
 /**
  * Created by Kevin on 2015-06-22.
@@ -33,15 +35,20 @@ public class Config {
 
     public void load() {
         try {
+            Lang lang = Lang.instance();
+            lang.clear(); // Clear variables
+
             CommentedConfigurationNode root = cfg.load();
             CommentedConfigurationNode publicNode = root.getNode("public");
 
-            plugin.suppressNotifications(true); // Suppress notifications to save temporarily
+            lang.suppressNotifications(true); // Suppress notifications to save temporarily
             for (CommentedConfigurationNode variableNode : publicNode.getChildrenMap().values()) {
-                Literal literal = Sequencer.instance().parse(variableNode.getString()).resolve(null).get();
-                plugin.addVariable(new Variable(variableNode.getKey().toString(), plugin, literal));
+                Literal literal = Sequencer.instance().parse(variableNode.getNode("value").getString()).resolve(null);
+                Optional<Literal.Types> type = Literal.Types.fromName(variableNode.getNode("type").getString());
+
+                lang.addVariable(new Variable(variableNode.getKey().toString(), lang, literal, type));
             }
-            plugin.suppressNotifications(false); // Unsuppress them
+            lang.suppressNotifications(false); // Unsuppress them
 
             cfg.save(root);
         } catch (Exception e) {
@@ -49,13 +56,13 @@ public class Config {
         }
     }
 
-    protected void saveAll() {
+    public void saveAll() {
         try {
             CommentedConfigurationNode root = cfg.createEmptyNode(ConfigurationOptions.defaults());
             CommentedConfigurationNode publicNode = root.getNode("public");
 
-            for (Variable publicVariable : plugin) {
-                publicNode.getNode(publicVariable.getName()).setValue(publicVariable.getDatum().get().toSequence());
+            for (Variable publicVariable : Lang.instance()) {
+                publicVariable.save(publicNode.getNode(publicVariable.getName()));
             }
 
             cfg.save(root);

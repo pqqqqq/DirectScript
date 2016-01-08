@@ -9,12 +9,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that gets the size of an array
  */
 public class SizeStatement extends Statement<Integer> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("size")
+            .arguments(Arguments.of(GenericArguments.withName("Array")))
+            .build();
 
-    public SizeStatement() {
-        super(Syntax.builder()
-                .identifiers("size")
-                .arguments(Arguments.of(Argument.from("Array")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

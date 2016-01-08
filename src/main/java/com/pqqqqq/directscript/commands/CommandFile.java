@@ -9,7 +9,7 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.io.File;
@@ -25,8 +25,8 @@ public class CommandFile implements CommandExecutor {
     }
 
     public static CommandSpec build(DirectScript plugin) {
-        return CommandSpec.builder().executor(new CommandFile(plugin)).description(Texts.of(TextColors.AQUA, "Creates a new script file")).permission("directscript.file")
-                .arguments(GenericArguments.string(Texts.of("ScriptName"))).build();
+        return CommandSpec.builder().executor(new CommandFile(plugin)).description(Text.of(TextColors.AQUA, "Creates a new script file")).permission("directscript.file")
+                .arguments(GenericArguments.string(Text.of("ScriptName"))).build();
     }
 
     @Override
@@ -39,9 +39,9 @@ public class CommandFile implements CommandExecutor {
             file.getParentFile().mkdirs();
             file.createNewFile();
 
-            src.sendMessage(Texts.of(TextColors.GREEN, "File created successfully"));
+            src.sendMessage(Text.of(TextColors.GREEN, "File created successfully"));
         } catch (Exception e) {
-            src.sendMessage(Texts.of(TextColors.RED, e.getMessage()));
+            src.sendMessage(Text.of(TextColors.RED, e.getMessage()));
         }
         return CommandResult.success();
     }

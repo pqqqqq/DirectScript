@@ -41,8 +41,8 @@ public class ConditionalExpressionContainer extends ExpressionContainer<Boolean>
 
     @Override
     public Literal<Boolean> resolve(Context ctx) {
-        Literal firstTerm = getFirstTerm().resolve(ctx).get();
-        Literal secondTerm = getSecondTerm().resolve(ctx).get();
+        Literal firstTerm = getFirstTerm().resolve(ctx);
+        Literal secondTerm = getSecondTerm().resolve(ctx);
         ComparativeOperator comparator = getOperator();
 
         switch (comparator) {

@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that uses the first character of a literal to find its ASCII ordinal
  */
 public class OrdinalStatement extends Statement<Integer> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("ordinal", "ord")
+            .arguments(Arguments.of(GenericArguments.withName("String")))
+            .build();
 
-    public OrdinalStatement() {
-        super(Syntax.builder()
-                .identifiers("ordinal", "ord")
-                .arguments(Arguments.of(Argument.from("String")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

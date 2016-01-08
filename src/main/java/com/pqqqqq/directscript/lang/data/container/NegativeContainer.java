@@ -30,6 +30,6 @@ public class NegativeContainer implements DataContainer<Double> {
 
     @Override
     public Literal<Double> resolve(Context ctx) {
-        return getContainer().resolve(ctx).get().negative();
+        return getContainer().resolve(ctx).negative();
     }
 }

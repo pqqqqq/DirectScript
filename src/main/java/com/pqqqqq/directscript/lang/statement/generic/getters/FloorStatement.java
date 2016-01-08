@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that floors (rounds down) a number
  */
 public class FloorStatement extends Statement<Double> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("floor")
+            .arguments(Arguments.of(GenericArguments.withName("Number")))
+            .build();
 
-    public FloorStatement() {
-        super(Syntax.builder()
-                .identifiers("floor")
-                .arguments(Arguments.of(Argument.from("Number")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

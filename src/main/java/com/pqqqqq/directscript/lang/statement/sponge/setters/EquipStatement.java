@@ -12,15 +12,17 @@ import java.util.Optional;
  * A statement that equips certain items on a player (TODO ArmorEquipable instead?)
  */
 public class EquipStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("equip")
+            .prefix("@")
+            .arguments(Arguments.of(GenericArguments.withName("ArmourSpot")))
+            .arguments(Arguments.of(GenericArguments.withName("ArmourSpot"), ",", GenericArguments.withName("ItemStack")))
+            .arguments(Arguments.of(GenericArguments.withName("Player"), ",", GenericArguments.withName("ArmourSpot"), ",", GenericArguments.withName("ItemStack")))
+            .build();
 
-    public EquipStatement() {
-        super(Syntax.builder()
-                .identifiers("equip")
-                .prefix("@")
-                .arguments(Arguments.of(Argument.from("ArmourSpot")))
-                .arguments(Arguments.of(Argument.from("ArmourSpot"), ",", Argument.from("ItemStack")))
-                .arguments(Arguments.of(Argument.from("Player"), ",", Argument.from("ArmourSpot"), ",", Argument.from("ItemStack")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

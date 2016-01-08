@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that returns the string value of a literal
  */
 public class StringStatement extends Statement<String> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("string")
+            .arguments(Arguments.of(GenericArguments.withName("Literal")))
+            .build();
 
-    public StringStatement() {
-        super(Syntax.builder()
-                .identifiers("string")
-                .arguments(Arguments.of(Argument.from("Literal")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

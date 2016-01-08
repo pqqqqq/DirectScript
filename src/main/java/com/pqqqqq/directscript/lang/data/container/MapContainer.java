@@ -1,6 +1,5 @@
 package com.pqqqqq.directscript.lang.data.container;
 
-import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.reader.Context;
 
@@ -11,7 +10,7 @@ import java.util.Map;
  * Created by Kevin on 2015-07-11.
  * A map statement that is a {@link Map} of {@link DataContainer} K-V pairs
  */
-public class MapContainer implements DataContainer {
+public class MapContainer implements DataContainer<Map<Literal, Literal>> {
     private final Map<DataContainer, DataContainer> map = new HashMap<>();
 
     /**
@@ -30,7 +29,7 @@ public class MapContainer implements DataContainer {
     }
 
     /**
-     * Gets the {@link DataContainer} K-V map for this {@link MapContainer}
+     * Gets the {@link Literal} K-V map for this {@link MapContainer}
      *
      * @return the data container map
      */
@@ -39,9 +38,11 @@ public class MapContainer implements DataContainer {
     }
 
     @Override
-    public Literal<Map<Datum, Datum>> resolve(Context ctx) {
-        Map<Datum, Datum> map = new HashMap<>();
-        getMap().entrySet().forEach((entry) -> map.put(entry.getKey().resolve(ctx).get(), entry.getValue().resolve(ctx).get()));
+    public Literal<Map<Literal, Literal>> resolve(Context ctx) {
+        Map<Literal, Literal> map = new HashMap<>();
+
+        getMap().forEach((key, value) -> map.put(key.resolve(ctx), value.resolve(ctx)));
+
         return Literal.fromObject(map);
     }
 }

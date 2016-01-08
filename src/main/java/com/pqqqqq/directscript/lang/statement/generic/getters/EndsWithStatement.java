@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that checks if a string ends with another string
  */
 public class EndsWithStatement extends Statement<Boolean> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("endswith")
+            .arguments(Arguments.of(GenericArguments.withName("String"), ",", GenericArguments.withName("EndsWithString")))
+            .build();
 
-    public EndsWithStatement() {
-        super(Syntax.builder()
-                .identifiers("endswith")
-                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("EndsWithString")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

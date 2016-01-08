@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that checks where a string contains another string
  */
 public class FindStatement extends Statement<Integer> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("find", "indexof")
+            .arguments(Arguments.of(GenericArguments.withName("String"), ",", GenericArguments.withName("FindString")))
+            .build();
 
-    public FindStatement() {
-        super(Syntax.builder()
-                .identifiers("find", "indexof")
-                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("FindString")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

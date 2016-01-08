@@ -1,12 +1,15 @@
 package com.pqqqqq.directscript.lang.data.container;
 
-import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.data.env.Variable;
 import com.pqqqqq.directscript.lang.data.mutable.ArrayIndexValue;
 import com.pqqqqq.directscript.lang.data.mutable.DataHolder;
 import com.pqqqqq.directscript.lang.data.mutable.MapIndexValue;
 import com.pqqqqq.directscript.lang.data.mutable.MutableValue;
+import com.pqqqqq.directscript.lang.exception.IncompatibleTypeException;
 import com.pqqqqq.directscript.lang.reader.Context;
+
+import java.util.Optional;
 
 /**
  * Created by Kevin on 2015-06-18.
@@ -46,12 +49,12 @@ public class IndexContainer implements ValueContainer {
     }
 
     @Override
-    public Datum resolve(Context ctx) {
-        Literal arrayLiteral = getArray().resolve(ctx).get();
+    public Literal resolve(Context ctx) {
+        Literal arrayLiteral = getArray().resolve(ctx);
         if (arrayLiteral.isMap()) {
-            return arrayLiteral.or(Literal.Literals.EMPTY_MAP).getMapValue(getIndex().resolve(ctx).get());
+            return arrayLiteral.or(Literal.Literals.EMPTY_MAP).getMapValue(getIndex().resolve(ctx));
         } else {
-            return arrayLiteral.or(Literal.Literals.EMPTY_ARRAY).getArrayValue(getIndex().resolve(ctx).get().getNumber().intValue());
+            return arrayLiteral.or(Literal.Literals.EMPTY_ARRAY).getArrayValue(getIndex().resolve(ctx).getNumber().intValue());
         }
     }
 
@@ -63,12 +66,36 @@ public class IndexContainer implements ValueContainer {
             MutableValue mutableValue = ((ValueContainer) getArray()).resolveValue(ctx);
             if (mutableValue instanceof DataHolder) { // Indices are required to have field-membered data
                 DataHolder dataHolder = (DataHolder) mutableValue;
-                Literal arrayLiteral = dataHolder.getLiteral();
 
-                if (arrayLiteral.isMap()) {
-                    return new MapIndexValue(dataHolder, getIndex().resolve(ctx));
+                Literal index = getIndex().resolve(ctx);
+                if (dataHolder instanceof Variable) {
+                    Variable variable = (Variable) dataHolder;
+                    Optional<Literal.Types> type = variable.getType();
+
+                    if (type.isPresent()) {
+                        switch (type.get()) {
+                            case MAP:
+                                return new MapIndexValue(dataHolder, index);
+                            case ARRAY:
+                                return new ArrayIndexValue(dataHolder, index.getNumber().intValue());
+                            default:
+                                throw new IncompatibleTypeException("%s cannot be indexed.", type.get().getName());
+                        }
+                    }
+                }
+
+                Literal arrayLiteral = dataHolder.getDatum().tryLiteral();
+                if (arrayLiteral != null && arrayLiteral.isMap()) {
+                    return new MapIndexValue(dataHolder, index);
+                } else if (arrayLiteral != null && arrayLiteral.isArray()) {
+                    return new ArrayIndexValue(dataHolder, index.getNumber().intValue());
                 } else {
-                    return new ArrayIndexValue(dataHolder, getIndex().resolve(ctx).get().getNumber().intValue());
+                    Literal getOrNull = index.tryLiteral();
+                    if (getOrNull == null || !getOrNull.isNumber()) {
+                        return new MapIndexValue(dataHolder, index);
+                    } else {
+                        return new ArrayIndexValue(dataHolder, index.getNumber().intValue());
+                    }
                 }
             }
         }

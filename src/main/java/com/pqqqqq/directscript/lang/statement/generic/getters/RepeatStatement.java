@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that creates an array of a repeated literal
  */
 public class RepeatStatement extends Statement<Object[]> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("repeat")
+            .arguments(Arguments.of(GenericArguments.withName("Literal"), ",", GenericArguments.withName("Amount")))
+            .build();
 
-    public RepeatStatement() {
-        super(Syntax.builder()
-                .identifiers("repeat")
-                .arguments(Arguments.of(Argument.from("Literal"), ",", Argument.from("Amount")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

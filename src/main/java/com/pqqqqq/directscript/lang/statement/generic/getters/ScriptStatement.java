@@ -7,12 +7,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * Created by Kevin on 2015-11-14.
  */
 public class ScriptStatement extends Statement<Object> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("script")
+            .arguments(Arguments.of(GenericArguments.withName("Getter")))
+            .build();
 
-    public ScriptStatement() {
-        super(Syntax.builder()
-                .identifiers("script")
-                .arguments(Arguments.of(Argument.from("Getter")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

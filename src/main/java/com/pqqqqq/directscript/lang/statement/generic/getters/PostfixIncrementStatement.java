@@ -12,19 +12,21 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that increments a variable and returns the value before the increment
  */
 public class PostfixIncrementStatement extends Statement<Double> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .suffix("++")
+            .brackets()
+            .arguments(Arguments.of(GenericArguments.withNameAndFlags("VariableName", Argument.NO_PARSE)))
+            .build();
 
-    public PostfixIncrementStatement() {
-        super(Syntax.builder()
-                .suffix("++")
-                .brackets()
-                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_PARSE)))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override
     public Result<Double> run(Context ctx) {
         MutableValue mutableValue = ((ValueContainer) Lang.instance().sequencer().parse(ctx.getLiteral("VariableName").getString())).resolveValue(ctx);
-        Literal before = mutableValue.getDatum().get().or(0D); // Null values will just be 0
+        Literal before = mutableValue.resolve(ctx).or(0D); // Null values will just be 0
         mutableValue.setDatum(before.add(Literal.Literals.ONE));
 
         return Result.<Double>builder().success().result(before.getNumber()).build();

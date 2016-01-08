@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * Trims a string througb {@link String#trim()}
  */
 public class TrimStatement extends Statement<String> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("trim")
+            .arguments(Arguments.of(GenericArguments.withName("String")))
+            .build();
 
-    public TrimStatement() {
-        super(Syntax.builder()
-                .identifiers("trim")
-                .arguments(Arguments.of(Argument.from("String")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

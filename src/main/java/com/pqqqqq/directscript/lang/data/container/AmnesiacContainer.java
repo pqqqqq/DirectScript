@@ -1,23 +1,28 @@
 package com.pqqqqq.directscript.lang.data.container;
 
-import com.pqqqqq.directscript.lang.data.AmnesiacData;
 import com.pqqqqq.directscript.lang.data.Datum;
+import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.reader.Context;
 
 /**
  * Created by Kevin on 2015-11-18.
- * An amnesiac {@link DataContainer} that re-resolves every time
+ * An amnesiac {@link Datum} that re-resolves every time
  */
-public class AmnesiacContainer<T> implements DataContainer<T> {
+public class AmnesiacContainer<T> implements Datum<T> {
     private final DataContainer sequence;
+    private final String stringSequence;
+
+    private transient boolean firstRun = true;
 
     /**
      * Creates a new amnesiac container with the given data container to be re-resolved
      *
      * @param sequence the data container
+     * @param stringSequence the string sequence
      */
-    public AmnesiacContainer(DataContainer<T> sequence) {
+    public AmnesiacContainer(DataContainer<T> sequence, String stringSequence) {
         this.sequence = sequence;
+        this.stringSequence = stringSequence;
     }
 
     /**
@@ -29,8 +34,27 @@ public class AmnesiacContainer<T> implements DataContainer<T> {
         return sequence;
     }
 
+    /**
+     * Gets the string sequence used to make the data container
+     *
+     * @return the string sequence
+     */
+    public String getStringSequence() {
+        return stringSequence;
+    }
+
     @Override
-    public Datum<T> resolve(Context ctx) {
-        return new AmnesiacData<T>(ctx, getSequence());
+    public Literal<T> resolve(Context ctx) {
+        if (firstRun) {
+            firstRun = false;
+            return Literal.Resolved.fromObject(Literal.Literals.EMPTY, this);
+        }
+
+        return Literal.Resolved.fromObject(getSequence().resolve(ctx), this);
+    }
+
+    @Override
+    public Object serialize() {
+        return stringSequence;
     }
 }

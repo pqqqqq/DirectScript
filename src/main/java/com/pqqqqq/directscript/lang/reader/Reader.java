@@ -1,6 +1,7 @@
 package com.pqqqqq.directscript.lang.reader;
 
 import com.pqqqqq.directscript.lang.Lang;
+import com.pqqqqq.directscript.lang.exception.state.CompilationException;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.script.ScriptsFile;
@@ -15,10 +16,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -53,9 +51,11 @@ public class Reader {
     }
 
     /**
-     * Loads and a retrieves a {@link Set} of {@link ScriptsFile}s, also clears any {@link Cause} triggers
+     * <p>Loads and a retrieves a {@link Set} of {@link ScriptsFile}s, also clears any {@link Cause} triggers</p>
      *
      * @return the loaded set
+     * @see #readInDir()
+     * @see Cause#getTriggers()
      */
     public Set<ScriptsFile> load() {
         for (Cause cause : Causes.getRegistry()) {
@@ -70,6 +70,7 @@ public class Reader {
      *
      * @return the set of scripts files
      * @see #scriptsFile()
+     * @see #readInDir(File)
      */
     public Set<ScriptsFile> readInDir() { // Reads from ROOT/scripts
         SCRIPTS.mkdir(); // Make /scripts if it doesn't exist
@@ -90,14 +91,12 @@ public class Reader {
         checkState(dir.exists(), "The directory must exist");
         checkState(dir.isDirectory(), "Directory must actually be a directory");
 
-        Set<ScriptsFile> scriptsFiles = new HashSet<ScriptsFile>();
+        Set<ScriptsFile> scriptsFiles = new HashSet<>();
         for (File file : dir.listFiles()) {
             if (file.isDirectory()) {
                 scriptsFiles.addAll(readInDir(root, file)); // I <3 recursion
-            } else {
-                if (file.getName().endsWith(".ds") || file.getName().endsWith(".dsc")) {
-                    scriptsFiles.add(readScriptsFile(root, file));
-                }
+            } else if (file.getName().endsWith(".ds") || file.getName().endsWith(".dsc")) {
+                scriptsFiles.add(readScriptsFile(root, file));
             }
         }
 
@@ -105,7 +104,7 @@ public class Reader {
     }
 
     /**
-     * Reads and returns a {@link ScriptsFile} for the given {@link File}
+     * Reads and returns a {@link ScriptsFile} for the given {@link File} directory
      *
      * @param root the root file (eg {@link #scriptsFile()})
      * @param file the file to read
@@ -127,76 +126,84 @@ public class Reader {
             int absoluteLine = 0, scriptLine = 0;
             boolean blockComment = false;
             Script currentScript = null;
+            Block currentBlock = null;
             String line;
 
-            List<Line> bracesLineList = new ArrayList<Line>();
+            Deque<Line.Builder> bracesLineList = new ArrayDeque<>();
+            List<Line.Builder> cumulativeLines = new ArrayList<>();
 
-            while ((line = bufferedReader.readLine()) != null) {
-                try {
-                    absoluteLine++; // Up the line #s
-
+            try {
+                while ((line = bufferedReader.readLine()) != null) {
                     Pair<Boolean, String> comments = Lang.instance().stringParser().removeComments(blockComment, line);
                     blockComment = comments.getLeft();
                     line = comments.getRight();
 
-                    Line lineInst = new Line(absoluteLine, scriptLine, line);
-                    if (lineInst.getLine().isEmpty()) {
+                    Line.Builder lineBuilder = Line.builder().absoluteLine(++absoluteLine).line(line); // Up absolute line
+                    line = lineBuilder.getLine(); // Use the trimmed line
+                    if (line.isEmpty()) { // Empty lines don't matter past this
                         continue;
                     }
 
-                    checkState(lineInst.isRunnable(), "Unknown statement.");
-                    if (currentScript != null) {
-                        scriptLine++;
-                        if (lineInst.getStatement() instanceof Termination || lineInst.getStatement() instanceof ElseStatement) {
-                            Line startLine = bracesLineList.remove(0); // This is the opening brace line
+                    Line.Content content = lineBuilder.getContent();
+                    Statement statement = content.getStatement();
 
-                            startLine.setClosingBrace(lineInst); // Set the closing brace as the current line
-                            lineInst.setOpeningBrace(startLine); // Set the opening brace as the start line
-                            startLine.generateInternalBlock(currentScript);
+                    if (currentScript != null) {
+                        lineBuilder.scriptLine(scriptLine); // Up script line (after to preserve base-0)
+                        if (statement instanceof Termination || statement instanceof ElseStatement) { // Closing brace
+                            Line.Builder startLine = bracesLineList.pollLast(); // This is the opening brace line
+
+                            if (startLine.getScript() != null) {
+                                startLine.closingBrace(scriptLine); // Set the closing brace as the current line
+                                lineBuilder.openingBrace(startLine.getScriptLineNumber()); // Set the opening brace as the start line
+                                currentBlock = startLine.getBlockContainer(); // Set current block to what it was before
+                            }
                         }
 
-                        lineInst.setDepth(bracesLineList.size() - 1); // Depth is set after closing braces but before opening braces. 1 is subtracted because the script braces do not count
+                        lineBuilder.script(currentScript).block(currentBlock); // Set the line's block
 
-                        if (lineInst.getStatement().getSyntax().getSuffix().equals("{") || lineInst.getLine().endsWith("{")) { // Necessary for else and else if statements
-                            bracesLineList.add(0, lineInst);
+                        if (statement.getSyntax().getSuffix().equals("{") || line.endsWith("{")) { // Opening brace
+                            bracesLineList.add(lineBuilder);
+                            currentBlock = new Block(bracesLineList.size() - 1); // Subtract one since script is 0
+                            lineBuilder.internal(currentBlock); // Set internal block
                         }
                     }
 
-                    Statement statementOptional = lineInst.getStatement();
-                    if (statementOptional instanceof ScriptDeclaration) { // Check if this is a script declaration
+                    if (statement instanceof ScriptDeclaration) { // Check if this is a script declaration
                         checkState(currentScript == null, "Please end a script declaration with an end brace (})");
 
-                        Statement.Result<String> result = lineInst.toContext(ScriptInstance.compile(null)).run();
+                        Statement.Result<String> result = content.toContext(ScriptInstance.compile(null)).run();
                         checkState(result.isSuccess() && result.getResult().isPresent(), String.format("File %s has an improper formatted script declaration", file.getName()));
 
                         currentScript = new Script(scriptsFile, result.getResult().get());
-                        bracesLineList.add(0, lineInst); // Add braces here since it wasn't added above
+                        currentBlock = currentScript;
+                        bracesLineList.add(lineBuilder); // Add braces here since it wasn't added above
                         continue;
-                    } else if (statementOptional instanceof Termination) {
-                        checkNotNull(currentScript, "No script is being declared line " + lineInst.getLine() + " " + lineInst.getAbsoluteNumber());
-
-                        Line starting = lineInst.getOpeningBrace();
-                        if (starting.getStatement() instanceof ScriptDeclaration) {
+                    } else if (statement instanceof Termination) {
+                        checkNotNull(currentScript, "No script is being declared line " + lineBuilder.getLine() + " " + lineBuilder.getAbsoluteLineNumber());
+                        if (lineBuilder.getOpeningBraceLine() == null) {
                             scriptsFile.getScripts().add(currentScript);
-                            ScriptInstance.compile(currentScript).execute();
 
                             // Reset cache for the script
+                            currentBlock = null;
                             currentScript = null;
                             bracesLineList.clear();
-                            scriptLine = 0;
+                            scriptLine = 0; // Reset script line
                             continue;
                         }
                     }
 
-                    if (currentScript != null) { // Otherwise, if there's an active script, add the line to the script line list
-                        currentScript.getLines().add(lineInst);
+                    scriptLine++; // Increment script line
+                    if (currentScript != null) {
+                        cumulativeLines.add(lineBuilder); // Add line builder
                     }
-                } catch (Throwable e1) {
-                    Lang.instance().errorHandler().log(String.format("Error in compilation of %s at line %d", scriptsFile.getStringRepresentationNoExt() + (currentScript != null ? " -> " + currentScript.getName() : ""), absoluteLine));
-                    Lang.instance().errorHandler().log(e1);
-                    Lang.instance().errorHandler().flush();
                 }
+            } catch (Throwable e1) {
+                Lang.instance().exceptionHandler().log(new CompilationException(e1, "Error in compilation of %s at line %d", scriptsFile.getStringRepresentationNoExt() + (currentScript != null ? " -> " + currentScript.getName() : ""), absoluteLine));
+                Lang.instance().exceptionHandler().flush();
             }
+
+            cumulativeLines.forEach(Line.Builder::build); // Build everything
+            scriptsFile.getScripts().forEach((script) -> ScriptInstance.compile(script).execute()); // Compile scripts
 
             bufferedReader.close();
         } catch (Exception e) {

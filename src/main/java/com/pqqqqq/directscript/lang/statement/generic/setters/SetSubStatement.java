@@ -14,20 +14,22 @@ import com.pqqqqq.directscript.lang.util.StringParser;
  * A statement that sets the value of an existing {@link Variable} by subtracting from its current value
  */
 public class SetSubStatement extends Statement<Object> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .customPredicate(new Predicate<String>() {
 
-    public SetSubStatement() {
-        super(Syntax.builder()
-                .customPredicate(new Predicate<String>() {
+                @Override
+                public boolean apply(String input) {
+                    String[] split = StringParser.instance().parseSplit(input, " -= ");
+                    return split.length == 2 && !split[0].trim().isEmpty() && !split[1].trim().isEmpty(); // Basically just check if something exists on both sides of an operator
+                }
+            })
+            .arguments(Arguments.of(GenericArguments.withNameAndFlags("VariableName", Argument.NO_RESOLVE)))
+            .arguments(Arguments.of(GenericArguments.withNameAndFlags("VariableName", Argument.NO_RESOLVE), "-=", GenericArguments.withName("Value")))
+            .build();
 
-                    @Override
-                    public boolean apply(String input) {
-                        String[] split = StringParser.instance().parseSplit(input, " -= ");
-                        return split.length == 2 && !split[0].trim().isEmpty() && !split[1].trim().isEmpty(); // Basically just check if something exists on both sides of an operator
-                    }
-                })
-                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_RESOLVE)))
-                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_RESOLVE), "-=", Argument.from("Value")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override
@@ -35,7 +37,7 @@ public class SetSubStatement extends Statement<Object> {
         MutableValue mutableValue = ((ValueContainer) ctx.getContainer("VariableName")).resolveValue(ctx);
         Literal value = ctx.getLiteral("Value");
 
-        mutableValue.setDatum(mutableValue.getDatum().get().or(0D).sub(value)); // Null values will just be 0
+        mutableValue.setDatum(mutableValue.resolve(ctx).or(0D).sub(value)); // Null values will just be 0
         return Result.builder().success().result(mutableValue.getDatum()).build();
     }
 }

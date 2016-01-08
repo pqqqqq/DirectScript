@@ -30,7 +30,7 @@ public class EventVariableContainer implements DataContainer {
 
     @Override
     public Literal resolve(Context ctx) {
-        String name = getEventVar().resolve(ctx).get().getString();
+        String name = getEventVar().resolve(ctx).getString();
         return Literal.fromObject(ctx.getScriptInstance().getEventVars().get(name));
     }
 }

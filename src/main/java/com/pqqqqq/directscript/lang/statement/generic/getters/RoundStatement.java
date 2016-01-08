@@ -9,12 +9,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that rounds a number (0.5 up)
  */
 public class RoundStatement extends Statement<Double> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("round")
+            .arguments(Arguments.of(GenericArguments.withName("Number")))
+            .build();
 
-    public RoundStatement() {
-        super(Syntax.builder()
-                .identifiers("round")
-                .arguments(Arguments.of(Argument.from("Number")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

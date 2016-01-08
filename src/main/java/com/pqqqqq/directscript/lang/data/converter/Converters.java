@@ -7,6 +7,10 @@ import com.pqqqqq.directscript.lang.data.converter.snapshot.BlockSnapshotConvert
 import com.pqqqqq.directscript.lang.data.converter.snapshot.EntitySnapshotConverter;
 import com.pqqqqq.directscript.lang.data.converter.snapshot.ItemStackSnapshotConverter;
 import com.pqqqqq.directscript.lang.data.converter.snapshot.LocateableSnapshotConverter;
+import com.pqqqqq.directscript.lang.data.converter.vector.Vector3dConverter;
+import com.pqqqqq.directscript.lang.data.converter.vector.Vector3fConverter;
+import com.pqqqqq.directscript.lang.data.converter.vector.Vector3iConverter;
+import com.pqqqqq.directscript.lang.data.converter.vector.Vector3lConverter;
 import com.pqqqqq.directscript.lang.util.RegistryUtil;
 import org.spongepowered.api.data.DataHolder;
 import org.spongepowered.api.entity.Item;
@@ -27,6 +31,12 @@ public class Converters {
     public static final DataSerializableConverter DATA_SERIALIZABLE_CONVERTER = DataSerializableConverter.newInstance();
     public static final Converter<DataHolder> DATA_HOLDER_CONVERTER = new Converter<>(DataHolder.class, DATA_SERIALIZABLE_CONVERTER); // Must be after DataSerialiable
     public static final DataContainerConverter DATA_CONTAINER_CONVERTER = DataContainerConverter.newInstance();
+
+    // Vector
+    public static final Vector3dConverter VECTOR_3D_CONVERTER = Vector3dConverter.newInstance();
+    public static final Vector3fConverter VECTOR_3F_CONVERTER = Vector3fConverter.newInstance();
+    public static final Vector3iConverter VECTOR_3I_CONVERTER = Vector3iConverter.newInstance();
+    public static final Vector3lConverter VECTOR_3L_CONVERTER = Vector3lConverter.newInstance();
 
     // Misc.
     public static final WorldConverter WORLD_CONVERTER = WorldConverter.newInstance();
@@ -84,9 +94,24 @@ public class Converters {
     }
 
     public static <T> Optional<Converter<T>> fromClass(Class<T> clazz) {
-        for (Converter converter : REGISTRY) {
-            if (converter.getGenericClass().equals(clazz)) {
+        // We have to do this in reverse order, since converters are eligible if they are instances of the type
+        // And superclasses are first in the registry (eg. entity converter is before player converter)
+
+        for (int i = (REGISTRY.size() - 1); i >= 0; i--) {
+            Converter converter = REGISTRY.get(i);
+            if (converter.getGenericClass().isAssignableFrom(clazz)) {
                 return Optional.of(converter);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public static <T> Optional<Converter<T>> fromType(T value) {
+        for (int i = (REGISTRY.size() - 1); i >= 0; i--) {
+            Converter converter = REGISTRY.get(i);
+            if (converter.isEligible(value)) {
+                return Optional.<Converter<T>>of(converter);
             }
         }
 

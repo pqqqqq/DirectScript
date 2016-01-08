@@ -9,12 +9,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that prints to console
  */
 public class PrintStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("print")
+            .arguments(Arguments.empty(), Arguments.of(GenericArguments.withName("String")))
+            .build();
 
-    public PrintStatement() {
-        super(Syntax.builder()
-                .identifiers("print")
-                .arguments(Arguments.empty(), Arguments.of(Argument.from("String")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

@@ -2,26 +2,27 @@ package com.pqqqqq.directscript.lang.statement.generic.setters;
 
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.env.Variable;
+import com.pqqqqq.directscript.lang.exception.MissingInternalBlockException;
 import com.pqqqqq.directscript.lang.reader.Block;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Statement;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by Kevin on 2015-06-10.
  * A statement that counts a variable up
  */
 public class ForStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("for")
+            .suffix("{")
+            .arguments(Arguments.of(GenericArguments.withNameAndFlags("VariableName", Argument.NO_PARSE), "=", GenericArguments.withName("StartValue"), ",", GenericArguments.withName("EndValue")))
+            .arguments(Arguments.of(GenericArguments.withNameAndFlags("VariableName", Argument.NO_PARSE), "=", GenericArguments.withName("StartValue"), ",", GenericArguments.withName("EndValue"), ",", GenericArguments.withName("IncrementValue")))
+            .build();
 
-    public ForStatement() {
-        super(Syntax.builder()
-                .identifiers("for")
-                .suffix("{")
-                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_PARSE), "=", Argument.from("StartValue"), ",", Argument.from("EndValue")))
-                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_PARSE), "=", Argument.from("StartValue"), ",", Argument.from("EndValue"), ",", Argument.from("IncrementValue")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override
@@ -32,7 +33,7 @@ public class ForStatement extends Statement {
         double endValue = ctx.getLiteral("EndValue").getNumber();
         double increment = ctx.getLiteral("IncrementValue", 1).getNumber();
 
-        Block internalBlock = checkNotNull(ctx.getLine().getInternalBlock(), "This line has no internal block");
+        Block internalBlock = ctx.getLine().getInternalBlock().orElseThrow(() -> new MissingInternalBlockException("For statements must have internal blocks."));
         Block.BlockRunnable blockRunnable = internalBlock.toRunnable(ctx.getScriptInstance());
         Variable var = blockRunnable.addVariable(new Variable(varName, blockRunnable));
 

@@ -12,19 +12,21 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that increments a variable and returns the incremented value
  */
 public class IncrementStatement extends Statement<Double> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .prefix("++")
+            .brackets()
+            .arguments(Arguments.of(GenericArguments.withNameAndFlags("VariableName", Argument.NO_PARSE)))
+            .build();
 
-    public IncrementStatement() {
-        super(Syntax.builder()
-                .prefix("++")
-                .brackets()
-                .arguments(Arguments.of(Argument.from("VariableName", Argument.NO_PARSE)))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override
     public Result<Double> run(Context ctx) {
         MutableValue mutableValue = ((ValueContainer) Lang.instance().sequencer().parse(ctx.getLiteral("VariableName").getString())).resolveValue(ctx);
-        Literal incr = mutableValue.getDatum().get().or(0D).add(Literal.Literals.ONE); // Null values will just be 0
+        Literal incr = mutableValue.resolve(ctx).or(0D).add(Literal.Literals.ONE); // Null values will just be 0
         mutableValue.setDatum(incr);
 
         return Result.<Double>builder().success().result(incr.getNumber()).build();

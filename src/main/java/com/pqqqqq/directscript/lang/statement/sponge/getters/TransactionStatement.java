@@ -1,46 +1,41 @@
 package com.pqqqqq.directscript.lang.statement.sponge.getters;
 
-import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.Transaction;
 
-import java.util.Optional;
+import static com.pqqqqq.directscript.lang.statement.Statement.GenericArguments.DEFAULT_TRANSACTION;
 
 /**
  * Created by Kevin on 2015-11-15.
  * A statement for different {@link Transaction}s
  */
 public class TransactionStatement extends Statement<DataSerializable> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("transaction")
+            .prefix("@")
+            .build();
 
     public TransactionStatement() {
-        super(Syntax.builder()
-                .identifiers("transaction")
-                .prefix("@")
-                .arguments(Arguments.of(Argument.from("Getter")), Arguments.of(Argument.from("Transaction"), ",", Argument.from("Getter")))
-                .arguments(Arguments.of(Argument.from("Transaction"), ",", Argument.from("Getter"), ",", Argument.from("Arguments", Argument.REST_AS_LIST)))
-                .build());
+        super();
+
+        final Arguments[] GETTER_ARGUMENTS = GenericArguments.getterArguments(this);
+        register(this.<Transaction, DataSerializable>createCompartment("before", (ctx, transaction) -> {
+            return Result.<DataSerializable>builder().success().result(transaction.getOriginal()).build();
+        }, GETTER_ARGUMENTS));
+
+        register(this.<Transaction, DataSerializable>createCompartment("after", (ctx, transaction) -> {
+            return Result.<DataSerializable>builder().success().result(transaction.getFinal()).build();
+        }, GETTER_ARGUMENTS));
     }
 
     @Override
-    public Result<DataSerializable> run(Context ctx) {
-        Optional<Transaction<DataSerializable>> transaction = ctx.getLiteral("Transaction", Transaction.class).getAs(Transaction.class);
-        if (!transaction.isPresent()) {
-            return Result.failure();
-        }
+    public Argument getObjectArgument() {
+        return DEFAULT_TRANSACTION;
+    }
 
-        String getter = ctx.getLiteral("Getter").getString();
-        switch (getter.toLowerCase()) {
-            case "before":
-                return Result.<DataSerializable>builder().success().result(transaction.get().getOriginal()).build();
-            case "after":
-                return Result.<DataSerializable>builder().success().result(transaction.get().getFinal()).build();
-            case "custom":
-                return Result.<DataSerializable>builder().success().result(transaction.get().getCustom().orElse(null)).build();
-            case "default":
-                return Result.<DataSerializable>builder().success().result(transaction.get().getDefault()).build();
-        }
-
-        return Result.failure();
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 }

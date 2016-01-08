@@ -1,6 +1,6 @@
 package com.pqqqqq.directscript.lang.statement.internal.setters;
 
-import com.pqqqqq.directscript.lang.data.Datum;
+import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 
@@ -13,22 +13,24 @@ import java.util.List;
  * @see com.pqqqqq.directscript.lang.trigger.cause.Cause.CommandCause
  */
 public class CommandStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("command")
+            .executionTime(ExecutionTime.COMPILE)
+            .arguments(Arguments.of(GenericArguments.withName("CommandAliases")))
+            .build();
 
-    public CommandStatement() {
-        super(Syntax.builder()
-                .identifiers("command")
-                .executionTime(ExecutionTime.COMPILE)
-                .arguments(Arguments.of(Argument.from("CommandAliases")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override
     public Result run(Context ctx) {
         List<String> aliases = new ArrayList<String>();
-        List<Datum> array = ctx.getLiteral("CommandAliases").getArray();
+        List<Literal> array = ctx.getLiteral("CommandAliases").getArray();
 
-        for (Datum alias : array) {
-            aliases.add(alias.get().getString());
+        for (Literal alias : array) {
+            aliases.add(alias.getString());
         }
 
         ctx.getScript().getCauseData().setCommandAliases(aliases.toArray(new String[aliases.size()]));

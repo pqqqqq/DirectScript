@@ -1,16 +1,22 @@
 package com.pqqqqq.directscript.lang.util;
 
+import com.flowpowered.math.vector.Vector3d;
 import com.pqqqqq.directscript.DirectScript;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.data.key.Key;
 import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -21,6 +27,8 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class Utilities {
     static final Random random = new Random();
+    static final Pattern timePattern = Pattern.compile("(\\d+?)(\\D+|$)");
+    static final String WITH_DELIMITER = "((?<=%1$s)|(?=%1$s))"; // Credits to http://stackoverflow.com/questions/2206378/how-to-split-a-string-but-also-keep-the-delimiters
 
     /**
      * Gets a double from a string, or null if none
@@ -87,7 +95,18 @@ public class Utilities {
             return null;
         }
 
-        return str.replaceAll("&([0-9a-fA-FkKlLmMnNoOrR])", Texts.getLegacyChar() + "$1");
+        return TextSerializers.formattingCode('&').replaceCodes(str, TextSerializers.LEGACY_FORMATTING_CODE);
+
+        //return str.replaceAll("&([0-9a-fA-FkKlLmMnNoOrR])", "§$1");
+    }
+
+    @SuppressWarnings("deprecation")
+    public static Text getText(String str) {
+        if (str == null) {
+            return null;
+        }
+
+        return TextSerializers.LEGACY_FORMATTING_CODE.deserialize(str);
     }
 
     @SuppressWarnings("deprecation")
@@ -99,7 +118,16 @@ public class Utilities {
             return null;
         }
 
-        return str.replaceAll(Texts.getLegacyChar() + "([0-9a-fA-FkKlLmMnNoOrR])", "&$1");
+        return str.replaceAll("§([0-9a-fA-FkKlLmMnNoOrR])", "&$1");
+    }
+
+    /**
+     * Removes all non-alphanumeric characters from a string
+     * @param string the string
+     * @return the string, only 1-z and 0-9
+     */
+    public static String removeNonAlphanumeric(String string) {
+        return string.replaceAll("[^a-zA-Z0-9]", "");
     }
 
     /**
@@ -146,6 +174,27 @@ public class Utilities {
         return Optional.empty();
     }
 
+    // STOLEN FROM BUKKIT
+    /**
+     * Gets a unit-vector pointing in the direction that this Location is
+     * facing.
+     *
+     * @return a vector pointing the direction of this location
+     */
+    public static Vector3d getDirection(Vector3d rotation) {
+        double x, y, z;
+        double rotX = rotation.getY(); // This was reversed for sponge
+        double rotY = rotation.getX();
+
+        y = -Math.sin(Math.toRadians(rotY));
+        double xz = Math.cos(Math.toRadians(rotY));
+
+        x = -xz * Math.sin(Math.toRadians(rotX));
+        z = xz * Math.cos(Math.toRadians(rotX));
+
+        return new Vector3d(x, y, z);
+    }
+
     /**
      * Produces a random integer between the bounds
      *
@@ -168,6 +217,105 @@ public class Utilities {
     public static double randomDouble(double min, double max) {
         checkState(max >= min, "Max must be larger than min");
         return min + (max - min) * random.nextDouble();
+    }
+
+    /**
+     * A versatile method that retrieves an {@link Optional} {@link TimeUnit} from any of its aliases
+     *
+     * @param name the name
+     * @return the time unit, or {@link Optional#empty()}
+     */
+    public static Optional<TimeUnit> getTimeUnit(String name) {
+        switch (name.toLowerCase()) { // we want versatility here
+            // Nano
+            case "nanosecond":
+            case "nanoseconds":
+            case "nanos":
+            case "ns":
+                return Optional.of(TimeUnit.NANOSECONDS);
+
+            // Micro
+            case "microsecond":
+            case "microseconds":
+            case "micros":
+            case "us":
+                return Optional.of(TimeUnit.MICROSECONDS);
+
+            // Millis
+            case "millisecond":
+            case "milliseconds":
+            case "millis":
+            case "ms":
+                return Optional.of(TimeUnit.MILLISECONDS);
+
+            // Seconds
+            case "second":
+            case "seconds":
+            case "s":
+                return Optional.of(TimeUnit.SECONDS);
+
+            // Minutes
+            case "minute":
+            case "minutes":
+            case "min":
+            case "mins":
+            case "m":
+                return Optional.of(TimeUnit.MINUTES);
+
+            // Hours
+            case "hour":
+            case "hours":
+            case "h":
+                return Optional.of(TimeUnit.HOURS);
+
+            // Days
+            case "day":
+            case "days":
+            case "d":
+                return Optional.of(TimeUnit.DAYS);
+        }
+
+        return Optional.empty();
+    }
+
+    public static <K, V> V getMapType(Map<K, V> map, Predicate<K> predicate) {
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            if (predicate.test(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * <p>Parses a simple formatted string with variable {@link TimeUnit}s embedded.</p>
+     * <p>Each term should consist of an integer, followed by the time unit in any of its respective aliases.</p>
+     * <p>Example string: 14d5m19s99ms or 14d 5m 19s 99ms (spaces are permitted)</p>
+     * <p>The output will ALWAYS be in {@link TimeUnit#MICROSECONDS}.</p>
+     *
+     * @param formattedString the formatted string
+     * @return the time, in microseconds
+     */
+    public static long getFormattedTime(String formattedString) {
+        long resultantTime = 0L;
+        Matcher matcher = timePattern.matcher(formattedString);
+
+        while (matcher.find()) {
+            String term = matcher.group().trim(); // Spaces are permitted
+            String[] numberSplit = term.split(String.format(WITH_DELIMITER, "\\D"), 2); // Split once and include delimiters
+
+            Double time = Double.parseDouble(numberSplit[0].trim());
+            if (numberSplit.length == 1) {
+                resultantTime += TimeUnit.MICROSECONDS.convert(time.longValue(), TimeUnit.SECONDS); // By default, assume we're given seconds
+                continue;
+            }
+
+            TimeUnit timeUnit = getTimeUnit(numberSplit[1].trim()).get();
+            resultantTime += TimeUnit.MICROSECONDS.convert(time.longValue(), timeUnit);
+        }
+
+        return resultantTime;
     }
 
     /**

@@ -1,7 +1,10 @@
 package com.pqqqqq.directscript.lang.script;
 
 import com.google.common.base.Predicate;
+import com.pqqqqq.directscript.lang.Lang;
 import com.pqqqqq.directscript.lang.data.Literal;
+import com.pqqqqq.directscript.lang.data.converter.Converter;
+import com.pqqqqq.directscript.lang.data.converter.Converters;
 import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.reader.Block;
 import com.pqqqqq.directscript.lang.reader.Context;
@@ -10,11 +13,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import com.pqqqqq.directscript.lang.util.ICopyable;
-import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.entity.Item;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Event;
-import org.spongepowered.api.world.Location;
 
 import java.util.*;
 
@@ -32,6 +31,7 @@ public class ScriptInstance extends Environment {
     private final Cause cause;
     private final Predicate<Line> linePredicate;
     private final Optional<Event> event;
+    private final Optional<org.spongepowered.api.event.cause.Cause> eventCause;
     private final Map<String, Object> eventVars;
 
     private final Set<Context> contextSet = new HashSet<Context>();
@@ -39,13 +39,14 @@ public class ScriptInstance extends Environment {
     private Optional<Literal> returnValue = Optional.empty();
     private Optional<Block.BlockRunnable> currentRunnable = Optional.empty();
 
-    ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Event event, Map<String, Object> eventVars) {
-        super((script == null ? null : script.getScriptsFile())); // The parent is the file
+    ScriptInstance(Script script, Cause cause, Predicate<Line> linePredicate, Event event, org.spongepowered.api.event.cause.Cause eventCause, Map<String, Object> eventVars) {
+        super(Lang.instance()); // The parent is the language's main
         this.script = script;
         this.cause = cause;
         this.linePredicate = linePredicate;
 
         this.event = Optional.ofNullable(event);
+        this.eventCause = Optional.ofNullable(eventCause);
         this.eventVars = eventVars;
     }
 
@@ -115,6 +116,14 @@ public class ScriptInstance extends Environment {
     }
 
     /**
+     * Gets the {@link Optional} {@link org.spongepowered.api.event.cause.Cause Cause} for this {@link ScriptInstance}
+     * @return the event cause
+     */
+    public Optional<org.spongepowered.api.event.cause.Cause> getEventCause() {
+        return eventCause;
+    }
+
+    /**
      * Gets the String-Object event var {@link Map} for this {@link ScriptInstance} as per its {@link com.pqqqqq.directscript.lang.trigger.Trigger Trigger}
      * @return the object map
      */
@@ -130,6 +139,8 @@ public class ScriptInstance extends Environment {
      */
     public <T> T getEventVarWithType(Class<T> type) {
         T current = null;
+
+        // First iterate will check for the direct assignable types
         for (Object value : getEventVars().values()) {
             if (type.isAssignableFrom(value.getClass())) {
                 if (current == null || !current.getClass().equals(value.getClass()) && !current.getClass().isAssignableFrom(value.getClass())) {
@@ -138,7 +149,22 @@ public class ScriptInstance extends Environment {
             }
         }
 
-        return current;
+        if (current != null) {
+            return current;
+        }
+
+        // Second iterate will just return the first convertible type it sees
+        for (Object value : getEventVars().values()) {
+            Optional<Converter<Object>> converter = Converters.fromType(value);
+            if (converter.isPresent()) {
+                Optional<T> conversion = converter.get().<T>convert(value, type);
+                if (conversion.isPresent()) {
+                    return conversion.get(); // Hallelujah
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -250,6 +276,7 @@ public class ScriptInstance extends Environment {
         private Cause cause = null;
         private Predicate<Line> linePredicate = Script.runtimePredicate();
         private Event event = null;
+        private org.spongepowered.api.event.cause.Cause eventCause = null;
         private Map<String, Object> eventVars = new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER); // Ignore cases with #get
 
         Builder() { // Default view
@@ -304,6 +331,17 @@ public class ScriptInstance extends Environment {
         }
 
         /**
+         * Sets the {@link org.spongepowered.api.event.cause.Cause Cause} for this builder
+         * @param eventCause the event cause
+         * @return this builder, for fluency
+         * @see ScriptInstance#getEventCause
+         */
+        public Builder eventCause(org.spongepowered.api.event.cause.Cause eventCause) {
+            this.eventCause = eventCause;
+            return this;
+        }
+
+        /**
          * Puts all the object entries to this Builder
          * @param eventVars the event var map to put
          * @return this builder, fo fluency
@@ -328,72 +366,13 @@ public class ScriptInstance extends Environment {
         }
 
         /**
-         * Puts all associated object entries for a {@link Player}
-         * @param player the player
-         * @return this builder, for fluency
-         */
-        public Builder eventVar(Player player) {
-            if (player != null) {
-                this.eventVars.put("Player", player);
-                eventVar(player.getLocation());
-            }
-            return this;
-        }
-
-        /**
-         * Puts all associated object entries for a {@link Item}
-         *
-         * @param item the item
-         * @return this builder, for fluency
-         */
-        public Builder eventVar(Item item) {
-            if (item != null) {
-                this.eventVars.put("Item", item);
-                eventVar(item.getLocation());
-            }
-            return this;
-        }
-
-        /**
-         * Puts all associated object entries for a {@link BlockSnapshot}
-         *
-         * @param block the block
-         * @return this builder, for fluency
-         */
-        public Builder eventVar(BlockSnapshot block) {
-            if (block != null) {
-                this.eventVars.put("Block", block);
-                this.eventVars.put("Vector", block.getLocation().get().getPosition());
-            }
-            return this;
-        }
-
-        /**
-         * Puts all associated object entires for a {@link Location}
-         *
-         * @param location the location
-         * @return this builder, for fluency
-         */
-        public Builder eventVar(Location location) {
-            if (location != null) {
-                this.eventVars.put("Location", location);
-                this.eventVars.put("World", location.getExtent());
-
-                if (location.hasBlock()) {
-                    eventVar(location.createSnapshot());
-                }
-            }
-            return this;
-        }
-
-        /**
          * Copies the builder in its current state
          *
          * @return the copied builder
          */
         @Override
         public Builder copy() {
-            return new Builder().script(script).cause(cause).predicate(linePredicate).event(event).eventVar(eventVars);
+            return new Builder().script(script).cause(cause).predicate(linePredicate).event(event).eventCause(eventCause).eventVar(eventVars);
         }
 
         /**
@@ -404,7 +383,7 @@ public class ScriptInstance extends Environment {
         public ScriptInstance build() {
             checkState(script != null || checkNotNull(cause, "Cause cannot be null").equals(Causes.COMPILE), "Script cannot be null");
             this.eventVars.put("Cause", cause.getNames()[0]); // Add cause to eventvars
-            return new ScriptInstance(script, cause, checkNotNull(linePredicate, "Predicate cannot be null"), event, eventVars);
+            return new ScriptInstance(script, cause, checkNotNull(linePredicate, "Predicate cannot be null"), event, eventCause, eventVars);
         }
     }
 }

@@ -47,7 +47,7 @@ public class Converter<T> {
         }
 
         if (type.isInstance(instance)) {
-            return (Optional<R>) Optional.of(instance); // Attempt to cast directly. Done like this because of the asm injections sponge uses blocks the use of checking the classes directly.
+            return (Optional<R>) Optional.of(instance); // Attempt to cast directly. Done like this because the asm injections sponge uses blocks the use of checking the classes directly.
         }
 
         return Optional.empty();

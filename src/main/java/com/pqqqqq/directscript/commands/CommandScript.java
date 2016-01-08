@@ -9,7 +9,7 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.io.BufferedWriter;
@@ -27,8 +27,8 @@ public class CommandScript implements CommandExecutor {
     }
 
     public static CommandSpec build(DirectScript plugin) {
-        return CommandSpec.builder().executor(new CommandScript(plugin)).description(Texts.of(TextColors.AQUA, "Creates a new script in a script file")).permission("directscript.script")
-                .arguments(GenericArguments.string(Texts.of("ScriptFile")), GenericArguments.string(Texts.of("ScriptName")), GenericArguments.optional(GenericArguments.string(Texts.of("Trigger")))).build();
+        return CommandSpec.builder().executor(new CommandScript(plugin)).description(Text.of(TextColors.AQUA, "Creates a new script in a script file")).permission("directscript.script")
+                .arguments(GenericArguments.string(Text.of("ScriptFile")), GenericArguments.string(Text.of("ScriptName")), GenericArguments.optional(GenericArguments.string(Text.of("Trigger")))).build();
     }
 
     @Override
@@ -42,7 +42,7 @@ public class CommandScript implements CommandExecutor {
         String trigger = args.<String>getOne("Trigger").orElse(null);
 
         if (!file.exists()) {
-            src.sendMessage(Texts.of(TextColors.RED, "This file doesn't exist. Use ", TextColors.WHITE, "/script file"));
+            src.sendMessage(Text.of(TextColors.RED, "This file doesn't exist. Use ", TextColors.WHITE, "/script file"));
         } else {
             try {
                 FileWriter fw = new FileWriter(file, true);
@@ -64,9 +64,9 @@ public class CommandScript implements CommandExecutor {
                 bw.flush();
                 bw.close();
 
-                src.sendMessage(Texts.of(TextColors.GREEN, "Script created successfully"));
+                src.sendMessage(Text.of(TextColors.GREEN, "Script created successfully"));
             } catch (Exception e) {
-                src.sendMessage(Texts.of(TextColors.RED, e.getMessage()));
+                src.sendMessage(Text.of(TextColors.RED, e.getMessage()));
             }
         }
         return CommandResult.success();

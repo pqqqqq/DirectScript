@@ -11,12 +11,14 @@ import java.util.Optional;
  * A statement that returns, and ceases execution, of the script
  */
 public class ReturnStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("return", "exit")
+            .arguments(Arguments.empty(), Arguments.of(GenericArguments.withName("ReturnValue")))
+            .build();
 
-    public ReturnStatement() {
-        super(Syntax.builder()
-                .identifiers("return", "exit")
-                .arguments(Arguments.empty(), Arguments.of(Argument.from("ReturnValue")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

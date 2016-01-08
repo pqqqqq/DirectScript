@@ -1,9 +1,9 @@
 package com.pqqqqq.directscript.lang.trigger.cause;
 
-import com.google.common.base.Optional;
 import com.pqqqqq.directscript.lang.util.RegistryUtil;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by Kevin on 2015-06-02.
@@ -15,8 +15,8 @@ public class Causes {
     public static final Cause COMPILE = new Cause("Compile");
 
     // Server states
-    public static final Cause SERVER_STARTING = new Cause("ServerStarting");
-    public static final Cause SERVER_STOPPING = new Cause("ServerStopping");
+    public static final Cause SERVER_STARTING = new Cause("ServerStarting", "ServerStart");
+    public static final Cause SERVER_STOPPING = new Cause("ServerStopping", "ServerStop");
 
     // Misc.
     public static final Cause CALL = new Cause("Call");
@@ -36,13 +36,15 @@ public class Causes {
     public static final Cause PLAYER_MOVE = new Cause("Move", "PlayerMove");
     public static final Cause PLAYER_CHAT = new Cause("Chat", "PlayerChat");
     //public static final Cause PLAYER_CONSUME = new Cause("Consume", "PlayerConsume");
-    public static final Cause PLAYER_CHANGE_HEALTH = new Cause("ChangeHealth", "PlayerChangeHealth");
+    public static final Cause PLAYER_ATTACK = new Cause("Attack", "PlayerAttack");
+    public static final Cause PLAYER_HURT = new Cause("Hurt", "PlayerHurt");
     public static final Cause PLAYER_INTERACT_BLOCK = new Cause("InteractBlock");
     public static final Cause PLAYER_INTERACT_ENTITY = new Cause("InteractEntity");
     public static final Cause ITEM_PICKUP = new Cause("Pickup", "ItemPickup");
     public static final Cause ITEM_DROP = new Cause("Drop", "ItemDrop");
     public static final Cause PLAYER_BLOCK_PLACE = new Cause("PlayerBlockPlace", "PlayerPlaceBlock");
     public static final Cause PLAYER_BLOCK_BREAK = new Cause("PlayerBlockBreak", "PlayerBreakBlock");
+    public static final Cause PLAYER_USE_ITEM = new Cause("UseItem", "PlayerUseItem");
     public static final Cause COMMAND = new Cause.CommandCause();
 
     private static final List<Cause> REGISTRY;
@@ -74,6 +76,6 @@ public class Causes {
             }
         }
 
-        return Optional.absent();
+        return Optional.empty();
     }
 }

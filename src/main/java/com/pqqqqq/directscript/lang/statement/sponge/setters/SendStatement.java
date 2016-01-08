@@ -2,8 +2,8 @@ package com.pqqqqq.directscript.lang.statement.sponge.setters;
 
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
+import com.pqqqqq.directscript.lang.util.Utilities;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.Texts;
 
 import java.util.Optional;
 
@@ -12,13 +12,15 @@ import java.util.Optional;
  * A statement that sends a message to a player
  */
 public class SendStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("send", "tell")
+            .prefix("@")
+            .arguments(Arguments.of(GenericArguments.withName("Message")), Arguments.of(GenericArguments.withName("Player"), ",", GenericArguments.withName("Message")))
+            .build();
 
-    public SendStatement() {
-        super(Syntax.builder()
-                .identifiers("send", "tell")
-                .prefix("@")
-                .arguments(Arguments.of(Argument.from("Message")), Arguments.of(Argument.from("Player"), ",", Argument.from("Message")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override
@@ -27,10 +29,10 @@ public class SendStatement extends Statement {
         String message = ctx.getLiteral("Message").getString();
 
         if (!player.isPresent()) {
-            return Result.failure();
+            return Result.builder().failure().error("No player found").build();
         }
 
-        player.get().sendMessage(Texts.of(message));
+        player.get().sendMessage(Utilities.getText(message));
         return Result.success();
     }
 }

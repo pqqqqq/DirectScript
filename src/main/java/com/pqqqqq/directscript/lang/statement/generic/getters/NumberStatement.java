@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that returns the number value of a literal
  */
 public class NumberStatement extends Statement<Double> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("number")
+            .arguments(Arguments.of(GenericArguments.withName("Literal")))
+            .build();
 
-    public NumberStatement() {
-        super(Syntax.builder()
-                .identifiers("number")
-                .arguments(Arguments.of(Argument.from("Literal")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * Represents a continue statement which moves to the next iteration in an loop
  */
 public class ContinueStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("continue")
+            .brackets()
+            .build();
 
-    public ContinueStatement() {
-        super(Syntax.builder()
-                .identifiers("continue")
-                .brackets()
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

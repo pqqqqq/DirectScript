@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.data.converter;
 
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.serializer.TextSerializers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +14,7 @@ public class TextConverter extends Converter<Text> {
     public static final Map<Class, Function<Text, ?>> CONVERSION_MAP = new HashMap<>();
 
     static {
-        CONVERSION_MAP.put(String.class, (text) -> Texts.legacy('&').to(text));
+        CONVERSION_MAP.put(String.class, (text) -> TextSerializers.formattingCode('&').serialize(text));
     }
 
     private TextConverter() {

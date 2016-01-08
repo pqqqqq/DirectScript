@@ -1,15 +1,32 @@
 package com.pqqqqq.directscript.lang.statement;
 
+import com.flowpowered.math.vector.Vector3d;
+import com.flowpowered.math.vector.Vector3i;
 import com.google.common.base.Predicate;
+import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.reader.Line;
+import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.data.LocateableSnapshot;
+import org.spongepowered.api.data.Transaction;
+import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.entity.Transform;
+import org.spongepowered.api.entity.living.Living;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
+import org.spongepowered.api.world.explosion.Explosion;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -19,33 +36,102 @@ import static com.google.common.base.Preconditions.checkState;
  * Created by Kevin on 2015-06-12.
  * The abstract implementation of statements
  */
-public abstract class Statement<T> {
-    private final Syntax syntax;
+public abstract class Statement<T> implements Context.Runnable<T>, Compartment<Object, T> {
+    private final Set<Compartment> compartments = new HashSet<>();
 
-    protected Statement(Syntax syntax) {
-        this.syntax = checkNotNull(syntax, "Syntax");
+    protected Statement() {
     }
 
     /**
-     * Gets the {@link Syntax} for this {@link Statement}
+     * <p>Retrieves the {@link com.pqqqqq.directscript.lang.statement.Statement.Syntax} for this compartment.</p>
+     * <p>It is preferred to have a final static instance of this syntax available always, and not for it to be rebuilt at the call of this method.</p>
      * @return the syntax
      */
-    public Syntax getSyntax() {
-        return this.syntax;
+    public abstract Statement.Syntax getSyntax();
+
+    public Argument getObjectArgument() {
+        return null;
+    }
+
+    @Override
+    public Arguments[] getArgumentsArray() {
+        return getSyntax().getArguments();
+    }
+
+    @Override
+    public String[] getGetters() {
+        return null;
+    }
+
+    @Override
+    public Result<T> run(Context ctx) {
+        return (Result<T>) Result.UNSPECIFIED_GETTER;
+    }
+
+    @Override
+    public Result<T> run(Context ctx, Object arg) {
+        return run(ctx);
+    }
+
+    protected final void register(Compartment compartment) {
+        compartments.add(compartment);
+    }
+
+    protected final <A, R> Compartment<A, R> createCompartment(final String getter, final Context.Runnable.Argumentative<A, R> runnable, final Arguments... arguments) {
+        return createCompartment(new String[]{getter}, runnable, arguments);
+    }
+
+    protected final <A, R> Compartment<A, R> createCompartment(final String[] getters, final Context.Runnable.Argumentative<A, R> runnable, Arguments... arguments) {
+        final Arguments[] givenArgs = (arguments == null || arguments.length == 0 ? new Arguments[]{Arguments.empty()} : arguments);
+        return new Compartment<A, R>() {
+            @Override
+            public Arguments[] getArgumentsArray() {
+                return givenArgs;
+            }
+
+            @Override
+            public String[] getGetters() {
+                return getters;
+            }
+
+            @Override
+            public Result<R> run(Context ctx, A argument) {
+                return runnable.run(ctx, argument);
+            }
+        };
     }
 
     /**
-     * Runs this {@link Statement} by the given {@link Context}
-     *
-     * @param ctx the context
-     * @return the {@link Result} of the execution
+     * Gets the {@link Compartment} {@link Set}
+     * @return the set
      */
-    public abstract Result<T> run(Context ctx);
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj == this;
+    public final Set<Compartment> getCompartments() {
+        return compartments;
     }
+
+    /*@Override
+    public final Result<T> run(Context ctx) {
+        Literal getter = ctx.getGetterLiteral().getRight();
+        if (getter.isEmpty()) {
+            return run(ctx);
+        }
+
+        Pair<Argument, Literal> objectTuple = ctx.getObjectLiteral();
+        Optional arg = objectTuple.getRight().getAs(objectTuple.getLeft().getObjectClass().orElse(null));
+        String getterString = Utilities.removeNonAlphanumeric(getter.getString());
+
+        if (objectTuple.getLeft() != null && !arg.isPresent()) {
+            return (Result<T>) Result.NO_OBJECT_PRESENT;
+        }
+
+        for (Compartment compartment : compartments) {
+            if (compartment.containsGetter(getterString)) {
+                return compartment.run(ctx, arg.get());
+            }
+        }
+
+        return (Result<T>) Result.UNKNOWN_COMPARTMENT;
+    }*/
 
     /**
      * An enumeration of execution times, to be used by {@link Line} {@link com.google.common.base.Predicate}s when executing a {@link com.pqqqqq.directscript.lang.script.ScriptInstance}
@@ -418,6 +504,21 @@ public abstract class Statement<T> {
         }
 
         /**
+         * Gets an argument by name
+         * @param name the name
+         * @return the argument, or null if none
+         */
+        public Argument getArgument(String name) {
+            for (Argument argument : arguments) {
+                if (argument.getName().equalsIgnoreCase(name)) {
+                    return argument;
+                }
+            }
+
+            return null;
+        }
+
+        /**
          * Gets the string delimiters array sequence
          *
          * @return the delimiter sequence
@@ -456,58 +557,45 @@ public abstract class Statement<T> {
         public static final int NO_RESOLVE = 0x02;
 
         /**
+         * Denotes an argument which creates a variable if none are found
+         */
+        public static final int CREATE_VARIABLE_IF_NONE = 0x04;
+
+        /**
          * Denotes an argument that takes the rest of the provided arguments as a list
          */
-        public static final int REST_AS_LIST = 0x04;
+        public static final int REST_AS_LIST = 0x08;
+
+        /**
+         * Denotes an argument that is the main getter
+         */
+        public static int MAIN_GETTER = 0x10;
+
+        /**
+         * Denotes an argument that is the main object
+         */
+        public static int MAIN_OBJECT = 0x20;
 
         private final String name;
         private final int flags;
-        private Optional<Literal.Types> requiredType;
+        private final Optional<Literal.Types> requiredType;
+        private final Optional<Class> objectClass;
+        private final Map<Class, Function<Object, Object>> conversionMap;
 
-        Argument(String name, int flags, Literal.Types requiredType) {
+        Argument(String name, int flags, Literal.Types requiredType, Class objectClass, Map<Class, Function<Object, Object>> conversionMap) {
             this.name = name;
             this.flags = flags;
             this.requiredType = Optional.ofNullable(requiredType);
+            this.objectClass = Optional.ofNullable(objectClass);
+            this.conversionMap = conversionMap;
         }
 
         /**
-         * Creates a new {@link Argument} with the given name and no flags
-         * @param name the name of the argument
-         * @return the new argument instance
+         * Creates a new Argument {@link Builder}
+         * @return the new builder instance
          */
-        public static Argument from(String name) {
-            return from(name, 0, null);
-        }
-
-        /**
-         * Creates a new {@link Argument} with the given name and {@link com.pqqqqq.directscript.lang.data.Literal.Types required type}
-         * @param name the name
-         * @param requiredType the required type
-         * @return the new argument instance
-         */
-        public static Argument from(String name, Literal.Types requiredType) {
-            return from(name, 0, requiredType);
-        }
-
-        /**
-         * <p>Creates a new {@link Argument} with the given name and flags.</p>
-         * @param name the name of the argument
-         * @param flags the integer flags for the Argument
-         * @return the new argument instance
-         */
-        public static Argument from(String name, int flags) {
-            return from(name, flags, null);
-        }
-
-        /**
-         * Creates a new {@link Argument} with the given name, flags and {@link com.pqqqqq.directscript.lang.data.Literal.Types required type}
-         * @param name the name
-         * @param flags the integer flags for the Argument
-         * @param requiredType the required type
-         * @return the new argument instance
-         */
-        public static Argument from(String name, int flags, Literal.Types requiredType) {
-            return new Argument(name, flags, requiredType);
+        public static Builder builder() {
+            return new Builder();
         }
 
         /**
@@ -537,12 +625,37 @@ public abstract class Statement<T> {
         }
 
         /**
+         * Gets if this argument should create a new variable if none exist
+         * @return true if the argument should create a new variable by default
+         */
+        public boolean doCreateVariable() {
+            return has(CREATE_VARIABLE_IF_NONE);
+        }
+
+        /**
          * Gets if this argument should conjugate trailing arguments into a list
          *
          * @return true if conjugation should occur
          */
         public boolean doConjugateToList() {
             return has(REST_AS_LIST);
+        }
+
+        /**
+         * Gets if this argument is the main getter
+         * @return true if main getter
+         */
+        public boolean isMainGetter() {
+            return has(MAIN_GETTER);
+        }
+
+        /**
+         * Gets if this argument is the main object
+         *
+         * @return true if main object
+         */
+        public boolean isMainObject() {
+            return has(MAIN_OBJECT);
         }
 
         /**
@@ -554,8 +667,113 @@ public abstract class Statement<T> {
             return requiredType;
         }
 
+        public Optional<Class> getObjectClass() {
+            return objectClass;
+        }
+
+        public Map<Class, Function<Object, Object>> getConversionMap() {
+            return conversionMap;
+        }
+
         private boolean has(int flag) {
             return (flags & flag) != 0;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+
+        /**
+         * The {@link Argument} builder
+         */
+        public static class Builder {
+            private String name = null;
+            private int flags = 0;
+            private Literal.Types requiredType = null;
+            private Class objectClass = null;
+            private Map<Class, Function<Object, Object>> conversionMap = new HashMap<>();
+
+            private Builder() {
+            }
+
+            /**
+             * Sets the name of this argument builder
+             *
+             * @param name the new name
+             * @return this builder, for chaining
+             */
+            public Builder name(String name) {
+                this.name = name;
+                return this;
+            }
+
+            /**
+             * Adds a flag to this argument builder
+             *
+             * @param flags the flags to add
+             * @return this builder, for chaining
+             */
+            public Builder addFlags(int... flags) {
+                for (int flag : flags) {
+                    this.flags |= flag;
+                }
+                return this;
+            }
+
+            /**
+             * Sets the collective flags for this argument builder
+             *
+             * @param flags the new flags
+             * @return this builder, for chaining
+             */
+            public Builder setFlags(int flags) {
+                this.flags = flags;
+                return this;
+            }
+
+            /**
+             * Sets the required {@link com.pqqqqq.directscript.lang.data.Literal.Types} for this argument builder
+             *
+             * @param requiredType the required type
+             * @return this builder, for chaining
+             */
+            public Builder requiredType(Literal.Types requiredType) {
+                this.requiredType = requiredType;
+                return this;
+            }
+
+            /**
+             * Sets the object class
+             *
+             * @param objectClass the object class
+             * @return this builder, for chaining
+             */
+            public Builder objectClass(Class objectClass) {
+                this.objectClass = objectClass;
+                return this;
+            }
+
+            /**
+             * Adds a conversion {@link Function} entry
+             *
+             * @param convertedClass     the input class of the function
+             * @param conversionFunction the conversion function
+             * @return this builder, for chaining
+             */
+            public <T> Builder addConversion(Class<T> convertedClass, Function<T, Object> conversionFunction) {
+                this.conversionMap.put(convertedClass, (Function<Object, Object>) conversionFunction);
+                return this;
+            }
+
+            /**
+             * Builds the new {@link Argument}
+             *
+             * @return the new argument instance
+             */
+            public Argument build() {
+                return new Argument(checkNotNull(name, "Argument name must be specified."), flags, requiredType, objectClass, conversionMap);
+            }
         }
     }
 
@@ -566,32 +784,288 @@ public abstract class Statement<T> {
         /**
          * A getter argument with the key "Getter" and who has a string required type
          */
-        public static final Argument GETTER = Argument.from("Getter", Literal.Types.STRING);
+        public static final Argument GETTER = withNameFlagsAndType("Getter", Argument.MAIN_GETTER, Literal.Types.STRING);
 
         /**
          * A generic Object argument with the key "Object"
          */
-        public static final Argument OBJECT = Argument.from("Object");
+        public static final Argument OBJECT = withName("Object");
 
         /**
-         * A generic arguments argument with the key "Arguments" which uses conjugates trailing arguments (vaargs) and requires an array type.
+         * A generic arguments argument with the key "Arguments" which uses conjugates trailing arguments (varargs) and requires an array type.
          */
-        public static final Argument ARGUMENTS = Argument.from("Arguments", Argument.REST_AS_LIST, Literal.Types.ARRAY);
+        public static final Argument ARGUMENTS = withNameFlagsAndType("Arguments", Argument.REST_AS_LIST, Literal.Types.ARRAY);
+        // Conversions
+        public static final Argument DEFAULT_PLAYER = player("Player", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_ENTITY = entity("Entity", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_LIVING = living("Living", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_WORLD = world("World", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_LOCATION = location("Location", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_POSITION = position("Position", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_BLOCK_POSITION = blockPosition("BlockPosition", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_ROTATION = rotation("Rotation", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_VELOCITY = velocity("Velocity", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_VECTOR = vector("Vector", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_BLOCK = block("Block", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_TRANSFORM = transform("Transform", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_EXPLOSION = explosion("Explosion", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_ITEM_STACK = itemStack("ItemStack", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_TRANSACTION = transaction("Transaction", Argument.MAIN_OBJECT, null);
+
+        public static Arguments[] getterArguments(Argument objectArgument) {
+            if (objectArgument == null) {
+                return new Arguments[]{Arguments.of(GETTER)};
+            } else {
+                return new Arguments[]{Arguments.of(GETTER), Arguments.of(objectArgument, ",", GETTER)};
+            }
+        }
+
+        public static Arguments[] getterArguments(Statement statement) {
+            return getterArguments(statement.getObjectArgument());
+        }
+
+        public static Arguments[] requiredArguments(Argument objectArgument, Argument[] required, Argument... unrequired) {
+            List<Arguments> argumentsList = new ArrayList<>();
+
+            Object[] object = new Object[required.length * 2 + 3 + unrequired.length * 2]; // Object, getter and required arguments
+            Object[] noObject = new Object[required.length * 2 + 1 + unrequired.length * 2]; // Getter and required arguments
+
+            object[0] = objectArgument;
+            object[1] = ",";
+            object[2] = noObject[0] = GETTER;
+
+            int currentObjectIndex = 3, currentNoObjectIndex = 1;
+            for (Argument req : required) { // First add required arguments
+                object[currentObjectIndex++] = noObject[currentNoObjectIndex++] = ",";
+                object[currentObjectIndex++] = noObject[currentNoObjectIndex++] = req;
+            }
+
+            BiConsumer<Integer, Integer> run = (curObjectIndex, curNoObjectIndex) -> {
+                Object[] currentObject = new Object[curObjectIndex]; // Don't add one to size because one is added already
+                Object[] currentNoObject = new Object[curNoObjectIndex];
+
+                for (int i = 0; i < currentObject.length; i++) {
+                    currentObject[i] = object[i];
+                    if (i <= (currentNoObject.length - 1)) {
+                        currentNoObject[i] = noObject[i];
+                    }
+                }
+
+                if (objectArgument != null) {
+                    argumentsList.add(Arguments.of(currentObject)); // Final object
+                }
+
+                argumentsList.add(Arguments.of(currentNoObject)); // Final no object
+            };
+
+            for (Argument arg : unrequired) {
+                run.accept(currentObjectIndex, currentNoObjectIndex);
+                object[currentObjectIndex++] = noObject[currentNoObjectIndex++] = ","; // Add comma first
+                object[currentObjectIndex++] = noObject[currentNoObjectIndex++] = arg;
+            }
+            run.accept(currentObjectIndex, currentNoObjectIndex); // Adds last arguments, and important for when no unrequired arguments
+
+            return argumentsList.toArray(new Arguments[argumentsList.size()]);
+        }
+
+        public static Arguments[] requiredArguments(Statement statement, Argument[] required, Argument... unrequired) {
+            return requiredArguments(statement.getObjectArgument(), required, unrequired);
+        }
+
+        public static Arguments[] requiredArguments(Argument objectArgument, Argument required, Argument... unrequired) {
+            return requiredArguments(objectArgument, (required == null ? new Argument[0] : new Argument[]{required}), unrequired);
+        }
+
+        public static Arguments[] requiredArguments(Statement statement, Argument required, Argument... unrequired) {
+            return requiredArguments(statement.getObjectArgument(), required, unrequired);
+        }
+
+        /**
+         * Creates an {@link Argument} with the given name
+         *
+         * @param name the name of the argument
+         * @return the new argument instance
+         */
+        public static Argument withName(String name) {
+            return Argument.builder().name(name).build();
+        }
+
+        /**
+         * Creates an {@link Argument} with the given name and {@link com.pqqqqq.directscript.lang.data.Literal.Types}
+         *
+         * @param name         the name
+         * @param requiredType the required type
+         * @return the new argument instance
+         */
+        public static Argument withNameAndType(String name, Literal.Types requiredType) {
+            return Argument.builder().name(name).requiredType(requiredType).build();
+        }
+
+        /**
+         * Creates an {@link Argument} with the given name and flags
+         *
+         * @param name  the name
+         * @param flags the flags, already bit-shifted
+         * @return the new argument instance
+         */
+        public static Argument withNameAndFlags(String name, int flags) {
+            return Argument.builder().name(name).setFlags(flags).build();
+        }
+
+        /**
+         * Creates an {@link Argument} with the given name and flags
+         *
+         * @param name  the name
+         * @param flags the flags
+         * @return the new argument instance
+         */
+        public static Argument withNameAndFlags(String name, int... flags) {
+            return Argument.builder().name(name).addFlags(flags).build();
+        }
+
+        /**
+         * Creates an {@link Argument} with the given name, flags and {@link com.pqqqqq.directscript.lang.data.Literal.Types}
+         *
+         * @param name         the name
+         * @param flags        the flags, already bit-shifted
+         * @param requiredType the required type
+         * @return the new argument instance
+         */
+        public static Argument withNameFlagsAndType(String name, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(name).setFlags(flags).requiredType(requiredType).build();
+        }
+
+        /**
+         * Creates an {@link Argument} with the given name, flags and {@link com.pqqqqq.directscript.lang.data.Literal.Types}
+         *
+         * @param name         the name
+         * @param flags        the flags
+         * @param requiredType the required type
+         * @return the new argument instance
+         */
+        public static Argument withNameFlagsAndType(String name, int[] flags, Literal.Types requiredType) {
+            return Argument.builder().name(name).addFlags(flags).requiredType(requiredType).build();
+        }
+
+        public static Argument player(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Player.class)
+                    .addConversion(String.class, (string) -> DirectScript.instance().getGame().getServer().getPlayer(string).orElse(null))
+                    .build();
+        }
+
+        public static Argument entity(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Entity.class)
+                    // TODO UUID
+                    .build();
+        }
+
+        public static Argument living(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Living.class)
+                    // TODO UUID
+                    .build();
+        }
+
+        public static Argument world(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(World.class)
+                    .addConversion(String.class, (string) -> DirectScript.instance().getGame().getServer().getWorld(string).orElse(null))
+                    .addConversion(Entity.class, (entity) -> entity.getWorld())
+                    .addConversion(Location.class, (location) -> location.getExtent())
+                    .addConversion(Transform.class, (transform) -> transform.getExtent())
+                    .addConversion(LocateableSnapshot.class, (snapshot) -> ((Location<World>) snapshot.getLocation().get()).getExtent())
+                    .build();
+        }
+
+        public static Argument location(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Location.class)
+                    .addConversion(Entity.class, (entity) -> entity.getLocation())
+                    .addConversion(Transform.class, (transform) -> transform.getLocation())
+                    .addConversion(LocateableSnapshot.class, (snapshot) -> snapshot.getLocation().get())
+                    .build();
+        }
+
+        public static Argument position(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Vector3d.class)
+                    .addConversion(Entity.class, (entity) -> entity.getLocation().getPosition())
+                    .addConversion(Location.class, (location) -> location.getPosition())
+                    .addConversion(Transform.class, (transform) -> transform.getPosition())
+                    .addConversion(LocateableSnapshot.class, (snapshot) -> ((Location) snapshot.getLocation().get()).getPosition())
+                    .build();
+        }
+
+        public static Argument blockPosition(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Vector3i.class)
+                    .addConversion(Entity.class, (entity) -> entity.getLocation().getBlockPosition())
+                    .addConversion(Location.class, (location) -> location.getBlockPosition())
+                    .addConversion(Transform.class, (transform) -> transform.getLocation().getBlockPosition())
+                    .addConversion(LocateableSnapshot.class, (snapshot) -> ((Location) snapshot.getLocation().get()).getBlockPosition())
+                    .build();
+        }
+
+        public static Argument rotation(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Vector3d.class)
+                    .addConversion(Entity.class, (entity) -> entity.getRotation())
+                    .build();
+        }
+
+        public static Argument velocity(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Vector3d.class)
+                    .addConversion(Entity.class, (entity) -> entity.get(Keys.VELOCITY).orElse(null))
+                    .build();
+        }
+
+        public static Argument vector(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Vector3d.class)
+                    .addConversion(Entity.class, (entity) -> entity.get(Keys.VELOCITY).orElse(null))
+                    .build();
+        }
+
+        public static Argument block(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(BlockSnapshot.class)
+                    .addConversion(Entity.class, (entity) -> entity.getLocation().createSnapshot())
+                    .addConversion(Location.class, (location) -> location.createSnapshot())
+                    .addConversion(Transform.class, (transform) -> transform.getLocation().createSnapshot())
+                    .build();
+        }
+
+        public static Argument transform(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Transform.class)
+                    .addConversion(Entity.class, (entity) -> entity.getTransform())
+                    .build();
+        }
+
+        public static Argument explosion(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Explosion.class)
+                    .build();
+        }
+
+        public static Argument itemStack(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(ItemStack.class)
+                    .build();
+        }
+
+        public static Argument transaction(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Transaction.class)
+                    .build();
+        }
     }
 
     /**
      * Created by Kevin on 2015-06-02.
      * Represents the immutable result of executing a {@link Context} by {@link Context#run()}
      */
-    public static class Result<T> {
+     public static class Result<T> {
+        public static final Result<Object> NO_OBJECT_PRESENT = builder().failure().error("No object specified").build();
         private static final Result<Object> SUCCESS = builder().success().build();
         private static final Result<Object> FAILURE = builder().failure().build();
+        private static final Result<?> UNSPECIFIED_GETTER = builder().failure().error("You must specify a getter").build();
 
         private final Optional<T> result;
+        private final Optional<String> error;
         private final boolean success;
 
-        Result(T result, boolean success) {
+        Result(T result, String error, boolean success) {
             this.result = Optional.ofNullable(result);
+            this.error = Optional.ofNullable(error);
             this.success = success;
         }
 
@@ -602,7 +1076,7 @@ public abstract class Statement<T> {
          * @return the new builder instance
          */
         public static <T> Builder<T> builder() {
-            return new Builder<T>();
+            return new Builder<>();
         }
 
         /**
@@ -635,12 +1109,24 @@ public abstract class Statement<T> {
         }
 
         /**
+         * Gets the {@link Optional} error message for this result
+         * @return the error message, or {@link Optional#empty()}
+         */
+        public Optional<String> getError() {
+            return error;
+        }
+
+        /**
          * Gets the {@link Optional} {@link Literal} result of this {@link Result}
          *
          * @return the literal result
          */
         public <T> Optional<Literal<T>> getLiteralResult() {
             if (getResult().isPresent()) {
+                if (getResult().get() instanceof Literal) {
+                    return Optional.of((Literal) getResult().get());
+                }
+
                 return Optional.of(Literal.fromObject(getResult().get()));
             }
             return Optional.empty();
@@ -662,6 +1148,7 @@ public abstract class Statement<T> {
          */
         public static class Builder<T> {
             private T result = null;
+            private String error = null;
             private Boolean success = null;
 
             Builder() { // Default view
@@ -676,6 +1163,17 @@ public abstract class Statement<T> {
              */
             public Builder<T> result(T result) {
                 this.result = result;
+                return this;
+            }
+
+            /**
+             * Sets the error message for this result builder
+             * @param error the new error message
+             * @return this builder, for chaining
+             * @see Result#getError()
+             */
+            public Builder<T> error(String error) {
+                this.error = error;
                 return this;
             }
 
@@ -719,7 +1217,7 @@ public abstract class Statement<T> {
              * @return the new result instance
              */
             public Result<T> build() {
-                return new Result<T>(result, checkNotNull(success, "Success"));
+                return new Result<T>(result, error, checkNotNull(success, "Success"));
             }
         }
     }

@@ -9,12 +9,14 @@ import com.pqqqqq.directscript.lang.util.Utilities;
  * A statement that generates a random integer in bounds
  */
 public class RandomIntStatement extends Statement<Integer> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("randomint", "randint")
+            .arguments(Arguments.empty(), Arguments.of(GenericArguments.withName("Max")), Arguments.of(GenericArguments.withName("Min"), ",", GenericArguments.withName("Max")))
+            .build();
 
-    public RandomIntStatement() {
-        super(Syntax.builder()
-                .identifiers("randomint", "randint")
-                .arguments(Arguments.empty(), Arguments.of(Argument.from("Max")), Arguments.of(Argument.from("Min"), ",", Argument.from("Max")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

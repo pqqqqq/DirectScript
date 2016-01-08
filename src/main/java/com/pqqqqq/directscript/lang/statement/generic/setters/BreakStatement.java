@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * Represents a break statement which ceases an iteration/loop
  */
 public class BreakStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("break")
+            .brackets()
+            .build();
 
-    public BreakStatement() {
-        super(Syntax.builder()
-                .identifiers("break")
-                .brackets()
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

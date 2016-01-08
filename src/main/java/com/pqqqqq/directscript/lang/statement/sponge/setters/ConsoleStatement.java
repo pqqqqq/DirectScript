@@ -9,13 +9,15 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that runs a command from the server's console
  */
 public class ConsoleStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("console")
+            .prefix("@")
+            .arguments(Arguments.of(GenericArguments.withName("Command")))
+            .build();
 
-    public ConsoleStatement() {
-        super(Syntax.builder()
-                .identifiers("console")
-                .prefix("@")
-                .arguments(Arguments.of(Argument.from("Command")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

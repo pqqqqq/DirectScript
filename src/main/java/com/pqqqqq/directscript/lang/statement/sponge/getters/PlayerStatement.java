@@ -1,97 +1,191 @@
 package com.pqqqqq.directscript.lang.statement.sponge.getters;
 
 import com.pqqqqq.directscript.DirectScript;
-import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
+import com.pqqqqq.directscript.lang.util.Utilities;
+import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.data.key.Keys;
-import org.spongepowered.api.data.manipulator.mutable.entity.FoodData;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.text.Texts;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-import static com.pqqqqq.directscript.lang.statement.Statement.GenericArguments.*;
+import static com.pqqqqq.directscript.lang.statement.Statement.GenericArguments.DEFAULT_PLAYER;
 
 /**
  * Created by Kevin on 2015-06-29.
  * A statement of getters for players
  */
 public class PlayerStatement extends Statement<Object> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("player")
+            .prefix("@")
+            .build();
 
     public PlayerStatement() {
-        super(Syntax.builder()
-                .identifiers("player")
-                .prefix("@")
-                .arguments(Arguments.of(GETTER), Arguments.of(OBJECT, ",", GETTER), Arguments.of(GETTER, ",", ARGUMENTS))
-                .arguments(Arguments.of(OBJECT, ",", GETTER, ",", ARGUMENTS))
-                .build());
+        super();
+
+        register(this.<Player, Object>createCompartment(new String[]{"closeinventory", "closeinv"}, (ctx, player) -> {
+            player.closeInventory();
+            return Result.success();
+        }));
+
+        final Arguments[] GET_ARGUMENTS = GenericArguments.getterArguments(this);
+        register(this.<Player, String>createCompartment("name", (ctx, player) -> {
+            return Result.<String>builder().success().result(player.getName()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, UUID>createCompartment("uuid", (ctx, player) -> {
+            return Result.<UUID>builder().success().result(player.getUniqueId()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, String>createCompartment("ip", (ctx, player) -> {
+            return Result.<String>builder().success().result(player.getConnection().getAddress().getAddress().getHostAddress()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, ItemStack>createCompartment("hand", (ctx, player) -> {
+            return Result.<ItemStack>builder().success().result(player.getItemInHand().orElse(null)).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, ItemStack>createCompartment("helmet", (ctx, player) -> {
+            return Result.<ItemStack>builder().success().result(player.getHelmet().orElse(null)).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, ItemStack>createCompartment(new String[]{"chest", "chestplate"}, (ctx, player) -> {
+            return Result.<ItemStack>builder().success().result(player.getChestplate().orElse(null)).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, ItemStack>createCompartment(new String[]{"pants", "legs", "leggings"}, (ctx, player) -> {
+            return Result.<ItemStack>builder().success().result(player.getLeggings().orElse(null)).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, ItemStack>createCompartment(new String[]{"boots", "feet"}, (ctx, player) -> {
+            return Result.<ItemStack>builder().success().result(player.getBoots().orElse(null)).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, Integer>createCompartment(new String[]{"hunger", "food", "foodlevel"}, (ctx, player) -> {
+            return Result.<Integer>builder().success().result(player.getFoodData().foodLevel().get()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, Double>createCompartment("saturation", (ctx, player) -> {
+            return Result.<Double>builder().success().result(player.getFoodData().saturation().get()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, Double>createCompartment("exhaustion", (ctx, player) -> {
+            return Result.<Double>builder().success().result(player.getFoodData().exhaustion().get()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, Integer>createCompartment(new String[]{"level", "lvl", "explevel", "explvl", "experiencelevel", "experiencelvl"}, (ctx, player) -> {
+            return Result.<Integer>builder().success().result(player.get(Keys.EXPERIENCE_LEVEL).get()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, Integer>createCompartment(new String[]{"totalexp", "totalexperience", "exp", "experience"}, (ctx, player) -> {
+            return Result.<Integer>builder().success().result(player.get(Keys.TOTAL_EXPERIENCE).get()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, Integer>createCompartment(new String[]{"expsincelevel", "experiencesincelevel", "expsincelvl", "experiencesincelvl"}, (ctx, player) -> {
+            return Result.<Integer>builder().success().result(player.get(Keys.EXPERIENCE_SINCE_LEVEL).get()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, Integer>createCompartment(new String[]{"expbetweenlevel", "experiencebetweenlevel", "expbetweenlvl", "experiencebetweenlvl"}, (ctx, player) -> {
+            return Result.<Integer>builder().success().result(player.get(Keys.EXPERIENCE_FROM_START_OF_LEVEL).get()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Player, Boolean>createCompartment(new String[]{"permission", "haspermission", "perm", "hasperm"}, (ctx, player) -> {
+            return Result.<Boolean>builder().success().result(player.hasPermission(ctx.getLiteral("Permissiom").getString())).build();
+        }, GenericArguments.requiredArguments(this, GenericArguments.withName("Permission"))));
+
+        register(this.<Player, Object>createCompartment(new String[]{"sethunger", "setfood", "setfoodlevel"}, (ctx, player) -> {
+            int food = ctx.getLiteral("Hunger", 20).getNumber().intValue();
+            player.offer(Keys.FOOD_LEVEL, food);
+            return Result.success();
+        }, GenericArguments.requiredArguments(this, (Argument) null, GenericArguments.withName("Hunger"))));
+
+        register(this.<Player, Object>createCompartment("setexhaustion", (ctx, player) -> {
+            double exhaustion = ctx.getLiteral("Exhaustion", 20).getNumber();
+            player.offer(Keys.EXHAUSTION, exhaustion);
+            return Result.success();
+        }, GenericArguments.requiredArguments(this, (Argument) null, GenericArguments.withName("Exhaustion"))));
+
+        register(this.<Player, Object>createCompartment("setsaturation", (ctx, player) -> {
+            double saturation = ctx.getLiteral("Saturation", 20).getNumber();
+            player.offer(Keys.SATURATION, saturation);
+            return Result.success();
+        }, GenericArguments.requiredArguments(this, (Argument) null, GenericArguments.withName("Saturation"))));
+
+        register(this.<Player, Object>createCompartment("kick", (ctx, player) -> {
+            Literal message = ctx.getLiteral("Message");
+            if (message.isEmpty()) {
+                player.kick();
+            } else {
+                player.kick(Utilities.getText(message.getString()));
+            }
+
+            return Result.success();
+        }, GenericArguments.requiredArguments(this, (Argument) null, GenericArguments.withName("Message"))));
+
+        register(this.<Player, Boolean>createCompartment("command", (ctx, player) -> {
+            String command = ctx.getLiteral("Command").getString();
+            CommandResult result = DirectScript.instance().getGame().getCommandManager().process(player, command);
+            return Result.<Boolean>builder().success().result(result.getSuccessCount().isPresent() && result.getSuccessCount().get() > 0).build();
+        }, GenericArguments.requiredArguments(this, GenericArguments.withName("Command"))));
+
+        register(this.<Player, Object>createCompartment("give", (ctx, player) -> {
+            Optional<ItemStack> itemStack = ctx.getLiteral("ItemStack", ItemStack.class).getAs(ItemStack.class);
+            if (itemStack.isPresent()) {
+                player.getInventory().offer(itemStack.get());
+                return Result.success();
+            } else {
+                return Result.builder().failure().error("Unknown item stack").build();
+            }
+        }, GenericArguments.requiredArguments(this, GenericArguments.itemStack("ItemStack", 0, null))));
+
+        register(this.<Player, Object>createCompartment("take", (ctx, player) -> {
+            Optional<ItemStack> itemStack = ctx.getLiteral("ItemStack", ItemStack.class).getAs(ItemStack.class);
+            if (itemStack.isPresent()) {
+                int amount = ctx.getLiteral("Amount", 1).getNumber().intValue();
+                player.getInventory().query(itemStack.get()).poll(amount);
+                return Result.success();
+            } else {
+                return Result.builder().failure().error("Unknown item type").build();
+            }
+        }, GenericArguments.requiredArguments(this, GenericArguments.itemStack("ItemStack", 0, null), GenericArguments.withName("Amount"))));
+
+        register(this.<Player, Object>createCompartment(new String[]{"setlevel", "setlvl", "setexplevel", "setexplvl", "setexperiencelevel", "setexperiencelvl"}, (ctx, player) -> {
+            player.offer(Keys.EXPERIENCE_LEVEL, ctx.getLiteral("Level").getNumber().intValue());
+            return Result.success();
+        }, GenericArguments.requiredArguments(this, GenericArguments.withName("Level"))));
+
+        register(this.<Player, Object>createCompartment(new String[]{"setexp", "setexperience", "settotalexp", "settotalexperience"}, (ctx, player) -> {
+            player.offer(Keys.TOTAL_EXPERIENCE, ctx.getLiteral("Exp").getNumber().intValue());
+            return Result.success();
+        }, GenericArguments.requiredArguments(this, GenericArguments.withName("Exp"))));
+
+        register(this.<Player, Object>createCompartment(new String[]{"setexperiencesincelevel", "setexpsincelevel", "setexperiencesincelvl", "setexpsincelvl"}, (ctx, player) -> {
+            player.offer(Keys.EXPERIENCE_SINCE_LEVEL, ctx.getLiteral("Exp").getNumber().intValue());
+            return Result.success();
+        }, GenericArguments.requiredArguments(this, GenericArguments.withName("Exp"))));
+
+        register(this.<Player, Object>createCompartment("sethand", (ctx, player) -> {
+            Optional<ItemStack> itemStack = ctx.getLiteral("ItemStack", ItemStack.class).getAs(ItemStack.class);
+            if (itemStack.isPresent()) {
+                player.setItemInHand(itemStack.get());
+                return Result.success();
+            } else {
+                return Result.builder().failure().error("Unknown item stack").build();
+            }
+        }, GenericArguments.requiredArguments(this, GenericArguments.itemStack("ItemStack", 0, null))));
     }
 
     @Override
-    public Result<Object> run(Context ctx) {
-        Optional<Player> playerOptional = ctx.getLiteral("Object", Player.class).getAs(Player.class);
-        if (!playerOptional.isPresent()) {
-            return Result.builder().failure().result("Player object not found").build();
-        }
+    public Argument getObjectArgument() {
+        return DEFAULT_PLAYER;
+    }
 
-        FoodData foodData = playerOptional.get().getFoodData();
-
-        // Getters
-        String getter = ctx.getLiteral("Getter").getString();
-        if (getter.equalsIgnoreCase("name")) {
-            return Result.builder().success().result(playerOptional.get().getName()).build();
-        } else if (getter.equalsIgnoreCase("uuid")) {
-            return Result.builder().success().result(playerOptional.get().getUniqueId()).build();
-        } else if (getter.equalsIgnoreCase("ip")) {
-            String address = playerOptional.get().getConnection().getAddress().getAddress().getHostAddress();
-            return Result.builder().success().result(address).build();
-        } else if (getter.equalsIgnoreCase("hand")) {
-            ItemStack itemStack = playerOptional.get().getItemInHand().orElse(null);
-            return Result.builder().success().result(itemStack).build();
-        } else if (getter.equalsIgnoreCase("hunger") || getter.equalsIgnoreCase("food") || getter.equalsIgnoreCase("foodlevel")) {
-            return Result.builder().success().result(foodData.foodLevel().get()).build();
-        } else if (getter.equalsIgnoreCase("saturation")) {
-            return Result.builder().success().result(foodData.saturation().get()).build();
-        } else if (getter.equalsIgnoreCase("exhaustion")) {
-            return Result.builder().success().result(foodData.exhaustion().get()).build();
-        }
-
-        // Extra args
-        List<Datum> extraArguments = ctx.getLiteral("Arguments", Literal.Literals.EMPTY_ARRAY).getArray();
-        if (getter.equalsIgnoreCase("permission") || getter.equalsIgnoreCase("haspermission") || getter.equalsIgnoreCase("perm")) {
-            String permission = extraArguments.get(0).get().getString();
-            return Result.builder().success().result(playerOptional.get().hasPermission(permission)).build();
-        } else if (getter.equalsIgnoreCase("sethunger") || getter.equalsIgnoreCase("setfood") || getter.equalsIgnoreCase("setfoodlevel")) {
-            int food = extraArguments.isEmpty() ? foodData.foodLevel().getMaxValue() : extraArguments.get(0).get().getNumber().intValue();
-            playerOptional.get().offer(Keys.FOOD_LEVEL, food);
-            return Result.success();
-        } else if (getter.equalsIgnoreCase("kick")) {
-            if (extraArguments.isEmpty()) {
-                playerOptional.get().kick();
-            } else {
-                playerOptional.get().kick(Texts.of(extraArguments.get(0).get().getString()));
-            }
-            return Result.success();
-        } else if (getter.equalsIgnoreCase("closeinventory") || getter.equalsIgnoreCase("closeinv")) {
-            playerOptional.get().closeInventory();
-            return Result.success();
-        } else if (getter.equalsIgnoreCase("command")) {
-            String command = extraArguments.get(0).get().getString();
-            DirectScript.instance().getGame().getCommandManager().process(playerOptional.get(), command);
-            return Result.success();
-        } else if (getter.equalsIgnoreCase("give")) {
-            Optional<ItemStack> itemStack = extraArguments.get(0).get().getAs(ItemStack.class);
-            if (itemStack.isPresent()) {
-                playerOptional.get().getInventory().offer(itemStack.get());
-            } else {
-                return Result.builder().failure().result("Unknown item stack").build();
-            }
-        }
-
-        return Result.builder().failure().result("Unknown getter: " + getter).build();
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 }

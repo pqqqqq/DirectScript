@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that replaces all entries in a literal
  */
 public class ReplaceStatement extends Statement<String> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("replace")
+            .arguments(Arguments.of(GenericArguments.withName("String"), ",", GenericArguments.withName("FindString"), ",", GenericArguments.withName("Replacement")))
+            .build();
 
-    public ReplaceStatement() {
-        super(Syntax.builder()
-                .identifiers("replace")
-                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("FindString"), ",", Argument.from("Replacement")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

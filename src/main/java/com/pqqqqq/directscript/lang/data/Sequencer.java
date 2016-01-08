@@ -18,7 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class Sequencer {
     private static final String[][] LITERAL_DELIMITER_GROUPS = {{" + ", " - "}, {"*", "/"}, {"^", "`"}}; // The +/- group is first since we want these split first, not last
-    private static final String[][] CONDITION_DELIMITER_GROUPS = {{"==", "!=", "~", "!~", "<=", ">="}, {"<", ">"}}; // Each in the same split group because equal priority. < and > in separate because <= and >= check first
+    private static final String[][] CONDITION_DELIMITER_GROUPS = {{"==", "!=", "~", "!~", "<=", ">="}, {" < ", " > "}}; // Each in the same split group because equal priority. < and > in separate because <= and >= check first
     private static final Sequencer INSTANCE = new Sequencer();
     private final Condition conditionInstance = new Condition();
 
@@ -83,7 +83,7 @@ public class Sequencer {
                 String trimBraces = sequence.substring(1, sequence.length() - 1);
 
                 if (Lang.instance().stringParser().indexOf(trimBraces, ":") > -1) { // Map
-                    Map<DataContainer, DataContainer> map = new HashMap<DataContainer, DataContainer>();
+                    Map<DataContainer, DataContainer> map = new HashMap<>();
                     for (String mapEntry : Lang.instance().stringParser().parseSplit(trimBraces, ",")) {
                         int mapColon = Lang.instance().stringParser().indexOf(mapEntry, ":");
                         map.put(parse(mapEntry.substring(0, mapColon)), parse(mapEntry.substring(mapColon + 1)));
@@ -91,7 +91,7 @@ public class Sequencer {
 
                     return new MapContainer(map);
                 } else { // Array
-                    List<DataContainer> array = new ArrayList<DataContainer>();
+                    List<DataContainer> array = new ArrayList<>();
                     for (String arrayValue : Lang.instance().stringParser().parseSplit(trimBraces, ",")) {
                         array.add(parse(arrayValue));
                     }
@@ -100,8 +100,8 @@ public class Sequencer {
                 }
             }
 
-            // Check for % (which means eventvar)
-            if (sequence.startsWith("%") && sequence.endsWith("%")) {
+            // Check for <> (which means eventvar)
+            if (sequence.startsWith("<") && sequence.endsWith(">")) {
                 return new EventVariableContainer(parse(sequence.substring(1, sequence.length() - 1)));
             }
 
@@ -127,14 +127,14 @@ public class Sequencer {
                 return new NegativeContainer(parse(sequence));
             }
 
-            // Check for $ (which means the value of the array)
+            // Check for $ (which means the value of the variable)
             if (sequence.startsWith("$")) {
                 return new VariableContainer(parse(sequence.substring(1)));
             }
 
             // Check for # (which is a pointer, and reparse what's inside
             if (sequence.startsWith("#")) {
-                return new AmnesiacContainer(parse(sequence.substring(1)));
+                return new AmnesiacContainer(parse(sequence.substring(1)), sequence);
             }
 
             // Check if it's a statement
@@ -151,7 +151,7 @@ public class Sequencer {
             return new VariableContainer(Literal.fromObject(sequence)); // Worst comes to worst, assume its a variable container
         }
 
-        return new ArithmeticContainer(parse(triple.getBeforeSegment()), parse(triple.getAfterSegment()), triple.getDelimiter());
+        return new ArithmeticContainer(parse(triple.getBeforeSegment()), parse(triple.getAfterSegment()), triple.getDelimiter(), sequence);
     }
 
     class Condition {

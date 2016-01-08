@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.pqqqqq.directscript.commands.CommandDirectScript;
 import com.pqqqqq.directscript.events.TriggerEvents;
 import com.pqqqqq.directscript.lang.Lang;
-import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -26,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * Created by Kevin on 2015-06-02.
  */
 @Plugin(id = DirectScript.ID, name = DirectScript.NAME, version = DirectScript.VERSION)
-public class DirectScript extends Environment {
+public class DirectScript {
     public static final String ID = "directscript";
     public static final String NAME = "DirectScript";
     public static final String VERSION = "2.0-SNAPSHOT";
@@ -50,12 +49,10 @@ public class DirectScript extends Environment {
     @DefaultConfig(sharedRoot = false)
     private ConfigurationLoader<CommentedConfigurationNode> configLoader;
 
-    @SuppressWarnings("deprecation")
     @Inject
     public DirectScript(Logger logger) {
         INSTANCE = this;
         this.logger = logger;
-        new Lang(); // Create a new lang here
     }
 
     public static DirectScript instance() {
@@ -76,7 +73,7 @@ public class DirectScript extends Environment {
 
         // Register events
         EventManager eventManager = game.getEventManager();
-        eventManager.registerListeners(this, new TriggerEvents(this));
+        eventManager.registerListeners(this, new TriggerEvents());
 
         // Schedule events
         game.getScheduler().createTaskBuilder().delay(200L, TimeUnit.MILLISECONDS).interval(200L, TimeUnit.MILLISECONDS).execute(new InternalTimer()).name("ScriptTimer").submit(this);
@@ -90,7 +87,7 @@ public class DirectScript extends Environment {
     @Listener
     public void serverStopping(GameStoppingServerEvent event) {
         Causes.SERVER_STOPPING.activate(); // Trigger server stopping cause
-        Lang.instance().errorHandler().close(); // Close error handler stream
+        Lang.instance().exceptionHandler().close(); // Close exception handler stream
     }
 
     public Logger getLogger() {
@@ -103,17 +100,6 @@ public class DirectScript extends Environment {
 
     public Config getConfig() {
         return cfg;
-    }
-
-    // Environment override
-    @Override
-    public void notifyChange() {
-        cfg.saveAll();
-    }
-
-    @Override
-    protected void suppressNotifications(boolean suppressNotifications) {
-        super.suppressNotifications(suppressNotifications);
     }
 
     /**

@@ -1,7 +1,6 @@
 package com.pqqqqq.directscript.lang.data.mutable;
 
 import com.google.common.collect.Lists;
-import com.pqqqqq.directscript.lang.data.Datum;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.util.Utilities;
 
@@ -12,7 +11,7 @@ import java.util.List;
  * <p>A {@link MutableValue} for an array index.</p>
  * <p>A {@link DataHolder} containing an array must be given as it requires a field-membered variable.</p>
  */
-public class ArrayIndexValue implements MutableValue {
+public class ArrayIndexValue implements MutableValue<Literal<?>> {
     private final DataHolder arrayHolder;
     private final int index;
 
@@ -46,10 +45,10 @@ public class ArrayIndexValue implements MutableValue {
     }
 
     @Override
-    public <T> Datum<T> getDatum() {
-        Literal arrayLiteral = getArrayHolder().getLiteral();
+    public Literal<?> getDatum() {
+        Literal arrayLiteral = getArrayHolder().getDatum().tryLiteral();
 
-        List<Datum> literalHolders = Lists.newArrayList(arrayLiteral.getArray()); // We must create a new array that can be changed
+        List<Literal> literalHolders = Lists.newArrayList(arrayLiteral.getArray()); // We must create a new array that can be changed
         if (Utilities.buildToIndex(literalHolders, getIndex(), Literal.Literals.EMPTY)) {
             getArrayHolder().setDatum(Literal.fromObject(literalHolders)); // Update for shift
         }
@@ -58,12 +57,12 @@ public class ArrayIndexValue implements MutableValue {
     }
 
     @Override
-    public void setDatum(Datum datum) {
-        Literal arrayLiteral = getArrayHolder().getLiteral();
+    public void setDatum(Literal<?> dataContainer) {
+        Literal arrayLiteral = getArrayHolder().getDatum().tryLiteral();
 
-        List<Datum> literalHolders = Lists.newArrayList(arrayLiteral.getArray()); // We must create a new array that can be changed
+        List<Literal> literalHolders = Lists.newArrayList(arrayLiteral.getArray()); // We must create a new array that can be changed
         Utilities.buildToIndex(literalHolders, getIndex(), Literal.Literals.EMPTY);
-        literalHolders.set(getIndex(), datum);
+        literalHolders.set(getIndex(), dataContainer);
 
         getArrayHolder().setDatum(Literal.fromObject(literalHolders)); // Update
     }

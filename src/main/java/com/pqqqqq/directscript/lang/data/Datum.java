@@ -1,8 +1,8 @@
 package com.pqqqqq.directscript.lang.data;
 
+import com.pqqqqq.directscript.Config;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.data.mutable.DataHolder;
-import com.pqqqqq.directscript.lang.reader.Context;
 
 /**
  * Created by Kevin on 2015-11-19.
@@ -11,23 +11,18 @@ import com.pqqqqq.directscript.lang.reader.Context;
 public interface Datum<T> extends DataContainer<T> {
 
     /**
-     * Gets the {@link Literal} for this {@link Datum}
+     * Serializes this {@link DataContainer} into a sequence, sequenced by {@link Sequencer} and saved in {@link Config}
      *
-     * @return the literal
+     * @return the sequence
      */
-    Literal<T> get();
+    Object serialize();
 
     /**
-     * Converts this {@link Datum} into a {@link DataHolder}
+     * Converts this {@link DataContainer} into a {@link DataHolder}
      *
-     * @return the new literal holder
+     * @return the new data holder
      */
     default DataHolder toHolder() {
         return new DataHolder(this);
-    }
-
-    @Override
-    default Datum<T> resolve(Context ctx) {
-        return this;
     }
 }

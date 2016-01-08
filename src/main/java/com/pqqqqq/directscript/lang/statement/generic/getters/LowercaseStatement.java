@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that turns all letters in a literal to lowercase
  */
 public class LowercaseStatement extends Statement<String> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("lowercase")
+            .arguments(Arguments.of(GenericArguments.withName("String")))
+            .build();
 
-    public LowercaseStatement() {
-        super(Syntax.builder()
-                .identifiers("lowercase")
-                .arguments(Arguments.of(Argument.from("String")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

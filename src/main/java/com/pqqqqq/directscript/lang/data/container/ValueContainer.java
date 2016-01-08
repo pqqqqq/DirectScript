@@ -1,12 +1,12 @@
 package com.pqqqqq.directscript.lang.data.container;
 
-import com.pqqqqq.directscript.lang.data.Datum;
+import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.mutable.MutableValue;
 import com.pqqqqq.directscript.lang.reader.Context;
 
 /**
  * Created by Kevin on 2015-06-18.
- * Represents a {@link DataContainer} in which both {@link Datum Data} and its {@link MutableValue} can be resolved
+ * Represents a {@link DataContainer} in which both {@link Literal} and its {@link MutableValue} can be resolved
  *
  * @param <T> the type parameter for the literal
  */

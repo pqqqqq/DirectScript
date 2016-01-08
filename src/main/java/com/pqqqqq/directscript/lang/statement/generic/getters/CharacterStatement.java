@@ -8,12 +8,15 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that gets the character by its ASCII ordinal
  */
 public class CharacterStatement extends Statement<String> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("character", "chr")
+            .arguments(Arguments.of(GenericArguments.withName("Ordinal")))
+            .build();
 
-    public CharacterStatement() {
-        super(Syntax.builder()
-                .identifiers("character", "chr")
-                .arguments(Arguments.of(Argument.from("Ordinal")))
-                .build());
+
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

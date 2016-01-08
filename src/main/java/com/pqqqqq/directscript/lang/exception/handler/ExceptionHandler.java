@@ -1,4 +1,4 @@
-package com.pqqqqq.directscript.lang.error;
+package com.pqqqqq.directscript.lang.exception.handler;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -7,22 +7,22 @@ import java.util.Date;
 
 /**
  * Created by Kevin on 2015-06-02.
- * The error handler class that writes to a {@link PrintStream} about {@link Throwable} errors
+ * The error handler class that writes to a {@link PrintStream} about {@link Throwable} exceptions
  */
-public class ErrorHandler {
-    private static final ErrorHandler INSTANCE = new ErrorHandler();
+public class ExceptionHandler {
+    private static final ExceptionHandler INSTANCE = new ExceptionHandler();
     private static final File ERROR_FILE = new File("scripts/errors.log");
     private PrintStream writer;
 
-    private ErrorHandler() {
+    private ExceptionHandler() {
     }
 
     /**
-     * Gets the {@link ErrorHandler} instance
+     * Gets the {@link ExceptionHandler} instance
      *
      * @return the instance
      */
-    public static ErrorHandler instance() {
+    public static ExceptionHandler instance() {
         return INSTANCE;
     }
 
@@ -36,7 +36,7 @@ public class ErrorHandler {
     }
 
     /**
-     * Attaches this {@link ErrorHandler}'s {@link PrintStream} to the error file, denoted by {@link #getErrorFile()}
+     * Attaches this {@link ExceptionHandler}'s {@link PrintStream} to the error file, denoted by {@link #getErrorFile()}
      */
     public void attach() {
         try {
@@ -61,6 +61,7 @@ public class ErrorHandler {
      * @param e the error
      */
     public void log(Throwable e) {
+        writer.print(timestamp() + ": ");
         e.printStackTrace(writer);
     }
 

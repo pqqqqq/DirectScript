@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that checks if a string starts with another string
  */
 public class StartsWithStatement extends Statement<Boolean> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("startswith")
+            .arguments(Arguments.of(GenericArguments.withName("String"), ",", GenericArguments.withName("StartsWithString")))
+            .build();
 
-    public StartsWithStatement() {
-        super(Syntax.builder()
-                .identifiers("startswith")
-                .arguments(Arguments.of(Argument.from("String"), ",", Argument.from("StartsWithString")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

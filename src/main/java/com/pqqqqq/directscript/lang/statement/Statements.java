@@ -1,6 +1,6 @@
 package com.pqqqqq.directscript.lang.statement;
 
-import com.google.common.base.Optional;
+import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.reader.Line;
 import com.pqqqqq.directscript.lang.statement.generic.getters.*;
 import com.pqqqqq.directscript.lang.statement.generic.setters.*;
@@ -12,6 +12,7 @@ import com.pqqqqq.directscript.lang.util.RegistryUtil;
 import org.spongepowered.api.data.DataSerializable;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Created by Kevin on 2015-06-02.
@@ -31,10 +32,10 @@ public class Statements {
 
     // Generic statements
     public static final Statement PRINT = new PrintStatement();
-    public static final Statement<Object> VAR_DECLARATION = new VarStatement();
 
     // Sets
     public static final Statement<Object> SET = new SetStatement();
+    public static final Statement<Object> SET_EXPLICIT = new SetStatementExplicit();
     public static final Statement<Object> SET_ADD = new SetAddStatement();
     public static final Statement<Object> SET_SUB = new SetSubStatement();
     public static final Statement<Object> SET_MULT = new SetMultStatement();
@@ -45,6 +46,7 @@ public class Statements {
     public static final Statement CALL = new CallStatement();
     public static final Statement<Boolean> IF = new IfStatement();
     public static final Statement WHILE = new WhileStatement();
+    public static final Statement SCHEDULE = new ScheduleStatement();
     public static final Statement FOR = new ForStatement();
     public static final Statement FOREACH = new ForEachStatement();
     public static final Statement FORKV = new ForKVStatement();
@@ -85,13 +87,15 @@ public class Statements {
     public static final Statement<Long> MILLIS = new MillisStatement();
     public static final Statement<String[]> READ_FILE = new ReadFileStatement();
     public static final Statement<Object> SCRIPT_GETTER = new ScriptStatement();
+    public static final Statement<String> DATE = new DateStatement();
+    public static final Statement<List<Literal>> SUBLIST = new SublistStatement();
+    public static final Statement<Double> ABS = new AbsStatement();
 
     // Sponge statements
     public static final Statement SEND = new SendStatement();
     public static final Statement BROADCAST = new BroadcastStatement();
     public static final Statement CANCEL = new CancelStatement();
     public static final Statement CONSOLE = new ConsoleStatement();
-    public static final Statement SPAWN = new SpawnStatement();
     public static final Statement EQUIP = new EquipStatement();
 
     public static final Statement<Boolean> ONLINE = new OnlineStatement();
@@ -105,7 +109,8 @@ public class Statements {
     public static final Statement<Object> ENTITY = new EntityStatement();
     public static final Statement<Object> EXPLOSION = new ExplosionStatement();
     public static final Statement<DataSerializable> TRANSACTION = new TransactionStatement();
-    public static final Statement<Object> BLOCK_TRAIT_STATEMENT = new TraitStatement();
+    public static final Statement<Object> SERVER = new ServerStatement();
+    public static final Statement<Object> EVENT = new EventStatement();
 
     private static final List<Statement> REGISTRY;
 
@@ -135,6 +140,6 @@ public class Statements {
             }
         }
 
-        return Optional.absent();
+        return Optional.empty();
     }
 }

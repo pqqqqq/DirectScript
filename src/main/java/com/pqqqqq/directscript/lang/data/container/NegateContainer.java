@@ -30,6 +30,6 @@ public class NegateContainer implements DataContainer<Boolean> {
 
     @Override
     public Literal<Boolean> resolve(Context ctx) {
-        return getContainer().resolve(ctx).get().negate();
+        return getContainer().resolve(ctx).negate();
     }
 }

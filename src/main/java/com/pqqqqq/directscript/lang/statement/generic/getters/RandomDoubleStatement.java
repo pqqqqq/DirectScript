@@ -9,12 +9,14 @@ import com.pqqqqq.directscript.lang.util.Utilities;
  * A statement that generates a random double in bounds
  */
 public class RandomDoubleStatement extends Statement<Double> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("randomdouble", "randdouble")
+            .arguments(Arguments.empty(), Arguments.of(GenericArguments.withName("Max")), Arguments.of(GenericArguments.withName("Min"), ",", GenericArguments.withName("Max")))
+            .build();
 
-    public RandomDoubleStatement() {
-        super(Syntax.builder()
-                .identifiers("randomdouble", "randdouble")
-                .arguments(Arguments.empty(), Arguments.of(Argument.from("Max")), Arguments.of(Argument.from("Min"), ",", Argument.from("Max")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

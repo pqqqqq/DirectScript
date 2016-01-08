@@ -1,7 +1,6 @@
 package com.pqqqqq.directscript.lang.data.converter;
 
-import org.spongepowered.api.scoreboard.Scoreboard;
-import org.spongepowered.api.service.permission.context.Context;
+import org.spongepowered.api.service.context.Context;
 import org.spongepowered.api.world.*;
 import org.spongepowered.api.world.difficulty.Difficulty;
 import org.spongepowered.api.world.gen.WorldGenerator;
@@ -24,9 +23,7 @@ public class WorldConverter extends Converter<World> {
         CONVERSION_MAP.put(WorldCreationSettings.class, World::getCreationSettings);
         CONVERSION_MAP.put(Difficulty.class, World::getDifficulty);
         CONVERSION_MAP.put(Dimension.class, World::getDimension);
-        CONVERSION_MAP.put(PlayerSimulator.class, World::getPlayerSimulator);
         CONVERSION_MAP.put(WorldProperties.class, World::getProperties);
-        CONVERSION_MAP.put(Scoreboard.class, World::getScoreboard);
         CONVERSION_MAP.put(TeleporterAgent.class, World::getTeleporterAgent);
         CONVERSION_MAP.put(WorldBorder.class, World::getWorldBorder);
         CONVERSION_MAP.put(WorldGenerator.class, World::getWorldGenerator);

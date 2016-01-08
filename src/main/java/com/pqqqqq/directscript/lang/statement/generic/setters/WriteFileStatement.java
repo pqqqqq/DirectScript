@@ -12,13 +12,15 @@ import java.io.FileWriter;
  * Writes to a local file
  */
 public class WriteFileStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("writefile")
+            .arguments(Arguments.of(GenericArguments.withName("FileName"), ",", GenericArguments.withName("Contents")))
+            .arguments(Arguments.of(GenericArguments.withName("FileName"), ",", GenericArguments.withName("Contents"), ",", GenericArguments.withName("Append")))
+            .build();
 
-    public WriteFileStatement() {
-        super(Syntax.builder()
-                .identifiers("writefile")
-                .arguments(Arguments.of(Argument.from("FileName"), ",", Argument.from("Contents")))
-                .arguments(Arguments.of(Argument.from("FileName"), ",", Argument.from("Contents"), ",", Argument.from("Append")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

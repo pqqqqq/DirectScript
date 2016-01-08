@@ -2,8 +2,8 @@ package com.pqqqqq.directscript.lang.data;
 
 import com.pqqqqq.directscript.lang.data.converter.Converter;
 import com.pqqqqq.directscript.lang.data.converter.Converters;
+import org.spongepowered.api.data.DataSerializable;
 
-import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -43,16 +43,13 @@ public class ObjectiveLiteral<T> extends Literal<T> {
             return null;
         }
 
-        // We have to do this in reverse order, since converters are eligible if they are instances of the type
-        // And superclasses are first in the registry (eg. entity converter is before player converter)
-
-        List<Converter> registry = Converters.getRegistry();
-        for (int i = (registry.size() - 1); i >= 0; i--) {
-            Converter<?> converter = registry.get(i);
-            if (converter.isEligible(value)) {
-                return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, converter);
-            }
+        Optional<Converter<T>> converter = Converters.fromType(value);
+        if (!converter.isPresent()) {
+            return null;
         }
+
+        return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, converter.get());
+
 
         /*if (value instanceof Player) {
             return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, PlayerConverter.instance());
@@ -93,8 +90,6 @@ public class ObjectiveLiteral<T> extends Literal<T> {
         } else if (value instanceof Text) {
             return (ObjectiveLiteral<T>) new ObjectiveLiteral(value, TextConverter.instance());
         }*/
-
-        return null;
     }
 
     @Override
@@ -125,6 +120,20 @@ public class ObjectiveLiteral<T> extends Literal<T> {
     @Override
     public boolean isObjective() {
         return true;
+    }
+
+    @Override
+    public Object serialize() {
+        if (getValue().isPresent()) {
+            T value = getValue().get();
+            if (value instanceof DataSerializable) {
+                return ((DataSerializable) value).toContainer();
+            } else {
+                return value.toString();
+            }
+        } else {
+            return ""; // Blank string for serialization
+        }
     }
 
     @Override

@@ -8,12 +8,14 @@ import com.pqqqqq.directscript.lang.statement.Statement;
  * A statement that ceils (rounds up) a number
  */
 public class CeilStatement extends Statement<Double> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("ceil")
+            .arguments(Arguments.of(GenericArguments.withName("Number")))
+            .build();
 
-    public CeilStatement() {
-        super(Syntax.builder()
-                .identifiers("ceil")
-                .arguments(Arguments.of(Argument.from("Number")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

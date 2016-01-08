@@ -14,13 +14,15 @@ import java.util.Optional;
  * A statement that cancels the event that causes the script's trigger, if possible
  */
 public class CancelStatement extends Statement {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("cancel")
+            .prefix("@")
+            .arguments(Arguments.empty(), Arguments.of(GenericArguments.withName("CancelCondition")))
+            .build();
 
-    public CancelStatement() {
-        super(Syntax.builder()
-                .identifiers("cancel")
-                .prefix("@")
-                .arguments(Arguments.empty(), Arguments.of(Argument.from("CancelCondition")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override

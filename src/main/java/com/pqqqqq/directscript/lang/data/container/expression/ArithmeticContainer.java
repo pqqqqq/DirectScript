@@ -1,7 +1,7 @@
 package com.pqqqqq.directscript.lang.data.container.expression;
 
-import com.pqqqqq.directscript.lang.data.Data;
 import com.pqqqqq.directscript.lang.data.Datum;
+import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.reader.Context;
 
@@ -10,7 +10,8 @@ import com.pqqqqq.directscript.lang.reader.Context;
  * Created by Kevin on 2015-06-17.
  * Represents a {@link ExpressionContainer} responsible for arithmetic at runtime
  */
-public class ArithmeticContainer extends ExpressionContainer {
+public class ArithmeticContainer extends ExpressionContainer implements Datum {
+    private final String stringSequence;
 
     /**
      * Creates a new {@link ArithmeticContainer} with the given {@link DataContainer} terms and the operator
@@ -19,8 +20,9 @@ public class ArithmeticContainer extends ExpressionContainer {
      * @param secondTerm the second term in the expression (right)
      * @param operator   the operator for the expression
      */
-    public ArithmeticContainer(DataContainer firstTerm, DataContainer secondTerm, ArithmeticOperator operator) {
+    public ArithmeticContainer(DataContainer firstTerm, DataContainer secondTerm, ArithmeticOperator operator, String stringSequence) {
         super(firstTerm, secondTerm, operator);
+        this.stringSequence = stringSequence;
     }
 
     /**
@@ -30,8 +32,8 @@ public class ArithmeticContainer extends ExpressionContainer {
      * @param secondTerm the second term in the expression (right)
      * @param operator   the string operator for the expression
      */
-    public ArithmeticContainer(DataContainer firstTerm, DataContainer secondTerm, String operator) {
-        this(firstTerm, secondTerm, ArithmeticOperator.fromOperator(operator));
+    public ArithmeticContainer(DataContainer firstTerm, DataContainer secondTerm, String operator, String stringSequence) {
+        this(firstTerm, secondTerm, ArithmeticOperator.fromOperator(operator), stringSequence);
     }
 
     @Override
@@ -40,28 +42,21 @@ public class ArithmeticContainer extends ExpressionContainer {
     }
 
     @Override
-    public Datum resolve(Context ctx) {
-        Datum firstDatum = getFirstTerm().resolve(ctx);
-        Datum secondDatum = getSecondTerm().resolve(ctx);
+    public Literal resolve(Context ctx) {
+        Literal firstLiteral = getFirstTerm().resolve(ctx);
+        Literal secondLiteral = getSecondTerm().resolve(ctx);
 
-        ArithmeticOperator operator = getOperator();
-
-        switch (operator) {
-            case ADDITION:
-                return new Data(firstDatum, secondDatum);
-            case SUBTRACTION:
-                return firstDatum.get().sub(secondDatum.get());
-            case MULTIPLICATION:
-                return firstDatum.get().mult(secondDatum.get());
-            case DIVISION:
-                return firstDatum.get().div(secondDatum.get());
-            case EXPONENTIAL:
-                return firstDatum.get().pow(secondDatum.get());
-            case ROOT:
-                return firstDatum.get().root(secondDatum.get());
-            default:
-                throw new IllegalStateException("Unknown arithmetic operator: " + operator);
+        Literal result = firstLiteral.arithmetic(secondLiteral, getOperator());
+        if (firstLiteral.getResolvedFrom().isPresent() || secondLiteral.getResolvedFrom().isPresent()) {
+            return Literal.Resolved.fromObject(result, this);
+        } else {
+            return result;
         }
+    }
+
+    @Override
+    public Object serialize() {
+        return stringSequence;
     }
 
     /**

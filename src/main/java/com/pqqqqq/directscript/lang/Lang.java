@@ -1,9 +1,10 @@
 package com.pqqqqq.directscript.lang;
 
+import com.google.common.collect.ImmutableSet;
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.data.Sequencer;
 import com.pqqqqq.directscript.lang.data.env.Environment;
-import com.pqqqqq.directscript.lang.error.ErrorHandler;
+import com.pqqqqq.directscript.lang.exception.handler.ExceptionHandler;
 import com.pqqqqq.directscript.lang.reader.Reader;
 import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptsFile;
@@ -18,16 +19,10 @@ import java.util.Set;
  * <p>This class contains getters and handlers for usage across scripts and statements.</p>
  */
 public class Lang extends Environment {
-    private static Lang INSTANCE;
+    private static Lang INSTANCE = new Lang();
     private Set<ScriptsFile> scriptsFiles;
 
-    /**
-     * Use {@link Lang#instance()} instead
-     */
-    @Deprecated
-    public Lang() {
-        super(DirectScript.instance());
-        INSTANCE = this;
+    private Lang() { // Private view
     }
 
     /**
@@ -60,13 +55,13 @@ public class Lang extends Environment {
     }
 
     /**
-     * <p>Gets the {@link ErrorHandler} instance.</p>
-     * <p>This is analogous to: <code>ErrorHandler.instance()</code></p>
+     * <p>Gets the {@link ExceptionHandler} instance.</p>
+     * <p>This is analogous to: <code>ExceptionHandler.instance()</code></p>
      *
-     * @return the error handler
+     * @return the exception handler
      */
-    public ErrorHandler errorHandler() {
-        return ErrorHandler.instance();
+    public ExceptionHandler exceptionHandler() {
+        return ExceptionHandler.instance();
     }
 
     /**
@@ -92,8 +87,8 @@ public class Lang extends Environment {
      * Reloads the scripts and re-attaches the error handler
      */
     public void reloadScripts() {
-        errorHandler().attach(); // Attach error handler
-        scriptsFiles = reader().load(); // Reload scripts
+        exceptionHandler().attach(); // Attach error handler
+        scriptsFiles = ImmutableSet.copyOf(reader().load()); // Creates an immutable set of reloaded scripts
     }
 
     /**
@@ -102,7 +97,7 @@ public class Lang extends Environment {
      * <p>Otherwise, if the script exists in folders branching from /scripts, the name will be <code>PATH/SCRIPTFILE:SCRIPTNAME</code>.</p>
      * <p>The <code>PATH</code> will be from the /scripts folder.</p>
      * <p></p>
-     * <p>Example: A script file test.ds in the folder hello, which is in the folder goodbye, which is in scripts:</p>
+     * <p>Example: A script file test.ds in the folder hello, which is in the folder goodbye, which is in the scripts folder:</p>
      * <p><code>goodbye/hello:test</code></p>
      *
      * @param str the script name
@@ -122,5 +117,16 @@ public class Lang extends Environment {
         }
 
         return Optional.empty();
+    }
+
+    // Environment override
+    @Override
+    public void notifyChange() {
+        DirectScript.instance().getConfig().saveAll();
+    }
+
+    @Override
+    public void suppressNotifications(boolean suppressNotifications) {
+        super.suppressNotifications(suppressNotifications);
     }
 }

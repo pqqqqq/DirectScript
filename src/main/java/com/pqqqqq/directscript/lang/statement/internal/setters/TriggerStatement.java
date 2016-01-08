@@ -1,7 +1,6 @@
 package com.pqqqqq.directscript.lang.statement.internal.setters;
 
-import com.google.common.base.Optional;
-import com.pqqqqq.directscript.lang.data.Datum;
+import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.trigger.Trigger;
@@ -9,6 +8,7 @@ import com.pqqqqq.directscript.lang.trigger.cause.Cause;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -17,22 +17,24 @@ import static com.google.common.base.Preconditions.checkState;
  * A statement that defines a script's {@link Trigger} and {@link Cause}s
  */
 public class TriggerStatement extends Statement<Trigger> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("trigger")
+            .executionTime(ExecutionTime.COMPILE)
+            .arguments(Arguments.of(GenericArguments.withName("TriggerArray")))
+            .build();
 
-    public TriggerStatement() {
-        super(Syntax.builder()
-                .identifiers("trigger")
-                .executionTime(ExecutionTime.COMPILE)
-                .arguments(Arguments.of(Argument.from("TriggerArray")))
-                .build());
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 
     @Override
     public Result<Trigger> run(Context ctx) {
         Trigger.Builder triggerBuilder = Trigger.builder().script(ctx.getScriptInstance().getScript());
-        List<Datum> triggers = ctx.getLiteral("TriggerArray").getArray();
+        List<Literal> triggers = ctx.getLiteral("TriggerArray").getArray();
 
-        for (Datum trigger : triggers) {
-            String causeString = trigger.get().getString();
+        for (Literal trigger : triggers) {
+            String causeString = trigger.getString();
             Optional<Cause> cause = Causes.getCause(causeString);
 
             checkState(cause.isPresent(), "Unknown cause: " + causeString);

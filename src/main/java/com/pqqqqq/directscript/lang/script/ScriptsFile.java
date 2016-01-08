@@ -1,7 +1,5 @@
 package com.pqqqqq.directscript.lang.script;
 
-import com.pqqqqq.directscript.lang.Lang;
-import com.pqqqqq.directscript.lang.data.env.Environment;
 import com.pqqqqq.directscript.lang.util.Utilities;
 
 import java.io.File;
@@ -13,9 +11,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by Kevin on 2015-06-02.
- * Represents a {@link Environment} wrapper for a {@link File} that contains {@link Script}s
+ * Represents a wrapper for a {@link File} that contains {@link Script}s
  */
-public class ScriptsFile extends Environment {
+public class ScriptsFile {
     private final File root;
     private final File file;
     private final Set<Script> scripts = new HashSet<Script>();
@@ -27,7 +25,6 @@ public class ScriptsFile extends Environment {
      * @param file the actual file
      */
     public ScriptsFile(File root, File file) {
-        super(Lang.instance()); // Lang is the script file's parent
         this.root = checkNotNull(root, "Root");
         this.file = checkNotNull(file, "File");
     }

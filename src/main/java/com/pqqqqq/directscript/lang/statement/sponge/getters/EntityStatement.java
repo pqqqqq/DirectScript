@@ -1,103 +1,154 @@
 package com.pqqqqq.directscript.lang.statement.sponge.getters;
 
 import com.flowpowered.math.vector.Vector3d;
-import com.pqqqqq.directscript.lang.data.Datum;
-import com.pqqqqq.directscript.lang.data.Literal;
-import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.statement.Statement;
+import com.pqqqqq.directscript.lang.util.Utilities;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.entity.EntityType;
 import org.spongepowered.api.entity.Transform;
 import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.UUID;
 
-import static com.pqqqqq.directscript.lang.statement.Statement.GenericArguments.*;
+import static com.pqqqqq.directscript.lang.statement.Statement.GenericArguments.DEFAULT_ENTITY;
 
 /**
  * Created by Kevin on 2015-06-29.
  * A statement of getters for entities
  */
 public class EntityStatement extends Statement<Object> {
+    public static final Syntax SYNTAX = Syntax.builder()
+            .identifiers("entity")
+            .prefix("@")
+            .build();
 
     public EntityStatement() {
-        super(Syntax.builder()
-                .identifiers("entity")
-                .prefix("@")
-                .arguments(Arguments.of(GETTER), Arguments.of(OBJECT, ",", GETTER), Arguments.of(GETTER, ",", ARGUMENTS))
-                .arguments(Arguments.of(OBJECT, ",", GETTER, ",", ARGUMENTS))
-                .build());
-    }
+        super();
 
-    @Override
-    public Result<Object> run(Context ctx) {
-        Optional<Entity> entityOptional = ctx.getLiteral("Object", Entity.class).getAs(Entity.class);
-        if (!entityOptional.isPresent()) {
-            return Result.builder().failure().result("Entity object not present").build();
-        }
+        final Arguments[] GET_ARGUMENTS = GenericArguments.getterArguments(this);
+        register(this.<Entity, Location>createCompartment(new String[]{"location", "loc"}, (ctx, entity) -> {
+            return Result.<Location>builder().success().result(entity.getLocation()).build();
+        }, GET_ARGUMENTS));
 
-        // Getters
-        String getter = ctx.getLiteral("Getter").getString();
-        if (getter.equalsIgnoreCase("location") || getter.equalsIgnoreCase("loc")) {
-            return Result.builder().success().result(entityOptional.get().getLocation()).build();
-        } else if (getter.equalsIgnoreCase("world")) {
-            return Result.builder().success().result(entityOptional.get().getWorld()).build();
-        } else if (getter.equalsIgnoreCase("type")) {
-            return Result.builder().success().result(entityOptional.get().getType()).build();
-        } else if (getter.equalsIgnoreCase("uuid")) {
-            return Result.builder().success().result(entityOptional.get().getUniqueId()).build();
-        } else if (getter.equalsIgnoreCase("kill") || getter.equalsIgnoreCase("remove")) {
-            entityOptional.get().remove();
+        register(this.<Entity, World>createCompartment("world", (ctx, entity) -> {
+            return Result.<World>builder().success().result(entity.getWorld()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Entity, EntityType>createCompartment("type", (ctx, entity) -> {
+            return Result.<EntityType>builder().success().result(entity.getType()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Entity, UUID>createCompartment("uuid", (ctx, entity) -> {
+            return Result.<UUID>builder().success().result(entity.getUniqueId()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Entity, Object>createCompartment(new String[]{"kill", "remove"}, (ctx, entity) -> {
+            entity.remove();
             return Result.success();
-        }
+        }, GET_ARGUMENTS));
 
-        // Extra args
-        List<Datum> extraArguments = ctx.getLiteral("Arguments", Literal.Literals.EMPTY_ARRAY).getArray();
-        if (getter.equalsIgnoreCase("teleport") || getter.equalsIgnoreCase("tp") || getter.equalsIgnoreCase("setloc") || getter.equalsIgnoreCase("setlocation")) {
-            Optional<Location> location = extraArguments.get(0).get().getAs(Location.class);
-            boolean safe = extraArguments.size() > 1 ? extraArguments.get(1).get().getBoolean() : false;
+        register(this.<Entity, Vector3d>createCompartment("rotation", (ctx, entity) -> {
+            return Result.<Vector3d>builder().success().result(entity.getRotation()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Entity, Vector3d>createCompartment("direction", (ctx, entity) -> {
+            return Result.<Vector3d>builder().success().result(Utilities.getDirection(entity.getRotation())).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Entity, Transform>createCompartment("transform", (ctx, entity) -> {
+            return Result.<Transform>builder().success().result(entity.getTransform()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Entity, Vector3d>createCompartment("velocity", (ctx, entity) -> {
+            return Result.<Vector3d>builder().success().result(entity.get(Keys.VELOCITY).get()).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Entity, UUID>createCompartment("owner", (ctx, entity) -> {
+            return Result.<UUID>builder().success().result(entity.get(Keys.TAMED_OWNER).get().orElse(null)).build();
+        }, GET_ARGUMENTS));
+
+        register(this.<Entity, Object>createCompartment(new String[]{"teleport", "tp", "setlocation", "setloc"}, (ctx, entity) -> {
+            Optional<Location> location = ctx.getLiteral("Location", Location.class).getAs(Location.class);
+            boolean safe = ctx.getLiteral("Safe", false).getBoolean();
 
             if (location.isPresent()) {
                 if (safe) {
-                    entityOptional.get().setLocationSafely(location.get());
+                    entity.setLocationSafely(location.get());
                 } else {
-                    entityOptional.get().setLocation(location.get());
+                    entity.setLocation(location.get());
                 }
                 return Result.success();
             } else {
-                return Result.builder().failure().result("Teleportation location unavailable").build();
+                return Result.builder().failure().error("Teleportation location unavailable").build();
             }
-        } else if (getter.equalsIgnoreCase("setrotation")) {
-            Optional<Vector3d> rotation = extraArguments.get(0).get().getAs(Vector3d.class);
+        }, GenericArguments.requiredArguments(this, GenericArguments.location("Location", 0, null), GenericArguments.withName("Safe"))));
+
+        register(this.<Entity, Object>createCompartment("setrotation", (ctx, entity) -> {
+            Optional<Vector3d> rotation = ctx.getLiteral("Rotation", Vector3d.class).getAs(Vector3d.class);
             if (rotation.isPresent()) {
-                entityOptional.get().setRotation(rotation.get());
-                return Result.success();
-            }
-        } else if (getter.equalsIgnoreCase("setscale")) {
-            Optional<Vector3d> rotation = extraArguments.get(0).get().getAs(Vector3d.class);
-            if (rotation.isPresent()) {
-                entityOptional.get().setScale(rotation.get());
+                entity.setRotation(rotation.get());
                 return Result.success();
             } else {
-                return Result.builder().failure().result("Rotation vector unavailable").build();
+                return Result.builder().failure().error("Rotation vector unavailable").build();
             }
-        } else if (getter.equalsIgnoreCase("settransform")) {
-            Optional<Transform> transform = extraArguments.get(0).get().getAs(Transform.class);
+        }, GenericArguments.requiredArguments(this, GenericArguments.rotation("Rotation", 0, null))));
+
+        register(this.<Entity, Object>createCompartment("settransform", (ctx, entity) -> {
+            Optional<Transform> transform = ctx.getLiteral("Transform", Transform.class).getAs(Transform.class);
             if (transform.isPresent()) {
-                entityOptional.get().setTransform(transform.get());
+                entity.setTransform(transform.get());
                 return Result.success();
             } else {
-                return Result.builder().failure().result("Transform unavailable").build();
+                return Result.builder().failure().error("Transform unavailable").build();
             }
-        } else if (getter.equalsIgnoreCase("nearby") || getter.equalsIgnoreCase("entitiesnearby") || getter.equalsIgnoreCase("closeentities")) {
-            final Vector3d pos = entityOptional.get().getLocation().getPosition();
-            final boolean includeSelf = extraArguments.size() > 1 ? extraArguments.get(1).get().getBoolean() : false;
+        }, GenericArguments.requiredArguments(this, GenericArguments.transform("Transform", 0, null))));
 
-            return Result.builder().success().result(entityOptional.get().getLocation().getExtent().getEntities((entity) -> {
-                return entity.getLocation().getPosition().distance(pos) <= extraArguments.get(0).get().getNumber() && (includeSelf || !entity.equals(entityOptional.get()));
+        register(this.<Entity, Object>createCompartment("setvelocity", (ctx, entity) -> {
+            Optional<Vector3d> velocity = ctx.getLiteral("Velocity", Vector3d.class).getAs(Vector3d.class);
+            if (velocity.isPresent()) {
+                entity.offer(Keys.VELOCITY, velocity.get());
+                return Result.success();
+            } else {
+                return Result.builder().failure().error("Velocity vector unavailable").build();
+            }
+        }, GenericArguments.requiredArguments(this, GenericArguments.velocity("Velocity", 0, null))));
+
+        register(this.<Entity, Collection<Entity>>createCompartment(new String[]{"near", "nearby", "entitiesnearby", "closeentities"}, (ctx, entity) -> {
+            final Vector3d pos = entity.getLocation().getPosition();
+            double distance = ctx.getLiteral("Distance").getNumber();
+            final boolean includeSelf = ctx.getLiteral("IncludeSelf", false).getBoolean();
+
+            return Result.<Collection<Entity>>builder().success().result(entity.getLocation().getExtent().getEntities((checkEntity) -> {
+                return checkEntity.getLocation().getPosition().distance(pos) <= distance && (includeSelf || !checkEntity.equals(entity));
             })).build();
-        }
+        }, GenericArguments.requiredArguments(this, GenericArguments.withName("Distance"), GenericArguments.withName("IncludeSelf"))));
 
-        return Result.builder().failure().result("Unknown getter " + getter).build();
+        register(this.<Entity, Object>createCompartment("setowner", (ctx, entity) -> {
+            Optional<UUID> owner = ctx.getLiteral("Owner", UUID.class).getAs(UUID.class);
+            if (owner.isPresent()) {
+                if (entity.supports(Keys.TAMED_OWNER)) {
+                    entity.offer(Keys.TAMED_OWNER, owner);
+                    return Result.success();
+                } else {
+                    return Result.builder().failure().error("This entity cannot be tamed").build();
+                }
+            } else {
+                return Result.builder().failure().error("Owner unavailable").build();
+            }
+        }, GenericArguments.requiredArguments(this, GenericArguments.withName("Owner"))));
+    }
+
+    @Override
+    public Argument getObjectArgument() {
+        return DEFAULT_ENTITY;
+    }
+
+    @Override
+    public Syntax getSyntax() {
+        return SYNTAX;
     }
 }
