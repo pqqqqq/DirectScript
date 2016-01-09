@@ -17,7 +17,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * may also parse a combination of literals. They are parsed to {@link Literal}s
  */
 public class Sequencer {
-    private static final String[][] LITERAL_DELIMITER_GROUPS = {{" + ", " - "}, {"*", "/"}, {"^", "`"}}; // The +/- group is first since we want these split first, not last
+    private static final String[][] LITERAL_DELIMITER_GROUPS = {{" + ", " - "}, {"*", "/", "%"}, {"^", "`"}}; // The +/- group is first since we want these split first, not last
     private static final String[][] CONDITION_DELIMITER_GROUPS = {{"==", "!=", "~", "!~", "<=", ">="}, {" < ", " > "}}; // Each in the same split group because equal priority. < and > in separate because <= and >= check first
     private static final Sequencer INSTANCE = new Sequencer();
     private final Condition conditionInstance = new Condition();

@@ -529,6 +529,16 @@ public class Literal<T> implements Datum<T> {
         return Literal.fromObject(Math.pow(getNumber(), (1D / other.getNumber())));
     }
 
+    /**
+     * Takes the modulus of the other literal, its remainder in division
+     *
+     * @param other the other literal
+     * @return the resultant literal
+     */
+    public Literal<Double> mod(Literal other) {
+        return Literal.fromObject(getNumber() % other.getNumber());
+    }
+
     public Literal arithmetic(Literal other, ArithmeticContainer.ArithmeticOperator operator) {
         switch (operator) {
             case ADDITION:
@@ -543,6 +553,8 @@ public class Literal<T> implements Datum<T> {
                 return pow(other);
             case ROOT:
                 return root(other);
+            case MODULUS:
+                return mod(other);
             default:
                 throw new IllegalStateException("Unknown arithmetic operator: " + operator);
         }

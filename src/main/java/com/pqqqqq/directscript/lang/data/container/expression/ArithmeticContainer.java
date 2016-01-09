@@ -96,7 +96,12 @@ public class ArithmeticContainer extends ExpressionContainer implements Datum {
         /**
          * Represents a root operator (`)
          */
-        ROOT("`");
+        ROOT("`"),
+
+        /**
+         * Represents a modulus operator (%)
+         */
+        MODULUS("%");
 
         private final String operator;
 
