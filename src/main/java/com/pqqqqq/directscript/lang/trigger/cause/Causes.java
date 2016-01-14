@@ -45,7 +45,9 @@ public class Causes {
     public static final Cause PLAYER_BLOCK_PLACE = new Cause("PlayerBlockPlace", "PlayerPlaceBlock");
     public static final Cause PLAYER_BLOCK_BREAK = new Cause("PlayerBlockBreak", "PlayerBreakBlock");
     public static final Cause PLAYER_USE_ITEM = new Cause("UseItem", "PlayerUseItem");
-    public static final Cause COMMAND = new Cause.CommandCause();
+
+    public static final Cause PLAYER_COMMAND = new Cause.CommandCause("Command");
+    public static final Cause COMMAND = new Cause.CommandCause("ConsoleCommand");
 
     private static final List<Cause> REGISTRY;
 

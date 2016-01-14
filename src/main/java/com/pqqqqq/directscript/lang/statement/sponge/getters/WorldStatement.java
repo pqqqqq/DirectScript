@@ -3,13 +3,16 @@ package com.pqqqqq.directscript.lang.statement.sponge.getters;
 import com.flowpowered.math.vector.Vector3d;
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.statement.Statement;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.effect.sound.SoundType;
 import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.text.selector.Selector;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.pqqqqq.directscript.lang.statement.Statement.GenericArguments.DEFAULT_WORLD;
 
@@ -62,6 +65,11 @@ public class WorldStatement extends Statement<Object> {
         register(this.<World, Collection<Entity>>createCompartment("entities", (ctx, world) -> {
             return Result.<Collection<Entity>>builder().success().result(world.getEntities()).build();
         }, GETTER_ARGUMENTS));
+
+        register(this.<World, Set<Entity>>createCompartment("selector", (ctx, world) -> {
+            @SuppressWarnings("deprecation") Selector selector = Sponge.getRegistry().getSelectorFactory().parseRawSelector(ctx.getLiteral("Selector").getString());
+            return Result.<Set<Entity>>builder().success().result(selector.resolve(world)).build();
+        }, GenericArguments.requiredArguments(this, GenericArguments.withName("Selector"))));
 
         register(this.<World, Object>createCompartment("settime", (ctx, world) -> {
             world.getProperties().setWorldTime(ctx.getLiteral("Ticks").getNumber().intValue());

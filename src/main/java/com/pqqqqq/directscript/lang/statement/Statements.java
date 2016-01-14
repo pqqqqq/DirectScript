@@ -111,6 +111,7 @@ public class Statements {
     public static final Statement<DataSerializable> TRANSACTION = new TransactionStatement();
     public static final Statement<Object> SERVER = new ServerStatement();
     public static final Statement<Object> EVENT = new EventStatement();
+    public static final Statement<Object> SOURCE = new SourceStatement();
 
     private static final List<Statement> REGISTRY;
 

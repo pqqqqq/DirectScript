@@ -3,9 +3,11 @@ package com.pqqqqq.directscript.lang.statement.sponge.getters;
 import com.flowpowered.math.vector.Vector3d;
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.statement.Statement;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityType;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.text.selector.Selector;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.extent.Extent;
@@ -13,6 +15,7 @@ import org.spongepowered.api.world.extent.Extent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.pqqqqq.directscript.lang.statement.Statement.GenericArguments.DEFAULT_LOCATION;
 
@@ -42,6 +45,11 @@ public class LocationStatement extends Statement<Object> {
         register(this.<Location, World>createCompartment("world", (ctx, location) -> {
             return Result.<World>builder().success().result((World) location.getExtent()).build();
         }, GET_ARGUMENTS));
+
+        register(this.<Location, Set<Entity>>createCompartment("selector", (ctx, location) -> {
+            @SuppressWarnings("deprecation") Selector selector = Sponge.getRegistry().getSelectorFactory().parseRawSelector(ctx.getLiteral("Selector").getString());
+            return Result.<Set<Entity>>builder().success().result(selector.resolve(location)).build();
+        }, GenericArguments.requiredArguments(this, GenericArguments.withName("Selector"))));
 
         register(this.<Location, Double>createCompartment(new String[]{"distance", "dist"}, (ctx, location) -> {
             Optional<Location> other = ctx.getLiteral("Other", Location.class).getAs(Location.class);

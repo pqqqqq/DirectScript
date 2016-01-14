@@ -130,8 +130,8 @@ public class Cause {
      */
     public static class CommandCause extends Cause {
 
-        CommandCause() {
-            super("Command");
+        CommandCause(String name) {
+            super(name);
         }
 
         @Override

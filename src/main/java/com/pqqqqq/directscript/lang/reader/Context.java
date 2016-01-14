@@ -9,14 +9,12 @@ import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Compartment;
 import com.pqqqqq.directscript.lang.statement.Statement;
 import com.pqqqqq.directscript.lang.util.Utilities;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -246,41 +244,6 @@ public class Context {
      */
     public Literal getLiteral(String name, Supplier supplier) {
         return getLiteral(name).or(supplier.get());
-    }
-
-    /**
-     * Gets the getter literal, by {@link Statement.Argument#isMainGetter()}
-     * @return the main getter, or {@link Literal.Literals#EMPTY}
-     * @see #getLiteralByArgument(Predicate)
-     */
-    public Pair<Statement.Argument, Literal> getGetterLiteral() {
-        return getLiteralByArgument(Statement.Argument::isMainGetter);
-    }
-
-    /**
-     * Gets the object literal, by {@link Statement.Argument#isMainObject()}
-     *
-     * @return the main getter, or {@link Literal.Literals#EMPTY}
-     * @see #getLiteralByArgument(Predicate)
-     */
-    public Pair<Statement.Argument, Literal> getObjectLiteral() {
-        return getLiteralByArgument(Statement.Argument::isMainObject);
-    }
-
-    /**
-     * Gets a literal by properties of its corresponding {@link Statement.Argument}
-     *
-     * @param argumentPredicate the argument {@link Predicate}
-     * @return the returned literal, or {@link Literal.Literals#EMPTY}
-     */
-    public Pair<Statement.Argument, Literal> getLiteralByArgument(Predicate<Statement.Argument> argumentPredicate) {
-        for (Statement.Argument argument : argumentsSet.getArguments()) {
-            if (argumentPredicate.test(argument)) {
-                return Pair.of(argument, getLiteral(argument.getName(), argument.getObjectClass().orElse(null)));
-            }
-        }
-
-        return Pair.of(null, Literal.Literals.EMPTY);
     }
 
     /**

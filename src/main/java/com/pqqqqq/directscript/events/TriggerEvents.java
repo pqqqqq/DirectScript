@@ -2,6 +2,7 @@ package com.pqqqqq.directscript.events;
 
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.trigger.cause.Causes;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.projectile.Projectile;
@@ -269,14 +270,25 @@ public class TriggerEvents {
         }
     }
 
+    // COMMANDS
+
     @Listener(order = Order.LATE)
-    public void command(SendCommandEvent event, @First Player player) {
-        Causes.COMMAND.activate(ScriptInstance.builder()
-                .event(event)
-                .eventCause(event.getCause())
-                .eventVar("Player", player)
-                .eventVar("Command", event.getCommand())
-                .eventVar("Arguments", event.getArguments()));
+    public void playerCommand(SendCommandEvent event, @First CommandSource commandSource) {
+        if (commandSource instanceof Player) {
+            Causes.PLAYER_COMMAND.activate(ScriptInstance.builder()
+                    .event(event)
+                    .eventCause(event.getCause())
+                    .eventVar("Player", commandSource)
+                    .eventVar("Command", event.getCommand())
+                    .eventVar("Arguments", event.getArguments()));
+        } else {
+            Causes.COMMAND.activate(ScriptInstance.builder()
+                    .event(event)
+                    .eventCause(event.getCause())
+                    .eventVar("Source", commandSource)
+                    .eventVar("Command", event.getCommand())
+                    .eventVar("Arguments", event.getArguments()));
+        }
     }
 
     @Listener

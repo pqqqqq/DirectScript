@@ -539,6 +539,13 @@ public class Literal<T> implements Datum<T> {
         return Literal.fromObject(getNumber() % other.getNumber());
     }
 
+    /**
+     * Performs the given arithmetic on the two literals
+     *
+     * @param other    the other literal
+     * @param operator the operation to perform
+     * @return the resultant literal
+     */
     public Literal arithmetic(Literal other, ArithmeticContainer.ArithmeticOperator operator) {
         switch (operator) {
             case ADDITION:
