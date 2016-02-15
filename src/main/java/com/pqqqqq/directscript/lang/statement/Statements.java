@@ -98,20 +98,20 @@ public class Statements {
     public static final Statement CONSOLE = new ConsoleStatement();
     public static final Statement EQUIP = new EquipStatement();
 
-    public static final Statement<Boolean> ONLINE = new OnlineStatement();
-    public static final Statement<Object> LOCATION = new LocationStatement();
+    public static final Statement<Object> SOURCE = new SourceStatement();
     public static final Statement<Object> VECTOR = new VectorStatement();
+    public static final Statement<Object> WORLD = new WorldStatement();
+    public static final Statement<Object> LOCATION = new LocationStatement();
+    public static final Statement<Object> ENTITY = new EntityStatement();
+    public static final Statement<Object> LIVING = new LivingStatement();
+    public static final Statement<Object> PLAYER = new PlayerStatement();
+    public static final Statement<Boolean> ONLINE = new OnlineStatement();
     public static final Statement<Object> BLOCK = new BlockStatement();
     public static final Statement<Object> ITEM = new ItemStackStatement();
-    public static final Statement<Object> WORLD = new WorldStatement();
-    public static final Statement<Object> PLAYER = new PlayerStatement();
-    public static final Statement<Object> LIVING = new LivingStatement();
-    public static final Statement<Object> ENTITY = new EntityStatement();
     public static final Statement<Object> EXPLOSION = new ExplosionStatement();
     public static final Statement<DataSerializable> TRANSACTION = new TransactionStatement();
     public static final Statement<Object> SERVER = new ServerStatement();
     public static final Statement<Object> EVENT = new EventStatement();
-    public static final Statement<Object> SOURCE = new SourceStatement();
 
     private static final List<Statement> REGISTRY;
 

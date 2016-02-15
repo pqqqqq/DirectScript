@@ -13,11 +13,11 @@ import com.pqqqqq.directscript.lang.data.container.AmnesiacContainer;
 import com.pqqqqq.directscript.lang.data.container.DataContainer;
 import com.pqqqqq.directscript.lang.data.container.expression.ArithmeticContainer;
 import com.pqqqqq.directscript.lang.reader.Context;
-import com.pqqqqq.directscript.lang.util.Utilities;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.spongepowered.api.CatalogType;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
+import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.item.ItemType;
@@ -25,13 +25,16 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
+import org.spongepowered.api.world.explosion.Explosion;
 
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.pqqqqq.directscript.lang.util.Utilities.*;
 
 /**
  * Created by Kevin on 2015-06-02.
@@ -77,7 +80,7 @@ public class Literal<T> implements Datum<T> {
             if (string.isEmpty()) {
                 return (Literal<T>) Literals.EMPTY_STRING;
             } else {
-                return (Literal<T>) new Literal<>(Utilities.formatColour(string));
+                return (Literal<T>) new Literal<>(formatColour(string));
             }
         }
 
@@ -145,7 +148,7 @@ public class Literal<T> implements Datum<T> {
 
         // If there's quotes, it's a string
         if (literal.startsWith("\"") && literal.endsWith("\"")) {
-            return Optional.of(Literal.fromObject(Utilities.formatColour(StringEscapeUtils.unescapeJava(literal.substring(1, literal.length() - 1)))));
+            return Optional.of(Literal.fromObject(formatColour(StringEscapeUtils.unescapeJava(literal.substring(1, literal.length() - 1)))));
         }
 
         // Literal booleans are only true or false
@@ -158,7 +161,7 @@ public class Literal<T> implements Datum<T> {
         }
 
         // All numbers are doubles, just make them all doubles
-        Double doubleVal = Utilities.getDouble(literal);
+        Double doubleVal = getDouble(literal);
         if (doubleVal != null) {
             return Optional.of(Literal.fromObject(doubleVal));
         }
@@ -345,8 +348,8 @@ public class Literal<T> implements Datum<T> {
                 if (isMap()) {
                     Map<Literal, Literal> map = getMap();
 
-                    World world = DirectScript.instance().getGame().getServer().getWorld(Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("world")).getString()).get();
-                    Vector3d vec = new Vector3d(Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("x")).getNumber(), Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("y")).getNumber(), Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("z")).getNumber());
+                    World world = DirectScript.instance().getGame().getServer().getWorld(getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("world"), Literals.EMPTY).getString()).get();
+                    Vector3d vec = new Vector3d(getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("x"), Literals.EMPTY).getNumber(), getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("y"), Literals.EMPTY).getNumber(), getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("z"), Literals.EMPTY).getNumber());
                     loc = new Location(world, vec);
                 } else {
                     List<Literal> array = getArray();
@@ -365,24 +368,28 @@ public class Literal<T> implements Datum<T> {
                 }
             } else if (ItemStack.class.isAssignableFrom(type)) {
                 Map<Literal, Literal> map = getMap();
-                ItemType itemType = Utilities.getType(ItemType.class, Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("type")).getString()).get();
-                int quantity = Optional.ofNullable(Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("amount"))).orElse(Literals.ONE).getNumber().intValue();
+                ItemType itemType = getType(ItemType.class, getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("type"), Literals.EMPTY).getString()).get();
+                int quantity = Optional.ofNullable(getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("amount"), Literals.EMPTY)).orElse(Literals.ONE).getNumber().intValue();
 
                 ItemStack itemStack = DirectScript.instance().getGame().getRegistry().createBuilder(ItemStack.Builder.class).itemType(itemType).quantity(quantity).build();
 
-                Literal displayName = Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("displayName"));
-                Literal lore = Utilities.getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("lore"));
-
-                if (displayName != null) {
-                    itemStack.offer(Keys.DISPLAY_NAME, Utilities.getText(displayName.getString()));
+                Literal displayName = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("displayName"), Literals.EMPTY);
+                if (!displayName.isEmpty()) {
+                    itemStack.offer(Keys.DISPLAY_NAME, getText(displayName.getString()));
                 }
 
-                if (lore != null) {
+                Literal lore = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("lore"), Literals.EMPTY);
+                if (!lore.isEmpty()) {
                     List<Text> loreList = new ArrayList<>();
                     List<Literal> loreLiterals = lore.getArray();
 
-                    loreLiterals.forEach((literal) -> loreList.add(Utilities.getText(literal.getString())));
+                    loreLiterals.forEach((literal) -> loreList.add(getText(literal.getString())));
                     itemStack.offer(Keys.ITEM_LORE, loreList);
+                }
+
+                Literal damage = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("damage"), Literals.EMPTY);
+                if (!damage.isEmpty()) {
+                    itemStack.toContainer().set(DataQuery.of("UnsafeDamage"), damage.getNumber());
                 }
 
                 return (Optional<R>) Optional.of(itemStack);
@@ -400,7 +407,36 @@ public class Literal<T> implements Datum<T> {
 
                 return Optional.empty();
             } else if (Text.class.isAssignableFrom(type)) {
-                return (Optional<R>) Optional.of(Utilities.getText(getString()));
+                return (Optional<R>) Optional.of(getText(getString()));
+            } else if (Explosion.class.isAssignableFrom(type)) {
+                Map<Literal, Literal> map = getMap();
+                Explosion.Builder builder = Explosion.builder();
+
+                Optional<World> world = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("world"), Literals.EMPTY).getAs(World.class);
+                Optional<Vector3d> origin = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("origin"), Literals.EMPTY).getAs(Vector3d.class);
+                builder.origin(origin.get()).world(world.get()); // These are both necessary
+
+                Literal radius = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("radius"), Literals.EMPTY);
+                if (!radius.isEmpty()) {
+                    builder.radius(radius.getNumber().floatValue());
+                }
+
+                Literal fire = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("fire"), Literals.EMPTY);
+                if (!fire.isEmpty()) {
+                    builder.canCauseFire(fire.getBoolean());
+                }
+
+                Literal breakBlocks = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("breakblocks"), Literals.EMPTY);
+                if (!breakBlocks.isEmpty()) {
+                    builder.shouldBreakBlocks(breakBlocks.getBoolean());
+                }
+
+                Literal smoke = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("smoke"), Literals.EMPTY);
+                if (!smoke.isEmpty()) {
+                    builder.shouldPlaySmoke(smoke.getBoolean());
+                }
+
+                return (Optional<R>) Optional.of(builder.build());
             }
         } catch (Throwable e) {
             //throw new LiteralCastException(e, "%s cannot be cast to %s", getValue().toString(), type.getName());
@@ -625,6 +661,17 @@ public class Literal<T> implements Datum<T> {
         return this;
     }
 
+    /**
+     * Performs the given action, given by a {@link Consumer}, only if the current value is present
+     *
+     * @param consumer the consumer to execute
+     */
+    public void doIfPresent(Consumer<Literal> consumer) {
+        if (!isEmpty()) {
+            consumer.accept(this);
+        }
+    }
+
     @Override
     public Literal<T> resolve(Context ctx) {
         return this;
@@ -658,9 +705,13 @@ public class Literal<T> implements Datum<T> {
             return Literal.fromObject(getAs(String.class).get());
         }
 
-        // Make integers not have the .0
         if (isNumber()) {
-            return Literal.fromObject(decimalFormat.format(getNumber()));
+            // Make integers not have the .0
+            if (getNumber() % 1 == 0) {
+                Literal.fromObject(Integer.toString(getNumber().intValue()));
+            } else {
+                return Literal.fromObject(Double.toString(getNumber()));
+            }
         }
 
         // Format arrays

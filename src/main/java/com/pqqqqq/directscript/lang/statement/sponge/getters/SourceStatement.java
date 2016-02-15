@@ -8,6 +8,8 @@ import org.spongepowered.api.text.selector.Selector;
 
 import java.util.Set;
 
+import static com.pqqqqq.directscript.lang.statement.Statement.GenericArguments.DEFAULT_SOURCE;
+
 /**
  * Created by Kevin on 2016-01-13.
  * A statement for command sources
@@ -34,6 +36,11 @@ public class SourceStatement extends Statement<Object> {
             @SuppressWarnings("deprecation") Selector selector = Sponge.getRegistry().getSelectorFactory().parseRawSelector(ctx.getLiteral("Selector").getString());
             return Result.<Set<Entity>>builder().success().result(selector.resolve(source)).build();
         }, GenericArguments.requiredArguments(this, GenericArguments.withName("Selector"))));
+    }
+
+    @Override
+    public Argument getObjectArgument() {
+        return DEFAULT_SOURCE;
     }
 
     @Override

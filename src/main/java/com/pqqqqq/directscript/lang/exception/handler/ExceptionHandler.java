@@ -52,7 +52,17 @@ public class ExceptionHandler {
      * @param message the message to log
      */
     public void log(Object message) {
-        writer.println(timestamp() + ": " + message.toString());
+        writer.println(timestamp() + ": " + message);
+    }
+
+    /**
+     * Logs a given message with the {@link #timestamp()} included, and flushes the stream right away
+     * @param message the message to log
+     * @see #log(Object)
+     */
+    public void logFlush(Object message) {
+        log(message);
+        flush();
     }
 
     /**
@@ -63,6 +73,17 @@ public class ExceptionHandler {
     public void log(Throwable e) {
         writer.print(timestamp() + ": ");
         e.printStackTrace(writer);
+    }
+
+    /**
+     * Logs the {@link Throwable} into the {@link PrintStream} and flushes the stream right away
+     *
+     * @param e the error
+     * @see #log(Throwable)
+     */
+    public void logFlush(Throwable e) {
+        log(e);
+        flush();
     }
 
     /**

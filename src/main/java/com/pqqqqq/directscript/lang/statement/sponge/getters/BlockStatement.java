@@ -4,6 +4,7 @@ import com.pqqqqq.directscript.lang.statement.Statement;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
+import org.spongepowered.api.block.trait.BlockTrait;
 import org.spongepowered.api.data.DataQuery;
 
 import java.util.Optional;
@@ -32,8 +33,16 @@ public class BlockStatement extends Statement<Object> {
             return Result.<String>builder().success().result(argument.getState().getType().getName()).build();
         }, GET_ARGUMENTS));
 
-        register(this.<BlockSnapshot, Object>createCompartment("damage", (ctx, argument) -> {
-            return Result.builder().success().result(argument.toContainer().get(DataQuery.of("UnsafeDamage")).get()).build();
+        register(this.<BlockSnapshot, Object>createCompartment("variant", (ctx, argument) -> {
+            Optional<BlockTrait<?>> blockTrait = argument.getState().getTrait("variant");
+            if (blockTrait.isPresent()) {
+                Optional<?> variant = argument.getState().getTraitValue(blockTrait.get());
+                if (variant.isPresent()) {
+                    return Result.builder().success().result(variant.get().toString()).build();
+                }
+            }
+
+            return Result.success();
         }, GET_ARGUMENTS));
 
         register(this.<BlockSnapshot, Object>createCompartment("set", (ctx, argument) -> {

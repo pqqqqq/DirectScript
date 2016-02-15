@@ -1,6 +1,7 @@
 package com.pqqqqq.directscript.lang.statement.sponge.getters;
 
 import com.pqqqqq.directscript.lang.statement.Statement;
+import com.pqqqqq.directscript.lang.statement.Statements;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.Living;
 
@@ -18,6 +19,7 @@ public class LivingStatement extends Statement<Object> {
 
     public LivingStatement() {
         super();
+        inherit(Statements.ENTITY); // Inherit entity
 
         final Arguments[] GET_ARGUMENTS = GenericArguments.getterArguments(this);
         register(this.<Living, Double>createCompartment("health", (ctx, living) -> {

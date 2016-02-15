@@ -278,14 +278,14 @@ public class Utilities {
         return Optional.empty();
     }
 
-    public static <K, V> V getMapType(Map<K, V> map, Predicate<K> predicate) {
+    public static <K, V> V getMapType(Map<K, V> map, Predicate<K> predicate, V def) {
         for (Map.Entry<K, V> entry : map.entrySet()) {
             if (predicate.test(entry.getKey())) {
                 return entry.getValue();
             }
         }
 
-        return null;
+        return def;
     }
 
     /**

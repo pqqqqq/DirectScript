@@ -28,6 +28,7 @@ public class EntityStatement extends Statement<Object> {
 
     public EntityStatement() {
         super();
+        //this.<Entity, Location>inherit(Statements.LOCATION, Entity::getLocation); // Inherit location
 
         final Arguments[] GET_ARGUMENTS = GenericArguments.getterArguments(this);
         register(this.<Entity, Location>createCompartment(new String[]{"location", "loc"}, (ctx, entity) -> {

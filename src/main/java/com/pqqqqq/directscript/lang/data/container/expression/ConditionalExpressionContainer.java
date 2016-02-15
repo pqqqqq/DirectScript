@@ -45,39 +45,21 @@ public class ConditionalExpressionContainer extends ExpressionContainer<Boolean>
         Literal secondTerm = getSecondTerm().resolve(ctx);
         ComparativeOperator comparator = getOperator();
 
+        if (firstTerm.isEmpty() && secondTerm.isEmpty()) {
+            return comparator.isNegative() ? Literal.Literals.FALSE : Literal.Literals.TRUE;
+        } else if (firstTerm.isEmpty() && !secondTerm.isEmpty() || secondTerm.isEmpty() && !firstTerm.isEmpty()) {
+            return comparator.isNegative() ? Literal.Literals.TRUE : Literal.Literals.FALSE;
+        }
+
         switch (comparator) {
             case EQUALS:
-                if (firstTerm.isEmpty() && secondTerm.isEmpty()) {
-                    return Literal.Literals.TRUE;
-                } else if (firstTerm.isEmpty() && !secondTerm.isEmpty() || secondTerm.isEmpty() && !firstTerm.isEmpty()) {
-                    return Literal.Literals.FALSE;
-                }
-
                 return Literal.fromObject(firstTerm.getValue().equals(secondTerm.getValue()));
             case NOT_EQUALS:
-                if (firstTerm.isEmpty() && secondTerm.isEmpty()) {
-                    return Literal.Literals.FALSE;
-                } else if (firstTerm.isEmpty() && !secondTerm.isEmpty() || secondTerm.isEmpty() && !firstTerm.isEmpty()) {
-                    return Literal.Literals.TRUE;
-                }
-
                 return Literal.fromObject(!firstTerm.getValue().equals(secondTerm.getValue()));
             case SIMILAR:
-                if (firstTerm.isEmpty() && secondTerm.isEmpty()) {
-                    return Literal.Literals.TRUE;
-                } else if (firstTerm.isEmpty() && !secondTerm.isEmpty() || secondTerm.isEmpty() && !firstTerm.isEmpty()) {
-                    return Literal.Literals.FALSE;
-                }
-
-                return Literal.fromObject(firstTerm.getString().equalsIgnoreCase(secondTerm.getString()));
+                return Literal.fromObject(firstTerm.getString().trim().equalsIgnoreCase(secondTerm.getString().trim()));
             case DISSIMILAR:
-                if (firstTerm.isEmpty() && secondTerm.isEmpty()) {
-                    return Literal.Literals.FALSE;
-                } else if (firstTerm.isEmpty() && !secondTerm.isEmpty() || secondTerm.isEmpty() && !firstTerm.isEmpty()) {
-                    return Literal.Literals.TRUE;
-                }
-
-                return Literal.fromObject(!firstTerm.getString().equalsIgnoreCase(secondTerm.getString()));
+                return Literal.fromObject(!firstTerm.getString().trim().equalsIgnoreCase(secondTerm.getString().trim()));
             case LESS_THAN:
                 return Literal.fromObject(firstTerm.getNumber() < secondTerm.getNumber());
             case MORE_THAN:
@@ -108,7 +90,7 @@ public class ConditionalExpressionContainer extends ExpressionContainer<Boolean>
         /**
          * Represents the not equals operator (!=)
          */
-        NOT_EQUALS("!="),
+        NOT_EQUALS("!=", true),
 
         /**
          * Represents the similar operator (~)
@@ -118,7 +100,7 @@ public class ConditionalExpressionContainer extends ExpressionContainer<Boolean>
         /**
          * Represents the dissimilar operator (!~)
          */
-        DISSIMILAR("!~"),
+        DISSIMILAR("!~", true),
 
         /**
          * Represents the less than operator (<)
@@ -141,9 +123,15 @@ public class ConditionalExpressionContainer extends ExpressionContainer<Boolean>
         MORE_THAN_EQUAL_TO(">=");
 
         private final String operator;
+        private final boolean negative;
 
         ComparativeOperator(String operator) {
+            this(operator, false);
+        }
+
+        ComparativeOperator(String operator, boolean negative) {
             this.operator = operator;
+            this.negative = negative;
         }
 
         /**
@@ -169,6 +157,14 @@ public class ConditionalExpressionContainer extends ExpressionContainer<Boolean>
          */
         public String getOperator() {
             return operator;
+        }
+
+        /**
+         * Gets if this operator is negative (unequal, dissimilar, etc)
+         * @return true if negative
+         */
+        public boolean isNegative() {
+            return negative;
         }
 
         @Override

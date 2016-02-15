@@ -9,6 +9,7 @@ import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.text.selector.Selector;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
+import org.spongepowered.api.world.explosion.Explosion;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -90,6 +91,16 @@ public class WorldStatement extends Statement<Object> {
             world.getProperties().setThundering(ctx.getLiteral("Enabled").getBoolean());
             return Result.success();
         }, GenericArguments.requiredArguments(this, GenericArguments.withName("Enabled"))));
+
+        register(this.<World, Object>createCompartment(new String[]{"explode", "triggerexplosion", "triggerexplode"}, (ctx, world) -> {
+            Optional<Explosion> explosion = ctx.getLiteral("Explosion", Explosion.class).getAs(Explosion.class);
+            if (explosion.isPresent()) {
+                world.triggerExplosion(explosion.get());
+                return Result.success();
+            }
+
+            return Result.builder().failure().error("Explosion vector unavailable").build();
+        }, GenericArguments.requiredArguments(this, GenericArguments.explosion("Explosion", 0, null))));
 
         register(this.<World, Object>createCompartment(new String[]{"playsound", "sound", "play"}, (ctx, world) -> {
             String sound = ctx.getLiteral("Sound").getString();

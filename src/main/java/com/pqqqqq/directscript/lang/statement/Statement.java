@@ -8,6 +8,7 @@ import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.reader.Context;
 import com.pqqqqq.directscript.lang.reader.Line;
 import org.spongepowered.api.block.BlockSnapshot;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.data.LocateableSnapshot;
 import org.spongepowered.api.data.Transaction;
 import org.spongepowered.api.data.key.Keys;
@@ -49,6 +50,12 @@ public abstract class Statement<T> implements Context.Runnable<T>, Compartment<O
      */
     public abstract Statement.Syntax getSyntax();
 
+    /**
+     * <p>Gets the {@link Argument} considered to be the object</p>
+     * <p>Object arguments are required to contain the flag {@link Argument#MAIN_OBJECT}</p>
+     *
+     * @return the object argument
+     */
     public Argument getObjectArgument() {
         return null;
     }
@@ -77,6 +84,20 @@ public abstract class Statement<T> implements Context.Runnable<T>, Compartment<O
         compartments.add(compartment);
     }
 
+    protected final void inherit(Statement other) {
+        Set<Compartment> compartments = other.getCompartments();
+        for (Compartment compartment : compartments) {
+            register(createCompartment(compartment, GenericArguments.from(this, compartment.getArgumentsArray())));
+        }
+    }
+
+    protected final <A, O> void inherit(Statement other, Function<A, O> conversionFunction) {
+        Set<Compartment> compartments = other.getCompartments();
+        for (Compartment compartment : compartments) {
+            register(createCompartment(compartment, conversionFunction, GenericArguments.from(this, compartment.getArgumentsArray())));
+        }
+    }
+
     protected final <A, R> Compartment<A, R> createCompartment(final String getter, final Context.Runnable.Argumentative<A, R> runnable, final Arguments... arguments) {
         return createCompartment(new String[]{getter}, runnable, arguments);
     }
@@ -97,6 +118,61 @@ public abstract class Statement<T> implements Context.Runnable<T>, Compartment<O
             @Override
             public Result<R> run(Context ctx, A argument) {
                 return runnable.run(ctx, argument);
+            }
+
+            @Override
+            public int hashCode() {
+                return Arrays.hashCode(getGetters());
+            }
+        };
+    }
+
+    protected final <A, R> Compartment<A, R> createCompartment(final Compartment<A, R> template, final Arguments... arguments) {
+        return new Compartment<A, R>() {
+
+            @Override
+            public Result<R> run(Context ctx, A argument) {
+                return template.run(ctx, argument);
+            }
+
+            @Override
+            public Arguments[] getArgumentsArray() {
+                return arguments;
+            }
+
+            @Override
+            public String[] getGetters() {
+                return template.getGetters();
+            }
+
+            @Override
+            public int hashCode() {
+                return Arrays.hashCode(getGetters());
+            }
+        };
+    }
+
+    protected final <A, R, O> Compartment<A, R> createCompartment(final Compartment<O, R> template, final Function<A, O> conversionFunction, final Arguments... arguments) {
+        return new Compartment<A, R>() {
+
+            @Override
+            public Result<R> run(Context ctx, A argument) {
+                return template.run(ctx, conversionFunction.apply(argument));
+            }
+
+            @Override
+            public Arguments[] getArgumentsArray() {
+                return arguments;
+            }
+
+            @Override
+            public String[] getGetters() {
+                return template.getGetters();
+            }
+
+            @Override
+            public int hashCode() {
+                return Arrays.hashCode(getGetters());
             }
         };
     }
@@ -496,6 +572,27 @@ public abstract class Statement<T> implements Context.Runnable<T>, Compartment<O
         }
 
         /**
+         * Gets a new arguments instance using a template arguments, and switching only the main object argument
+         *
+         * @param statement the new statement
+         * @param template  the template arguments
+         * @return the new arguments
+         */
+        public static Arguments from(Statement statement, Arguments template) {
+            Argument[] arguments = new Argument[template.getArguments().length];
+            for (int i = 0; i < arguments.length; i++) {
+                Argument argumentTemplate = template.getArguments()[i];
+                if (argumentTemplate.isMainObject()) {
+                    arguments[i] = statement.getObjectArgument(); // New object argument
+                } else {
+                    arguments[i] = argumentTemplate; // Add normally
+                }
+            }
+
+            return new Arguments(arguments, template.getDelimiters()); // Delimiters don't change
+        }
+
+        /**
          * Gets the {@link Statement.Argument} array sequence
          * @return the argument sequence
          */
@@ -538,6 +635,11 @@ public abstract class Statement<T> implements Context.Runnable<T>, Compartment<O
             }
 
             return 0;
+        }
+
+        @Override
+        public String toString() {
+            return Arrays.toString(arguments) + " :: " + Arrays.toString(delimiters);
         }
     }
 
@@ -811,6 +913,7 @@ public abstract class Statement<T> implements Context.Runnable<T>, Compartment<O
         public static final Argument DEFAULT_EXPLOSION = explosion("Explosion", Argument.MAIN_OBJECT, null);
         public static final Argument DEFAULT_ITEM_STACK = itemStack("ItemStack", Argument.MAIN_OBJECT, null);
         public static final Argument DEFAULT_TRANSACTION = transaction("Transaction", Argument.MAIN_OBJECT, null);
+        public static final Argument DEFAULT_SOURCE = transaction("Source", Argument.MAIN_OBJECT, null);
 
         public static Arguments[] getterArguments(Argument objectArgument) {
             if (objectArgument == null) {
@@ -878,6 +981,15 @@ public abstract class Statement<T> implements Context.Runnable<T>, Compartment<O
 
         public static Arguments[] requiredArguments(Statement statement, Argument required, Argument... unrequired) {
             return requiredArguments(statement.getObjectArgument(), required, unrequired);
+        }
+
+        public static Arguments[] from(Statement newStatement, Arguments[] template) {
+            Arguments[] arguments = new Arguments[template.length];
+            for (int i = 0; i < arguments.length; i++) {
+                arguments[i] = Arguments.from(newStatement, template[i]);
+            }
+
+            return arguments;
         }
 
         /**
@@ -1045,6 +1157,11 @@ public abstract class Statement<T> implements Context.Runnable<T>, Compartment<O
 
         public static Argument transaction(String argumentName, int flags, Literal.Types requiredType) {
             return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(Transaction.class)
+                    .build();
+        }
+
+        public static Argument source(String argumentName, int flags, Literal.Types requiredType) {
+            return Argument.builder().name(argumentName).setFlags(flags).requiredType(requiredType).objectClass(CommandSource.class)
                     .build();
         }
     }

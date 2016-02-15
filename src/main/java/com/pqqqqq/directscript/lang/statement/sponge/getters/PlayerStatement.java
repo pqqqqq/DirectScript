@@ -3,6 +3,7 @@ package com.pqqqqq.directscript.lang.statement.sponge.getters;
 import com.pqqqqq.directscript.DirectScript;
 import com.pqqqqq.directscript.lang.data.Literal;
 import com.pqqqqq.directscript.lang.statement.Statement;
+import com.pqqqqq.directscript.lang.statement.Statements;
 import com.pqqqqq.directscript.lang.util.Utilities;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.data.key.Keys;
@@ -26,6 +27,8 @@ public class PlayerStatement extends Statement<Object> {
 
     public PlayerStatement() {
         super();
+        inherit(Statements.LIVING); // Inherit living
+        inherit(Statements.SOURCE); // Inherit command source
 
         register(this.<Player, Object>createCompartment(new String[]{"closeinventory", "closeinv"}, (ctx, player) -> {
             player.closeInventory();

@@ -8,7 +8,6 @@ import com.pqqqqq.directscript.lang.script.Script;
 import com.pqqqqq.directscript.lang.script.ScriptInstance;
 import com.pqqqqq.directscript.lang.statement.Compartment;
 import com.pqqqqq.directscript.lang.statement.Statement;
-import com.pqqqqq.directscript.lang.util.Utilities;
 
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,7 @@ public class Context {
                 }
 
                 if (entry.getKey().isMainGetter()) {
-                    if (!compartment.containsGetter(Utilities.removeNonAlphanumeric(literal.getString()))) {
+                    if (!compartment.containsGetter(literal.getString())) {
                         continue mainLoop;
                     }
                 }
