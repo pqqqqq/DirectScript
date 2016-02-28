@@ -97,7 +97,7 @@ public class PlayerStatement extends Statement<Object> {
         }, GET_ARGUMENTS));
 
         register(this.<Player, Boolean>createCompartment(new String[]{"permission", "haspermission", "perm", "hasperm"}, (ctx, player) -> {
-            return Result.<Boolean>builder().success().result(player.hasPermission(ctx.getLiteral("Permissiom").getString())).build();
+            return Result.<Boolean>builder().success().result(player.hasPermission(ctx.getLiteral("Permission").getString())).build();
         }, GenericArguments.requiredArguments(this, GenericArguments.withName("Permission"))));
 
         register(this.<Player, Object>createCompartment(new String[]{"sethunger", "setfood", "setfoodlevel"}, (ctx, player) -> {
