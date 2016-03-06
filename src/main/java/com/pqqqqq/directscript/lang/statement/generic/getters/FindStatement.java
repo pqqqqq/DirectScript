@@ -22,7 +22,7 @@ public class FindStatement extends Statement<Integer> {
     public Result<Integer> run(Context ctx) {
         String string = ctx.getLiteral("String").getString();
         String contains = ctx.getLiteral("FindString").getString();
-        int find = string.indexOf(contains);
+        int find = string.indexOf(contains) + 1; // Base 1
 
         return Result.<Integer>builder().success().result(find).build();
     }
