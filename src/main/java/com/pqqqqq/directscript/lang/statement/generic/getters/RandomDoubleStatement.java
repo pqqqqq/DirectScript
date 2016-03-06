@@ -21,7 +21,7 @@ public class RandomDoubleStatement extends Statement<Double> {
 
     @Override
     public Result<Double> run(Context ctx) {
-        double min = ctx.getLiteral("Min", Integer.MIN_VALUE).getNumber();
+        double min = ctx.getLiteral("Min", 0).getNumber();
         double max = ctx.getLiteral("Max", Integer.MAX_VALUE).getNumber();
 
         return Result.<Double>builder().success().result(Utilities.randomDouble(min, max)).build();

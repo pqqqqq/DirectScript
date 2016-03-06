@@ -52,7 +52,7 @@ public class Context {
             Map<String, Literal> literals = new TreeMap<>(String.CASE_INSENSITIVE_ORDER); // Case insensitive
 
             for (Map.Entry<Statement.Argument, DataContainer> entry : containers.entrySet()) {
-                Literal literal = (entry.getValue() == null ? Literal.Literals.EMPTY : entry.getValue().resolve(this));
+                Literal literal = (entry.getValue() == null ? Literal.Literals.empty() : entry.getValue().resolve(this));
 
                 Optional<Literal.Types> requiredType = entry.getKey().getRequiredType();
                 if (requiredType.isPresent() && !requiredType.get().isCompatible(literal, false)) {
@@ -174,12 +174,12 @@ public class Context {
      * Gets the {@link Literal} with the given name
      *
      * @param name the name
-     * @return the literal argument, or {@link Literal.Literals#EMPTY}
+     * @return the literal argument, or {@link Literal.Literals.empty()}
      */
     public Literal getLiteral(String name) {
         Literal literal = this.literals.get(name);
         if (literal == null) {
-            literal = Literal.Literals.EMPTY;
+            literal = Literal.Literals.empty();
         }
 
         if (!literal.isEmpty()) {
@@ -200,7 +200,7 @@ public class Context {
      *
      * @param name the name
      * @param type the type for defaults
-     * @return the literal, or {@link Literal.Literals#EMPTY}
+     * @return the literal, or {@link Literal.Literals.empty()}
      */
     public Literal getLiteral(String name, Class<?> type) {
         Literal literal = getLiteral(name);

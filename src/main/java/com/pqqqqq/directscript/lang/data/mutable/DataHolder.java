@@ -9,14 +9,14 @@ import java.util.Optional;
  * Created by Kevin on 2015-06-17.
  * Represents a {@link MutableValue} that mutably houses a {@link Datum} value
  */
-public class DataHolder<C extends Datum<?>> implements MutableValue<C> {
-    private C datum;
+public class DataHolder<T, H extends Datum<T>> implements MutableValue<H> {
+    private H datum;
 
     /**
-     * Creates a new {@link DataHolder} with a {@link com.pqqqqq.directscript.lang.data.Literal.Literals#EMPTY empty} value
+     * Creates a new {@link DataHolder} with a {@link com.pqqqqq.directscript.lang.data.Literal.Literals#empty()} value
      */
     public DataHolder() {
-        this((C) Literal.Literals.EMPTY);
+        this((H) Literal.Literals.empty());
     }
 
     /**
@@ -24,22 +24,22 @@ public class DataHolder<C extends Datum<?>> implements MutableValue<C> {
      *
      * @param datum the datum
      */
-    public DataHolder(C datum) {
+    public DataHolder(H datum) {
         this.datum = datum;
     }
 
     @Override
-    public C getDatum() {
+    public H getDatum() {
         return datum;
     }
 
     @Override
-    public void setDatum(C datum) {
+    public void setDatum(H datum) {
         // It is important to use a Datum's datum which it was resolved from, if present
         if (datum instanceof Literal) {
             Optional<Datum> resolvedFrom = ((Literal) datum).getResolvedFrom();
             if (resolvedFrom.isPresent()) {
-                this.datum = (C) resolvedFrom.get();
+                this.datum = (H) resolvedFrom.get();
                 return; // Easier than two else statements with the same body
             }
         }

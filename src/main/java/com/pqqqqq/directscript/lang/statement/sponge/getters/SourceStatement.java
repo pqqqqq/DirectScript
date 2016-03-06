@@ -29,7 +29,7 @@ public class SourceStatement extends Statement<Object> {
         }, GETTER_ARGUMENTS));
 
         register(this.<CommandSource, Boolean>createCompartment(new String[]{"permission", "haspermission", "perm", "hasperm"}, (ctx, source) -> {
-            return Result.<Boolean>builder().success().result(source.hasPermission(ctx.getLiteral("Permissiom").getString())).build();
+            return Result.<Boolean>builder().success().result(source.hasPermission(ctx.getLiteral("Permission").getString())).build();
         }, GenericArguments.requiredArguments(this, GenericArguments.withName("Permission"))));
 
         register(this.<CommandSource, Set<Entity>>createCompartment("selector", (ctx, source) -> {

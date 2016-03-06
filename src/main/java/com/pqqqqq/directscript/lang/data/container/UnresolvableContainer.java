@@ -30,6 +30,6 @@ public class UnresolvableContainer<T> implements DataContainer<T> {
 
     @Override
     public Literal<T> resolve(Context ctx) {
-        return Literal.Literals.EMPTY;
+        return Literal.Literals.empty();
     }
 }

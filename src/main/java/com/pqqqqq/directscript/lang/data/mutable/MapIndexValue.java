@@ -50,7 +50,7 @@ public class MapIndexValue implements MutableValue<Literal<?>> {
         Literal value = map.get(getKey());
 
         if (value == null) {
-            value = Literal.Literals.EMPTY;
+            value = Literal.Literals.empty();
             map.put(getKey(), value);
             getMapHolder().setDatum(Literal.fromObject(map)); // Update for addition
         }

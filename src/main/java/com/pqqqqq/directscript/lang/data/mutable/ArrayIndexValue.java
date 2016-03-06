@@ -49,7 +49,7 @@ public class ArrayIndexValue implements MutableValue<Literal<?>> {
         Literal arrayLiteral = getArrayHolder().getDatum().tryLiteral();
 
         List<Literal> literalHolders = Lists.newArrayList(arrayLiteral.getArray()); // We must create a new array that can be changed
-        if (Utilities.buildToIndex(literalHolders, getIndex(), Literal.Literals.EMPTY)) {
+        if (Utilities.buildToIndex(literalHolders, getIndex(), Literal.Literals.empty())) {
             getArrayHolder().setDatum(Literal.fromObject(literalHolders)); // Update for shift
         }
 
@@ -61,7 +61,7 @@ public class ArrayIndexValue implements MutableValue<Literal<?>> {
         Literal arrayLiteral = getArrayHolder().getDatum().tryLiteral();
 
         List<Literal> literalHolders = Lists.newArrayList(arrayLiteral.getArray()); // We must create a new array that can be changed
-        Utilities.buildToIndex(literalHolders, getIndex(), Literal.Literals.EMPTY);
+        Utilities.buildToIndex(literalHolders, getIndex(), Literal.Literals.empty());
         literalHolders.set(getIndex(), dataContainer);
 
         getArrayHolder().setDatum(Literal.fromObject(literalHolders)); // Update

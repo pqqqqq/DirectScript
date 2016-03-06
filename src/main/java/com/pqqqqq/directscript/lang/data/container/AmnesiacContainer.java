@@ -47,7 +47,7 @@ public class AmnesiacContainer<T> implements Datum<T> {
     public Literal<T> resolve(Context ctx) {
         if (firstRun) {
             firstRun = false;
-            return Literal.Resolved.fromObject(Literal.Literals.EMPTY, this);
+            return Literal.Resolved.fromObject(Literal.Literals.empty(), this);
         }
 
         return Literal.Resolved.fromObject(getSequence().resolve(ctx), this);

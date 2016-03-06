@@ -43,7 +43,7 @@ public class Sequencer {
     public DataContainer parse(String sequence) {
         sequence = checkNotNull(sequence, "Sequence cannot be null").trim();
         if (sequence.isEmpty()) {
-            return Literal.Literals.EMPTY;
+            return Literal.Literals.empty();
         }
 
         // Get rid of brackets if they're still there

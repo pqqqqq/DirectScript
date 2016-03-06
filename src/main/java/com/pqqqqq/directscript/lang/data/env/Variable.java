@@ -16,7 +16,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Created by Kevin on 2015-06-02.
  * Represents a memory section that contains a {@link Literal} and is read by a specific name
  */
-public class Variable<C extends Datum<?>> extends DataHolder<C> {
+public class Variable<T, H extends Datum<T>> extends DataHolder<T, H> {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z]([A-Za-z0-9]|\\.|\\_|\\:)*$");
     private static final Pattern ILLEGAL_NAMES = Pattern.compile("/^(local|global|public|final|parse|in|and|or)$/");
 
@@ -26,13 +26,13 @@ public class Variable<C extends Datum<?>> extends DataHolder<C> {
     private Optional<Literal.Types> typesOptional;
 
     /**
-     * Creates a new variable with the corresponding name that has a value of {@link Literal.Literals#EMPTY}
+     * Creates a new variable with the corresponding name that has a value of {@link Literal.Literals#empty()}
      *
      * @param name the name
      * @param environment the environment
      */
     public Variable(String name, Environment environment) {
-        this(name, environment, (C) Literal.Literals.EMPTY);
+        this(name, environment, (H) Literal.Literals.empty());
     }
 
     /**
@@ -42,7 +42,7 @@ public class Variable<C extends Datum<?>> extends DataHolder<C> {
      * @param environment the environment
      * @param dataContainer the data container
      */
-    public Variable(String name, Environment environment, C dataContainer) {
+    public Variable(String name, Environment environment, H dataContainer) {
         this(name, environment, dataContainer, Optional.empty());
     }
 
@@ -53,7 +53,7 @@ public class Variable<C extends Datum<?>> extends DataHolder<C> {
      * @param environment the environment
      * @param dataContainer the data container
      */
-    public Variable(String name, Environment environment, C dataContainer, Optional<Literal.Types> type) {
+    public Variable(String name, Environment environment, H dataContainer, Optional<Literal.Types> type) {
         super();
         this.name = checkNotNull(name, "Name cannot be null.");
         this.environment = checkNotNull(environment, "Environment cannot be null.");
@@ -120,7 +120,7 @@ public class Variable<C extends Datum<?>> extends DataHolder<C> {
     }
 
     @Override
-    public void setDatum(C datum) {
+    public void setDatum(H datum) {
         boolean unequal = !checkNotNull(datum, "Data itself cannot be null. Use Literal#empty for null data").equals(getDatum());
 
         try {
@@ -132,7 +132,7 @@ public class Variable<C extends Datum<?>> extends DataHolder<C> {
         }
     }
 
-    private void forceData(C datum) { // Used in constructor
+    private void forceData(H datum) { // Used in constructor
         // Ensure type consistency
         if (getType().isPresent()) {
             Literal.Types type = getType().get();
@@ -143,7 +143,7 @@ public class Variable<C extends Datum<?>> extends DataHolder<C> {
                 // If it's empty, give it its respective empty type
                 Literal getOrNull = datum.tryLiteral();
                 if (getOrNull != null && getOrNull.isEmpty()) {
-                    datum = (C) type.getEmpty();
+                    datum = (H) type.getEmpty();
                 }
             }
         }

@@ -63,7 +63,7 @@ public class Literal<T> implements Datum<T> {
      */
     public static <T> Literal<T> fromObject(Object value) {
         if (value == null) {
-            return Literals.EMPTY;
+            return Literals.empty();
         }
 
         if (value instanceof Literal) {
@@ -143,7 +143,7 @@ public class Literal<T> implements Datum<T> {
 
     protected static <T> Optional<Literal<T>> fromSequence(String literal) { // Only Sequencer should use this
         if (literal == null || literal.isEmpty() || literal.equals("null")) { // Null or empty values return an empty parse
-            return Optional.of(Literals.EMPTY);
+            return Optional.of(Literals.empty());
         }
 
         // If there's quotes, it's a string
@@ -348,8 +348,8 @@ public class Literal<T> implements Datum<T> {
                 if (isMap()) {
                     Map<Literal, Literal> map = getMap();
 
-                    World world = DirectScript.instance().getGame().getServer().getWorld(getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("world"), Literals.EMPTY).getString()).get();
-                    Vector3d vec = new Vector3d(getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("x"), Literals.EMPTY).getNumber(), getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("y"), Literals.EMPTY).getNumber(), getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("z"), Literals.EMPTY).getNumber());
+                    World world = DirectScript.instance().getGame().getServer().getWorld(getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("world"), Literals.empty()).getString()).get();
+                    Vector3d vec = new Vector3d(getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("x"), Literals.empty()).getNumber(), getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("y"), Literals.empty()).getNumber(), getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("z"), Literals.empty()).getNumber());
                     loc = new Location(world, vec);
                 } else {
                     List<Literal> array = getArray();
@@ -368,17 +368,17 @@ public class Literal<T> implements Datum<T> {
                 }
             } else if (ItemStack.class.isAssignableFrom(type)) {
                 Map<Literal, Literal> map = getMap();
-                ItemType itemType = getType(ItemType.class, getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("type"), Literals.EMPTY).getString()).get();
-                int quantity = Optional.ofNullable(getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("amount"), Literals.EMPTY)).orElse(Literals.ONE).getNumber().intValue();
+                ItemType itemType = getType(ItemType.class, getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("type"), Literals.empty()).getString()).get();
+                int quantity = Optional.ofNullable(getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("amount"), Literals.empty())).orElse(Literals.ONE).getNumber().intValue();
 
                 ItemStack itemStack = DirectScript.instance().getGame().getRegistry().createBuilder(ItemStack.Builder.class).itemType(itemType).quantity(quantity).build();
 
-                Literal displayName = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("displayName"), Literals.EMPTY);
+                Literal displayName = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("displayName"), Literals.empty());
                 if (!displayName.isEmpty()) {
                     itemStack.offer(Keys.DISPLAY_NAME, getText(displayName.getString()));
                 }
 
-                Literal lore = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("lore"), Literals.EMPTY);
+                Literal lore = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("lore"), Literals.empty());
                 if (!lore.isEmpty()) {
                     List<Text> loreList = new ArrayList<>();
                     List<Literal> loreLiterals = lore.getArray();
@@ -387,7 +387,7 @@ public class Literal<T> implements Datum<T> {
                     itemStack.offer(Keys.ITEM_LORE, loreList);
                 }
 
-                Literal damage = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("damage"), Literals.EMPTY);
+                Literal damage = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("damage"), Literals.empty());
                 if (!damage.isEmpty()) {
                     itemStack.toContainer().set(DataQuery.of("UnsafeDamage"), damage.getNumber());
                 }
@@ -412,26 +412,26 @@ public class Literal<T> implements Datum<T> {
                 Map<Literal, Literal> map = getMap();
                 Explosion.Builder builder = Explosion.builder();
 
-                Optional<World> world = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("world"), Literals.EMPTY).getAs(World.class);
-                Optional<Vector3d> origin = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("origin"), Literals.EMPTY).getAs(Vector3d.class);
+                Optional<World> world = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("world"), Literals.empty()).getAs(World.class);
+                Optional<Vector3d> origin = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("origin"), Literals.empty()).getAs(Vector3d.class);
                 builder.origin(origin.get()).world(world.get()); // These are both necessary
 
-                Literal radius = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("radius"), Literals.EMPTY);
+                Literal radius = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("radius"), Literals.empty());
                 if (!radius.isEmpty()) {
                     builder.radius(radius.getNumber().floatValue());
                 }
 
-                Literal fire = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("fire"), Literals.EMPTY);
+                Literal fire = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("fire"), Literals.empty());
                 if (!fire.isEmpty()) {
                     builder.canCauseFire(fire.getBoolean());
                 }
 
-                Literal breakBlocks = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("breakblocks"), Literals.EMPTY);
+                Literal breakBlocks = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("breakblocks"), Literals.empty());
                 if (!breakBlocks.isEmpty()) {
                     builder.shouldBreakBlocks(breakBlocks.getBoolean());
                 }
 
-                Literal smoke = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("smoke"), Literals.EMPTY);
+                Literal smoke = getMapType(map, (literal) -> literal.getString().equalsIgnoreCase("smoke"), Literals.empty());
                 if (!smoke.isEmpty()) {
                     builder.shouldPlaySmoke(smoke.getBoolean());
                 }
@@ -623,7 +623,7 @@ public class Literal<T> implements Datum<T> {
     }
 
     /**
-     * Gets a {@link Literal} with the specified new value if this literal is {@link Literals#EMPTY}, or otherwise this literal
+     * Gets a {@link Literal} with the specified new value if this literal is {@link Literals.empty()}, or otherwise this literal
      *
      * @param newvalue the new value
      * @return this literal if not empty, or a literal with newvalue
@@ -636,7 +636,7 @@ public class Literal<T> implements Datum<T> {
     }
 
     /**
-     * Gets a {@link Literal} with the specified {@link Supplier} if this literal is {@link Literals#EMPTY}, or otherwise this literal
+     * Gets a {@link Literal} with the specified {@link Supplier} if this literal is {@link Literals.empty()}, or otherwise this literal
      *
      * @param supplier the supplier
      * @return this literal if not empty, or a literal with newvalue
@@ -649,7 +649,7 @@ public class Literal<T> implements Datum<T> {
     }
 
     /**
-     * Gets a {@link Literal} with the specified new value if this literal is {@link Literals#EMPTY}, or otherwise this literal
+     * Gets a {@link Literal} with the specified new value if this literal is {@link Literals.empty()}, or otherwise this literal
      *
      * @param newvalue the new value
      * @return this literal if not empty, or the other literal
@@ -834,17 +834,17 @@ public class Literal<T> implements Datum<T> {
         /**
          * Represents an unclassified {@link Object}
          */
-        OBJECT("object", Literals.EMPTY, (datum) -> datum instanceof Literal && ((Literal) datum).isObjective()),
+        OBJECT("object", Literals.empty(), (datum) -> datum instanceof Literal && ((Literal) datum).isObjective()),
 
         /**
          * Represents an {@link AmnesiacContainer}
          */
-        AMNESIAC("amnesiac", Literals.EMPTY, (datum) -> datum instanceof AmnesiacContainer),
+        AMNESIAC("amnesiac", Literals.empty(), (datum) -> datum instanceof AmnesiacContainer),
 
         /**
          * Represents an {@link ArithmeticContainer}
          */
-        ARITHMETIC("arithmetic", Literals.EMPTY, (datum) -> datum instanceof ArithmeticContainer);
+        ARITHMETIC("arithmetic", Literals.empty(), (datum) -> datum instanceof ArithmeticContainer);
 
 
         private String name;
@@ -931,44 +931,41 @@ public class Literal<T> implements Datum<T> {
      */
     public static class Literals {
         /**
-         * An empty {@link Literal}, where the value is absent
-         */
-        public static final Literal EMPTY = new Literal();
-
-        /**
          * A true {@link Literal}, where the value is true (or 1)
          */
         public static final Literal<Boolean> TRUE = new Literal(true);
-
         /**
          * A false {@link Literal}, where the value is false (or 0)
          */
         public static final Literal<Boolean> FALSE = new Literal(false);
-
         /**
          * A {@link Literal} whose value is a number equal to 0
          */
         public static final Literal<Double> ZERO = new Literal(0D);
-
         /**
          * A {@link Literal} whose value is a number equal to 1
          */
         public static final Literal<Double> ONE = new Literal(1D);
-
         /**
          * A {@link Literal} whose value is an empty string <i>""</i>
          */
         public static final Literal<String> EMPTY_STRING = new Literal("");
-
         /**
          * A {@link Literal} whose value is an empty array
          */
         public static final Literal<List<Literal>> EMPTY_ARRAY = new Literal(ImmutableList.copyOf(new ArrayList<>()));
-
         /**
          * A {@link Literal} whose value is an empty map
          */
         public static final Literal<Map<Literal, Literal>> EMPTY_MAP = new Literal(ImmutableMap.copyOf(new HashMap<>()));
+
+        /**
+         * An empty {@link Literal}, where the value is absent
+         * @return a type-safe literal
+         */
+        public static <T> Literal<T> empty() {
+            return new Literal<>();
+        }
     }
 
     /**

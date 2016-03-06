@@ -42,6 +42,6 @@ public class StatementContainer implements DataContainer {
 
         Statement.Result result = line.toContext(ctx.getScriptInstance()).run();
         Optional<Literal> datumOptional = result.getLiteralResult();
-        return datumOptional.orElse(Literal.Literals.EMPTY);
+        return datumOptional.orElse(Literal.Literals.empty());
     }
 }

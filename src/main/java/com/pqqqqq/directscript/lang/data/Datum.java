@@ -6,7 +6,7 @@ import com.pqqqqq.directscript.lang.data.mutable.DataHolder;
 
 /**
  * Created by Kevin on 2015-11-19.
- * Represents a {@link Datum} that can be represented by a {@link Literal}
+ * Represents a {@link DataContainer} that can be Config serialized
  */
 public interface Datum<T> extends DataContainer<T> {
 

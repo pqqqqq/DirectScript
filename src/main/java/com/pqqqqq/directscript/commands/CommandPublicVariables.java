@@ -48,7 +48,7 @@ public class CommandPublicVariables implements CommandExecutor {
                         typesOptional = Literal.Types.fromName(commandContext.<String>getOne("Type").get());
                     }
 
-                    lang.addVariable(new Variable(variableName.get(), lang, Literal.Literals.EMPTY, typesOptional));
+                    lang.addVariable(new Variable<>(variableName.get(), lang, Literal.Literals.empty(), typesOptional));
                     commandSource.sendMessage(Text.of(TextColors.GREEN, "Addition successful."));
                 }
 
@@ -72,7 +72,7 @@ public class CommandPublicVariables implements CommandExecutor {
                 } else {
                     Optional<Variable> variable = lang.getVariable(variableName.get());
                     if (variable.isPresent()) {
-                        variable.get().setDatum(Literal.Literals.EMPTY);
+                        variable.get().setDatum(Literal.Literals.empty());
                         commandSource.sendMessage(Text.of(TextColors.GREEN, "Reset successful."));
                     } else {
                         commandSource.sendMessage(Text.of(TextColors.RED, "Could not find this variable."));

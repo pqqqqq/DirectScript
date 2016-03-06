@@ -52,7 +52,7 @@ public class VariableContainer implements ValueContainer {
     @Override
     public Literal resolve(Context ctx) {
         Variable dataHolder = resolveValue(ctx);
-        return dataHolder == null ? Literal.Literals.EMPTY : dataHolder.getDatum().resolve(ctx);
+        return dataHolder == null ? Literal.Literals.empty() : dataHolder.getDatum().resolve(ctx);
     }
 
     @Override
